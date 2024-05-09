@@ -214,10 +214,10 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 								<ImageWithFallback
 									src={`https://assets.smold.app/tokens/10/${shareData?.address}/logo-128.png`}
 									alt={shareData?.symbol || ''}
-									width={28}
-									height={28}
+									width={32}
+									height={32}
 								/>
-								<b className={'text-lg'}>{shareData?.symbol || ''}</b>
+								<b className={'whitespace-nowrap text-lg'}>{shareData?.symbol || ''}</b>
 							</div>
 							<button
 								onClick={() => set_value(data?.vaultBalanceOf?.normalized || 0)}
@@ -252,10 +252,10 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 								<ImageWithFallback
 									src={`https://assets.smold.app/tokens/10/${props.vaultData.assetAddress}/logo-32.png`}
 									alt={props.vaultData.assetSymbol}
-									width={28}
-									height={28}
+									width={32}
+									height={32}
 								/>
-								<b className={'text-lg'}>{shareData?.symbol}</b>
+								<b className={'whitespace-nowrap text-lg'}>{props.vaultData.assetSymbol}</b>
 							</div>
 							<p className={'mt-1 whitespace-nowrap text-xs text-white/60'}>
 								{`Balance: ${formatAmount(data?.underlyingBalanceOf?.normalized || 0, 4)}`}

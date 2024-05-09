@@ -3,9 +3,9 @@
 	"short_name": "yPoolTogether",
 	"description": "Save to Yield. Save to Win.",
 	"locale": "en-US",
-	"uri": "https://dump.services/",
-	"og": "https://dump.services/og.png",
-	"iconPath": "https://dump.services/favicons/favicon.svg",
+	"uri": "https://prize.yearn.fi/",
+	"og": "https://prize.yearn.fi/og.png",
+	"iconPath": "https://prize.yearn.fi/favicons/favicon.svg",
 	"twitter": "@yearnfi",
 	"icons": [
 		{
