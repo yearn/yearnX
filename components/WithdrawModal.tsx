@@ -15,7 +15,6 @@ import {
 	toNormalizedBN
 } from '@builtbymom/web3/utils';
 import {defaultTxStatus, getNetwork} from '@builtbymom/web3/utils/wagmi';
-import {useVaultTokenPrice} from '@generationsoftware/hyperstructure-react-hooks';
 import {Dialog, Transition} from '@headlessui/react';
 import {redeemV3Shares} from '@utils/actions';
 import {PRIZE_VAULT_ABI} from '@utils/prizeVault.abi';
@@ -46,7 +45,6 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 	const [value, set_value] = useState<number | undefined>(undefined);
 	const [isTyping, set_isTyping] = useState(false);
 	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
-	const {data: prices} = useVaultTokenPrice(props.vault);
 
 	/**********************************************************************************************
 	 ** For display purpose, we need to fetch the balance of the user in the vault and the balance
@@ -205,19 +203,33 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 								}}
 								onBlur={() => set_isTyping(false)}
 							/>
-							<div className={'mt-1 flex items-center justify-between text-xs text-white/60'}>
-								{`$ ${(value || 0) * (prices?.price || 0)}`}
-							</div>
 						</div>
 						<div className={'w-auto text-right'}>
 							<div className={'flex h-8 items-center justify-end gap-2 text-right'}>
-								<ImageWithFallback
-									src={`https://assets.smold.app/tokens/10/${shareData?.address}/logo-128.png`}
-									alt={shareData?.symbol || ''}
-									width={32}
-									height={32}
-								/>
-								<b className={'whitespace-nowrap text-lg'}>{shareData?.symbol || ''}</b>
+								<div className={'relative'}>
+									<ImageWithFallback
+										className={'size-8 rounded-full border border-purple'}
+										style={{width: 32, height: 32, minWidth: 32, minHeight: 32}}
+										src={`https://assets.smold.app/tokens/10/${props.vaultData.assetAddress}/logo-128.png`}
+										alt={props.vaultData.assetSymbol}
+										width={128}
+										height={128}
+									/>
+									<ImageWithFallback
+										className={cl(
+											'absolute -bottom-0.5 -right-0.5 size-4 rounded-full bg-purple',
+											'text-xxs text-white',
+											'border border-white',
+											'flex items-center justify-center'
+										)}
+										style={{width: 14, height: 14, minWidth: 14, minHeight: 14}}
+										src={'/poolToken.png'}
+										alt={''}
+										width={128}
+										height={128}
+									/>
+								</div>
+								<b className={'whitespace-nowrap text-lg'}>{shareData?.symbol}</b>
 							</div>
 							<button
 								onClick={() => set_value(data?.vaultBalanceOf?.normalized || 0)}
@@ -242,9 +254,6 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 									!value ? 'text-white/20' : 'text-white'
 								)}>
 								{shareForValue}
-							</div>
-							<div className={'mt-1 flex items-center justify-between text-xs text-white/60'}>
-								{`$ ${(value || 0) * (prices?.price || 0)}`}
 							</div>
 						</div>
 						<div className={'w-auto text-right'}>
