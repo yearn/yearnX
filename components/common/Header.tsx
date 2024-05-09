@@ -30,8 +30,8 @@ function Header(): ReactElement {
 								className={cl(
 									'hover-fix text-center',
 									(pathname.startsWith(href) && href !== '/') || pathname === href
-										? 'font-bold text-neutral-900'
-										: 'text-[#552E08] transition-all hover:text-neutral-900 hover:font-bold'
+										? 'font-bold text-white'
+										: 'text-white/60 transition-all hover:text-neutral-900 hover:font-bold'
 								)}>
 								{label}
 							</p>
@@ -48,17 +48,17 @@ function Header(): ReactElement {
 				</div>
 			</div>
 			<div className={'z-10 my-4 flex w-full justify-between px-2 md:hidden'}>
-				<Drawer direction={'left'}>
+				<Drawer direction={'bottom'}>
 					<DrawerTrigger>
 						<IconMenu className={'size-6'} />
 					</DrawerTrigger>
-					<DrawerContent className={'bg-orange'}>
+					<DrawerContent className={'bg-purple'}>
 						<DrawerHeader>
 							<button
 								suppressHydrationWarning
 								onClick={address ? onDesactivate : onConnect}
 								className={
-									'h-10 rounded-lg border-2 border-neutral-900 bg-yellow px-5 text-base font-bold'
+									'h-10 rounded-lg border-0 border-neutral-900 bg-white px-5 text-base font-bold text-purple'
 								}>
 								{address && ens ? ens : address ? truncateHex(address, 6) : 'Connect Wallet'}
 							</button>
@@ -72,7 +72,7 @@ function Header(): ReactElement {
 											<p
 												className={cl(
 													'text-left',
-													pathname === href ? 'font-bold text-neutral-900' : 'text-[#552E08]'
+													pathname === href ? 'font-bold text-white' : 'text-white/60'
 												)}>
 												{label}
 											</p>
@@ -83,7 +83,7 @@ function Header(): ReactElement {
 						</DrawerHeader>
 						<DrawerFooter>
 							<DrawerClose>
-								<button className={'text-xs text-neutral-900/60'}>{'Close'}</button>
+								<button className={'text-xs text-white/40'}>{'Close'}</button>
 							</DrawerClose>
 						</DrawerFooter>
 					</DrawerContent>

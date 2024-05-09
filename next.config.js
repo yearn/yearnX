@@ -41,6 +41,7 @@ module.exports = phase =>
 				137: process.env.RPC_URL_POLYGON,
 				250: process.env.RPC_URL_FANTOM,
 				1337: 'http://localhost:8080',
+				8453: process.env.RPC_URL_BASE,
 				42161: process.env.RPC_URL_ARBITRUM
 			},
 			ALCHEMY_KEY: process.env.ALCHEMY_KEY,

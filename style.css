@@ -449,3 +449,8 @@
 select.smol--input {
 	@apply pr-7 truncate;
 }
+
+.poolGradient {
+	background: linear-gradient(71.84deg, #5832f2 -10.22%, #e80766 164.53%),
+		radial-gradient(54.09% 131.33% at 14% 30.17%, rgba(186, 103, 251, 0.3) 0%, rgba(152, 21, 255, 0.06) 100%);
+}

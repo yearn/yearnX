@@ -24,11 +24,11 @@ class MyDocument extends Document {
 						crossOrigin={'anonymous'}
 					/>
 					<link
-						href={'https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap'}
+						href={'https://fonts.googleapis.com/css2?family=Roboto:wght@100..900&display=swap'}
 						rel={'stylesheet'}
 					/>
 				</Head>
-				<body className={'bg-primary-50 transition-colors duration-150'}>
+				<body className={'bg-purple text-white transition-colors duration-150'}>
 					<Main />
 					<NextScript />
 				</body>

@@ -1,8 +1,8 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 import {Toaster} from 'react-hot-toast';
-import {Inter} from 'next/font/google';
+import {Roboto} from 'next/font/google';
 import Head from 'next/head';
-import {mainnet} from 'viem/chains';
+import {base, optimism, polygon} from 'viem/chains';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
 import {localhost} from '@builtbymom/web3/utils/wagmi';
@@ -16,11 +16,11 @@ import type {ReactElement} from 'react';
 
 import '../style.css';
 
-const inter = Inter({
-	weight: ['400', '500', '600', '700'],
+const roboto = Roboto({
+	weight: ['400', '500', '700', '900'],
 	subsets: ['latin'],
 	display: 'swap',
-	variable: '--inter-font'
+	variable: '--roboto-font'
 });
 
 function MyApp({Component, ...props}: AppProps): ReactElement {
@@ -32,22 +32,22 @@ function MyApp({Component, ...props}: AppProps): ReactElement {
 					global>
 					{`
 						html {
-							font-family: ${inter.className};
+							font-family: ${roboto.className};
 						}
 					`}
 				</style>
 			</Head>
 			<Meta />
 			<WithMom
-				supportedChains={[mainnet, localhost]}
-				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/1/tokenlistooor.json']}>
+				supportedChains={[polygon, optimism, base, localhost]}
+				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/tokenlistooor.json']}>
 				<WalletContextApp>
-					<Fragment>
+					<div className={`${roboto.variable}`}>
 						<Header />
-						<main className={`relative mx-auto mb-0 flex min-h-screen w-full flex-col ${inter.variable}`}>
+						<main className={`relative mx-auto mb-0 flex min-h-screen w-full flex-col ${roboto.variable}`}>
 							<Component {...props} />
 						</main>
-					</Fragment>
+					</div>
 				</WalletContextApp>
 			</WithMom>
 			<Toaster

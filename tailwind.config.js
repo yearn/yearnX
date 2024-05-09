@@ -32,6 +32,7 @@ module.exports = {
 			white: 'rgb(255, 255, 255)',
 			transparent: 'transparent',
 			inherit: 'inherit',
+			purple: '#4C249F',
 			primary: {
 				0: '#FFFFFF',
 				50: '#ebf4f3',
@@ -44,19 +45,6 @@ module.exports = {
 				700: '#22594f',
 				800: '#173c34',
 				900: '#0b1e1a'
-			},
-			orange: {
-				50: '#fff7ed',
-				100: '#ffedd5',
-				200: '#fed7aa',
-				300: '#fdba74',
-				400: '#fb923c',
-				500: '#f97316',
-				600: '#ea580c',
-				700: '#c2410c',
-				800: '#9a3412',
-				900: '#7c2d12',
-				950: '#431407'
 			},
 			neutral: {
 				0: withOpacityValue('--color-neutral-0'),
@@ -79,8 +67,8 @@ module.exports = {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['var(--inter-font)', 'Inter', 'Roboto', ...defaultTheme.fontFamily.sans],
-				mono: ['Source Code Pro', ...defaultTheme.fontFamily.mono]
+				sans: ['Roboto', ...defaultTheme.fontFamily.sans],
+				mono: [...defaultTheme.fontFamily.mono]
 			},
 			width: {
 				inherit: 'inherit'
