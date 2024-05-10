@@ -1,7 +1,16 @@
 import React, {useState} from 'react';
 import Link from 'next/link';
 import {DepositPopupWrapper} from 'components/DepositModal';
-import {cl, formatAmount, toAddress, toBigInt, truncateHex} from '@builtbymom/web3/utils';
+import {useReadContract} from 'wagmi';
+import {
+	cl,
+	formatAmount,
+	toAddress,
+	toBigInt,
+	toNormalizedBN,
+	truncateHex,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
 import {getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {
 	usePrizePool,
@@ -9,12 +18,14 @@ import {
 	useVaultPrizeYield,
 	useVaultPromotionsApr
 } from '@generationsoftware/hyperstructure-react-hooks';
+import {PRIZE_VAULT_ABI} from '@utils/prizeVault.abi';
 import {Counter} from '@common/Counter';
 import {ImageWithFallback} from '@common/ImageWithFallback';
 
 import {WithdrawPopupWrapper} from './WithdrawModal';
 
 import type {ReactElement} from 'react';
+import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {PrizePool, Vault} from '@generationsoftware/hyperstructure-client-js';
 import type {TVaultData} from '@utils/types';
 
@@ -22,6 +33,7 @@ export function GridViewItem(props: {
 	vault: Vault;
 	vaultData: TVaultData;
 	prizePool: PrizePool;
+	balanceOf: TNormalizedBN;
 	onOpenDepositPopup: () => void;
 	onOpenWithdrawPopup: () => void;
 }): ReactElement {
@@ -60,12 +72,12 @@ export function GridViewItem(props: {
 				<dt className={'whitespace-nowrap text-sm opacity-80'}>{'Promotions APR'}</dt>
 				<dd className={'col-span-2 text-right'}>{`${formatAmount(Number(promoAPR), 2, 2)}%`}</dd>
 
-				{toBigInt(props.vaultData.balanceOf.raw) > 0n ? (
+				{toBigInt(props.balanceOf.raw) > 0n ? (
 					<>
 						<dt className={'text-sm opacity-80'}>{'Your balance'}</dt>
 						<dd className={'col-span-2 text-right'}>
 							<Counter
-								value={props.vaultData.balanceOf.normalized}
+								value={props.balanceOf.normalized}
 								decimals={props.vaultData.decimals}
 								idealDecimals={2}
 								decimalsToDisplay={[2, 4, 6, 8]}
@@ -153,6 +165,7 @@ export function ListViewItem(props: {
 	vault: Vault;
 	vaultData: TVaultData;
 	prizePool: PrizePool;
+	balanceOf: TNormalizedBN;
 	onOpenDepositPopup: () => void;
 	onOpenWithdrawPopup: () => void;
 }): ReactElement {
@@ -203,7 +216,7 @@ export function ListViewItem(props: {
 					<dd className={'col-span-2 flex flex-row items-center gap-2 text-left'}>
 						<div className={''}>
 							<Counter
-								value={props.vaultData.balanceOf.normalized}
+								value={props.balanceOf.normalized}
 								decimals={props.vaultData.decimals}
 								idealDecimals={2}
 								decimalsToDisplay={[2, 4, 6, 8]}
@@ -254,6 +267,19 @@ export function VaultBox(props: {vault: TVaultData; refetch: () => void}): React
 	const [isDepositPopupOpen, set_isDepositPopupOpen] = useState(false);
 	const [isWithdrawPopupOpen, set_isWithdrawPopupOpen] = useState(false);
 	const prizePool = usePrizePool(10, toAddress('0xF35fE10ffd0a9672d0095c435fd8767A7fe29B55'));
+	const {data: yourBalanceInAssets} = useReadContract({
+		abi: PRIZE_VAULT_ABI,
+		address: props.vault.address,
+		chainId: 10,
+		functionName: 'convertToAssets',
+		args: [props.vault.totalSupply.raw],
+		query: {
+			select(data) {
+				return toNormalizedBN(data, props.vault.decimals);
+			}
+		}
+	});
+
 	const vault = useVault({
 		chainId: 10,
 		address: props.vault.address,
@@ -269,6 +295,7 @@ export function VaultBox(props: {vault: TVaultData; refetch: () => void}): React
 					prizePool={prizePool}
 					vault={vault}
 					vaultData={props.vault}
+					balanceOf={yourBalanceInAssets || zeroNormalizedBN}
 					onOpenDepositPopup={() => set_isDepositPopupOpen(true)}
 					onOpenWithdrawPopup={() => set_isWithdrawPopupOpen(true)}
 				/>
@@ -278,6 +305,7 @@ export function VaultBox(props: {vault: TVaultData; refetch: () => void}): React
 					prizePool={prizePool}
 					vault={vault}
 					vaultData={props.vault}
+					balanceOf={yourBalanceInAssets || zeroNormalizedBN}
 					onOpenDepositPopup={() => set_isDepositPopupOpen(true)}
 					onOpenWithdrawPopup={() => set_isWithdrawPopupOpen(true)}
 				/>
