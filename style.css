@@ -5,9 +5,6 @@
 :root {
 }
 
-.font-mono {
-	font-family: 'Source Code Pro', monospace !important;
-}
 @layer base {
 	.max-w-4xl {
 		@apply max-w-[888px] px-4;

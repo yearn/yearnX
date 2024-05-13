@@ -13,21 +13,7 @@ class MyDocument extends Document {
 	render(): ReactElement {
 		return (
 			<Html lang={'en'}>
-				<Head>
-					<link
-						rel={'preconnect'}
-						href={'https://fonts.googleapis.com'}
-					/>
-					<link
-						rel={'preconnect'}
-						href={'https://fonts.gstatic.com'}
-						crossOrigin={'anonymous'}
-					/>
-					<link
-						href={'https://fonts.googleapis.com/css2?family=Roboto:wght@100..900&display=swap'}
-						rel={'stylesheet'}
-					/>
-				</Head>
+				<Head />
 				<body className={'bg-purple text-white transition-colors duration-150'}>
 					<Main />
 					<NextScript />

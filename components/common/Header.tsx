@@ -14,10 +14,14 @@ function Header(): ReactElement {
 	const {onConnect, onDesactivate, address, ens} = useWeb3();
 	const {openAccountModal} = useAccountModal();
 
-	const tabs = [{href: '/', label: 'Home', target: '_self'}];
+	const tabs = [
+		{href: '/', label: 'Prize Vaults', target: '_self'},
+		{href: 'https://yearn.fi', label: 'Yearn', target: '_blank'},
+		{href: 'https://pooltogether.com/', label: 'PoolTogether', target: '_blank'}
+	];
 
 	return (
-		<header className={'mx-auto grid w-full max-w-6xl'}>
+		<header className={'mx-auto grid w-full max-w-6xl pt-3'}>
 			<div className={'z-10 my-4 hidden w-full justify-between md:flex'}>
 				<div className={'flex gap-x-6'}>
 					{tabs.map(({href, label, target}) => (
@@ -28,10 +32,10 @@ function Header(): ReactElement {
 							<p
 								title={label}
 								className={cl(
-									'hover-fix text-center',
+									'hover-fix text-center text-sm',
 									(pathname.startsWith(href) && href !== '/') || pathname === href
 										? 'font-bold text-white'
-										: 'text-white/60 transition-all hover:text-neutral-900 hover:font-bold'
+										: 'text-white/60 transition-all hover:text-white hover:font-bold'
 								)}>
 								{label}
 							</p>
@@ -42,7 +46,7 @@ function Header(): ReactElement {
 					<button
 						suppressHydrationWarning
 						onClick={address ? openAccountModal : onConnect}
-						className={'text-base font-bold'}>
+						className={'text-sm font-bold'}>
 						{address && ens ? ens : address ? truncateHex(address, 6) : 'Connect Wallet'}
 					</button>
 				</div>

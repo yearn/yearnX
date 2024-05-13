@@ -69,7 +69,7 @@ export function GridViewItem(props: {
 				<dt className={'text-sm opacity-80'}>{'Prize Yield'}</dt>
 				<dd className={'col-span-2 text-right'}>{`${formatAmount(Number(prizeYield), 2, 2)}%`}</dd>
 
-				<dt className={'whitespace-nowrap text-sm opacity-80'}>{'Promotions APR'}</dt>
+				<dt className={'whitespace-nowrap text-sm opacity-80'}>{'Bonus Rewards'}</dt>
 				<dd className={'col-span-2 text-right'}>{`${formatAmount(Number(promoAPR), 2, 2)}%`}</dd>
 
 				{toBigInt(props.balanceOf.raw) > 0n ? (
@@ -184,20 +184,25 @@ export function ListViewItem(props: {
 		{fromBlock: 118_900_000n}
 	);
 	return (
-		<div className={'poolGradient grid grid-cols-9 gap-4 rounded-xl p-4'}>
+		<div className={'poolGradient grid grid-cols-9 gap-6 rounded-2xl p-4'}>
 			<div className={'col-span-2'}>
-				<div className={'flex w-full items-center gap-2 rounded-lg bg-white/20 p-2 backdrop-blur-md'}>
-					<ImageWithFallback
-						src={`https://assets.smold.app/tokens/10/${props.vaultData.assetAddress}/logo-32.png`}
-						alt={props.vaultData.assetSymbol}
-						width={28}
-						height={28}
-					/>
-					<div className={'truncate'}>
-						<p className={'truncate'}>{props.vaultData.name}</p>
-						<p className={'text-xs opacity-40'}>{`${props.vaultData.symbol}`}</p>
+				<Link href={`/vault/${props.vaultData.address}`}>
+					<div
+						className={
+							'flex w-full cursor-pointer items-center gap-2 rounded-lg bg-white/20 p-2 backdrop-blur-md'
+						}>
+						<ImageWithFallback
+							src={`https://assets.smold.app/tokens/10/${props.vaultData.assetAddress}/logo-32.png`}
+							alt={props.vaultData.assetSymbol}
+							width={28}
+							height={28}
+						/>
+						<div className={'truncate'}>
+							<p className={'truncate'}>{`Prize ${props.vaultData.assetSymbol}`}</p>
+							<p className={'text-xs opacity-40'}>{`${props.vaultData.symbol} on Optimism`}</p>
+						</div>
 					</div>
-				</div>
+				</Link>
 			</div>
 
 			<dl className={'col-span-5 grid grid-cols-4 gap-2'}>
@@ -207,7 +212,7 @@ export function ListViewItem(props: {
 				</div>
 
 				<div>
-					<dt className={'text-xs opacity-60'}>{'Promotions APR'}</dt>
+					<dt className={'text-xs opacity-60'}>{'Bonus Rewards'}</dt>
 					<dd className={'col-span-2 text-left'}>{`${formatAmount(Number(promoAPR), 2, 2)}%`}</dd>
 				</div>
 

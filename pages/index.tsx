@@ -1,22 +1,25 @@
 import React, {useEffect, useState} from 'react';
-import Image from 'next/image';
 import {VaultBox} from 'components/VaultBox';
 import {erc20Abi} from 'viem';
 import {useBlockNumber} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
+	cl,
 	decodeAsAddress,
 	decodeAsBigInt,
 	decodeAsNumber,
 	decodeAsString,
 	toAddress,
+	toBigInt,
 	toNormalizedBN
 } from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
+import {useGrandPrize, usePrizePool} from '@generationsoftware/hyperstructure-react-hooks';
 import {PRIZE_VAULT_ABI} from '@utils/prizeVault.abi';
 import {PRIZE_VAULT_FACTORY} from '@utils/prizeVaultFactory.abi';
 import {readContract, readContracts} from '@wagmi/core';
+import {Counter} from '@common/Counter';
 
 import type {ReactElement} from 'react';
 import type {TVaultData} from '@utils/types';
@@ -25,6 +28,8 @@ function Home(): ReactElement {
 	const {address} = useWeb3();
 	const {data: blockNumber} = useBlockNumber();
 	const [vaults, set_vaults] = useState<TVaultData[] | undefined>(undefined);
+	const prizePool = usePrizePool(10, toAddress('0xF35fE10ffd0a9672d0095c435fd8767A7fe29B55'));
+	const {data: grandPrize} = useGrandPrize(prizePool);
 
 	const refetch = useAsyncTrigger(async () => {
 		// Fetch the number of vaults
@@ -151,31 +156,50 @@ function Home(): ReactElement {
 	return (
 		<section className={'mx-auto grid w-full max-w-6xl'}>
 			<div className={'mb-10 mt-6'}>
-				<div className={'poolGradient relative w-full overflow-hidden rounded-xl p-10'}>
-					<p className={'font-mono opacity-65'}>{'FEELING LUCKY ANON?'}</p>
-					<h1 className={'py-4 font-mono text-6xl uppercase text-white'}>{'Prize Vaults'}</h1>
-					<p className={'font-mono opacity-65'}>{'TURN YIELD INTO PRIZES'}</p>
-					<div className={'absolute inset-y-0 right-0 -mt-10 rotate-12'}>
-						<Image
-							src={
-								'https://assets.smold.app/api/tokens/1/0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e/logo.svg'
-							}
-							className={'opacity-50'}
-							alt={'Hero'}
-							width={320}
-							height={320}
-						/>
-					</div>
+				<div
+					className={cl(
+						'flex w-full md:w-[480px] flex-col gap-2 rounded-2xl bg-[#FF00F5] p-6 backdrop-blur-md shadow-xl',
+						'text-center mx-auto'
+					)}>
+					<p className={'text-lg font-bold uppercase text-white'}>{'GRAND PRIZE'}</p>
+					<span>
+						<b className={'text-[64px] leading-[72px]'}>
+							<Counter
+								value={
+									toNormalizedBN(toBigInt(grandPrize?.amount), grandPrize?.decimals || 18).normalized
+								}
+								decimals={grandPrize?.decimals || 18}
+								decimalsToDisplay={[2, 4, 6, 8]}
+								idealDecimals={2}
+							/>
+						</b>
+						<span className={'text-xl text-white/65'}>{` ${grandPrize?.symbol}`}</span>
+					</span>
 				</div>
 			</div>
-			<div className={'mb-10 grid grid-cols-2 gap-4 md:grid-cols-1'}>
-				{vaults?.map(vault => (
-					<VaultBox
-						key={vault.address}
-						vault={vault}
-						refetch={refetch}
-					/>
-				))}
+
+			<div className={'mb-10 rounded-2xl bg-transparent p-0 md:bg-[#441F93] md:p-10'}>
+				<div className={'hidden pb-10 md:block'}>
+					<div className={'grid grid-cols-9 gap-6'}>
+						<p className={'col-span-2 pl-2 text-sm text-white/65'}>{'Prize vault'}</p>
+						<div className={'col-span-5 grid grid-cols-4 gap-2'}>
+							<p className={'text-sm text-white/65'}>{'Prize Yield'}</p>
+							<p className={'text-sm text-white/65'}>{'Rewards'}</p>
+							<p className={'text-sm text-white/65'}>{'Total deposits'}</p>
+							<p className={'text-sm text-white/65'}>{'My balance'}</p>
+						</div>
+						<p className={'col-span-2 pr-6 text-center text-sm text-white/65'}>{'Manage'}</p>
+					</div>
+				</div>
+				<div className={'grid grid-cols-2 gap-2 md:grid-cols-1'}>
+					{(vaults || [])?.map(vault => (
+						<VaultBox
+							key={vault.address}
+							vault={vault}
+							refetch={refetch}
+						/>
+					))}
+				</div>
 			</div>
 		</section>
 	);

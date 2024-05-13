@@ -1,4 +1,5 @@
 import React, {Fragment, useCallback, useMemo, useState} from 'react';
+import localFont from 'next/font/local';
 import InputNumber from 'rc-input-number';
 import {erc20Abi} from 'viem';
 import {useReadContracts} from 'wagmi';
@@ -24,6 +25,28 @@ import {ImageWithFallback} from '@common/ImageWithFallback';
 import type {ReactElement} from 'react';
 import type {PrizePool, TokenWithSupply, Vault} from '@generationsoftware/hyperstructure-client-js';
 import type {TVaultData} from '@utils/types';
+
+const aeonik = localFont({
+	variable: '--font-aeonik',
+	display: 'swap',
+	src: [
+		{
+			path: '../public/fonts/Aeonik-Regular.woff2',
+			weight: '400',
+			style: 'normal'
+		},
+		{
+			path: '../public/fonts/Aeonik-Bold.woff2',
+			weight: '700',
+			style: 'normal'
+		},
+		{
+			path: '../public/fonts/Aeonik-Black.ttf',
+			weight: '900',
+			style: 'normal'
+		}
+	]
+});
 
 type TWithdrawPopupProps = {
 	prizePool: PrizePool;
@@ -310,6 +333,7 @@ export function WithdrawPopupWrapper(props: TWithdrawPopupProps): ReactElement {
 			<Dialog
 				as={'div'}
 				className={'relative z-[1000]'}
+				style={aeonik.style}
 				onClose={props.onClose}>
 				<Transition.Child
 					as={Fragment}

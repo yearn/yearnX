@@ -67,8 +67,9 @@ module.exports = {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Roboto', ...defaultTheme.fontFamily.sans],
-				mono: [...defaultTheme.fontFamily.mono]
+				aeonik: ['var(--font-aeonik)', 'Aeonik', ...defaultTheme.fontFamily.sans],
+				sans: ['var(--font-aeonik)', 'Aeonik', ...defaultTheme.fontFamily.sans],
+				mono: ['Aeonik Mono', ...defaultTheme.fontFamily.mono]
 			},
 			width: {
 				inherit: 'inherit'
