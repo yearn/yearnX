@@ -173,7 +173,7 @@ function Home(): ReactElement {
 								idealDecimals={2}
 							/>
 						</b>
-						<span className={'text-xl text-white/65'}>{` ${grandPrize?.symbol}`}</span>
+						<span className={'text-xl text-white/65'}>{` ${grandPrize?.symbol || ''}`}</span>
 					</span>
 				</div>
 			</div>
