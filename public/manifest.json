@@ -1,11 +1,11 @@
 {
 	"name": "Yearn x Pool Together",
 	"short_name": "yPoolTogether",
-	"description": "Save to Yield. Save to Win.",
+	"description": "Feeling lucky Anon?",
 	"locale": "en-US",
-	"uri": "https://prize.yearn.fi/",
-	"og": "https://prize.yearn.fi/og.png",
-	"iconPath": "https://prize.yearn.fi/favicons/favicon.svg",
+	"uri": "https://prizes.yearn.fi/",
+	"og": "https://prizes.yearn.fi/og.png",
+	"iconPath": "https://prizes.yearn.fi/favicons/favicon.svg",
 	"twitter": "@yearnfi",
 	"icons": [
 		{
