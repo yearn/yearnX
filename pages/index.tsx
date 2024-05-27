@@ -109,6 +109,13 @@ function Home(): ReactElement {
 			if (!name.includes('Yearn')) {
 				continue;
 			}
+			//Error deployment
+			if (toAddress(address) === toAddress('0x3a14DdB934e785Cd1e29949EA814e8090D5F8b69')) {
+				continue;
+			}
+			if (toAddress(address) === toAddress('0x37E49c9dBf195F5D436C7A7610fe703cDcd8147B')) {
+				continue;
+			}
 			allVaultsData.push({
 				name,
 				symbol,
