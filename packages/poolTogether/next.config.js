@@ -23,9 +23,7 @@ module.exports = withPWA({
 			'gemini.com',
 			'messari.io',
 			'ethereum-optimism.github.io',
-			'tryroll.com',
 			'logo.assets.tkn.eth.limo',
-			'umaproject.org',
 			'cloudflare-ipfs.com',
 			'assets.smold.app'
 		]
