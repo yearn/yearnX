@@ -1,6 +1,5 @@
 import React from 'react';
 import {Toaster} from 'react-hot-toast';
-import localFont from 'next/font/local';
 import {base, mainnet, optimism, polygon} from 'viem/chains';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
@@ -8,54 +7,36 @@ import {localhost} from '@builtbymom/web3/utils/wagmi';
 import {Confettis} from '@icons/Confettis';
 import {IconCheck} from '@icons/IconCheck';
 import {IconCircleCross} from '@icons/IconCircleCross';
+import {Meta} from '@lib/components/common/Meta';
+import {WithFonts} from '@lib/components/common/WithFonts';
 import {Header} from '@common/Header';
-import Meta from '@common/Meta';
 
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
 
-import '../style.css';
-
-const aeonik = localFont({
-	variable: '--font-aeonik',
-	display: 'swap',
-	src: [
-		{
-			path: '../public/fonts/Aeonik-Regular.woff2',
-			weight: '400',
-			style: 'normal'
-		},
-		{
-			path: '../public/fonts/Aeonik-Bold.woff2',
-			weight: '700',
-			style: 'normal'
-		},
-		{
-			path: '../public/fonts/Aeonik-Black.ttf',
-			weight: '900',
-			style: 'normal'
-		}
-	]
-});
+import '@lib/style.css';
 
 function MyApp({Component, ...props}: AppProps): ReactElement {
 	return (
-		<div
-			className={aeonik.className}
-			style={aeonik.style}>
-			<Meta />
+		<WithFonts>
+			<Meta
+				title={'Yearn x PoolTogether'}
+				description={'Feeling lucky Anon?'}
+				titleColor={'#FFFFFF'}
+				themeColor={'#4C249F'}
+				og={'https://prizes.yearn.fi/og.png'}
+				uri={'https://prizes.yearn.fi'}
+			/>
 			<WithMom
 				supportedChains={[mainnet, polygon, optimism, base, localhost]}
 				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/tokenlistooor.json']}>
 				<WalletContextApp>
-					<div
-						className={`${aeonik.variable} relative`}
-						style={aeonik.style}>
+					<div className={'relative'}>
 						<div className={'absolute inset-x-0 top-0 pt-0 opacity-60'}>
 							<Confettis />
 						</div>
 						<Header />
-						<main className={`relative mx-auto mb-0 flex min-h-screen w-full flex-col ${aeonik.variable}`}>
+						<main className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col'}>
 							<div className={'mx-auto -mt-6 w-fit rounded-[40px] bg-[#6303FF] px-7 py-4 text-center'}>
 								<p className={'text-2xl font-bold uppercase text-white'}>{'Feeling Lucky Anon?'}</p>
 							</div>
@@ -92,7 +73,7 @@ function MyApp({Component, ...props}: AppProps): ReactElement {
 				}}
 				position={'top-right'}
 			/>
-		</div>
+		</WithFonts>
 	);
 }
 export default MyApp;

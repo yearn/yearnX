@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import Link from 'next/link';
-import {DepositPopupWrapper} from 'components/DepositModal';
 import {useReadContract} from 'wagmi';
 import {
 	cl,
@@ -18,7 +17,8 @@ import {
 	useVaultPrizeYield,
 	useVaultPromotionsApr
 } from '@generationsoftware/hyperstructure-react-hooks';
-import {PRIZE_VAULT_ABI} from '@utils/prizeVault.abi';
+import {DepositPopupWrapper} from '@lib/components/DepositModal';
+import {PRIZE_VAULT_ABI} from '@lib/utils/prizeVault.abi';
 import {Counter} from '@common/Counter';
 import {ImageWithFallback} from '@common/ImageWithFallback';
 
@@ -27,7 +27,7 @@ import {WithdrawPopupWrapper} from './WithdrawModal';
 import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {PrizePool, Vault} from '@generationsoftware/hyperstructure-client-js';
-import type {TVaultData} from '@utils/types';
+import type {TVaultData} from '@lib/utils/types';
 
 export function GridViewItem(props: {
 	vault: Vault;
@@ -153,7 +153,7 @@ export function GridViewItem(props: {
 				</button>
 				<button
 					onClick={() => props.onOpenDepositPopup()}
-					className={'mt-6 h-10 w-full rounded-lg bg-white font-medium text-purple'}>
+					className={'text-purple mt-6 h-10 w-full rounded-lg bg-white font-medium'}>
 					{'Deposit'}
 				</button>
 			</div>
@@ -260,7 +260,7 @@ export function ListViewItem(props: {
 				</button>
 				<button
 					onClick={() => props.onOpenDepositPopup()}
-					className={'h-8 w-full rounded-lg bg-white px-2 text-sm font-medium text-purple'}>
+					className={'text-purple h-8 w-full rounded-lg bg-white px-2 text-sm font-medium'}>
 					{'Deposit'}
 				</button>
 			</div>

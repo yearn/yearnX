@@ -1,17 +1,12 @@
 {
-	"name": "biuld-by-mom",
-	"version": "0.0.1",
-	"private": false,
-	"homepage": "./",
+	"name": "yearnx",
+	"private": true,
+	"workspaces": [
+		"packages/*"
+	],
 	"scripts": {
-		"dev": "next",
-		"dev:ts": "tsc --watch",
-		"start": "tsc && next build && next start",
-		"build": "tsc && next build",
 		"prepare": "husky install",
-		"prettier": "prettier --check \"./**/**/*.{json,js,ts,tsx,scss}\"",
-		"prettier-format": "prettier --config .prettierrc \"./**/**/*.{json,js,ts,tsx,scss,md}\" --write",
-		"export": "tsc && next build && next export -o ipfs",
+		"prettier-format": "prettier --config .prettierrc ./packages/**/**/*.{json,js,ts,tsx,css} --write",
 		"lint": "eslint . --ext .js,.jsx,.ts,.tsx"
 	},
 	"dependencies": {
@@ -36,6 +31,7 @@
 		"react-hot-toast": "^2.4.1",
 		"swr": "^2.2.5",
 		"tailwindcss": "^3.4.3",
+		"tailwindcss-animate": "^1.0.7",
 		"vaul": "^0.9.1",
 		"viem": "^2.10.5",
 		"wagmi": "^2.8.7"

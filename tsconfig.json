@@ -3,10 +3,11 @@
 		"rootDirs": ["."],
 		"baseUrl": ".",
 		"paths": {
-			"@common/*": ["components/common/*"],
-			"@icons/*": ["components/icons/*"],
-			"@utils/*": ["utils/*"],
-			"@types": ["utils/types"]
+			"@lib/*": ["packages/lib/*"],
+			"@common/*": ["packages/lib/components/common/*"],
+			"@icons/*": ["packages/lib/components/icons/*"],
+			"@utils/*": ["packages/lib/utils/*"],
+			"@types": ["packages/lib/utils/types"]
 		},
 		"types": ["bun-types"],
 		"target": "esnext",
@@ -55,9 +56,9 @@
 		"**/*.d.tsx",
 		"public",
 		"public/manifest.json",
-		"postcss.config.js",
-		"tailwind.config.js",
-		"next.config.js",
+		"packages/poolTogether/postcss.config.js",
+		"packages/lib/tailwind.config.js",
+		"packages/poolTogether/next.config.js",
 		"theme.config.js",
 		".eslintrc.js",
 		".next/types/**/*.ts",

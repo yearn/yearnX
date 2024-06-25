@@ -1,0 +1,160 @@
+@import '@rainbow-me/rainbowkit/styles.css';
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap');
+
+@tailwind base;
+
+:root {
+	--color-primary: 220 95% 50%;
+	--color-neutral-0: 0 0% 100%;
+	--color-neutral-50: 0 0% 98%;
+	--color-neutral-100: 0 0% 96%;
+	--color-neutral-200: 0 0% 92%;
+	--color-neutral-300: 0 0% 88%;
+	--color-neutral-400: 0 0% 62%;
+	--color-neutral-500: 0 0% 50%;
+	--color-neutral-600: 0 0% 36%;
+	--color-neutral-700: 229 34% 24%;
+	--color-neutral-800: 229 34% 16%;
+	--color-neutral-900: 229 34% 13%;
+
+	--color-yellow-900: 32 100% 45%;
+	--color-yellow-300: 32 100% 95%;
+	--color-yellow-200: 32 100% 90%;
+	--color-error-900: 328 100% 45%;
+	--color-error-300: 328 100% 95%;
+	--color-error-200: 328 100% 90%;
+	--color-red-900: 0 100% 45%;
+	--color-red-300: 0 100% 95%;
+	--color-red-200: 0 100% 90%;
+
+	--default-rounded: 6px;
+}
+
+:root.dark {
+	--color-neutral-900: 229 34% 100%;
+	--color-neutral-800: 229 34% 96%;
+	--color-neutral-600: 229 34% 90%;
+	--color-neutral-500: 229 34% 90%;
+	--color-neutral-400: 229 34% 48%;
+	--color-neutral-300: 229 34% 36%;
+	--color-neutral-200: 229 34% 24%;
+	--color-neutral-100: 229 34% 16%;
+	--color-neutral-50: 229 34% 8%;
+	--color-neutral-0: 229 34% 13%;
+}
+
+body {
+	@apply text-neutral-0;
+}
+h1 {
+	@apply text-xl font-bold text-neutral-900;
+}
+h4 {
+	@apply text-lg font-bold text-neutral-700;
+}
+.max-w-6xl {
+	@apply max-w-[1232px] px-4;
+}
+.font-number {
+	@apply font-mono tabular-nums;
+}
+#__next {
+	@apply w-full h-full;
+}
+
+* {
+	@apply scroll-smooth font-sans;
+}
+input::placeholder {
+	@apply text-neutral-400 not-italic;
+}
+textarea::placeholder {
+	@apply text-neutral-400 not-italic;
+}
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+	-webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0) inset;
+	transition: background-color 5000s ease-in-out 0s;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+input[type='number'] {
+	-moz-appearance: textfield;
+}
+label[aria-invalid='true'] {
+	@apply text-neutral-500 transition-colors;
+	& > form > div {
+		@apply border-[#FE0000] focus-within:border-[#FE0000] text-[#FE0000] focus-within:text-[#FE0000];
+	}
+	& > p {
+		@apply text-[#FF0000];
+	}
+}
+
+:focus {
+	outline-width: 0px;
+	outline-offset: 0px;
+	outline: none;
+	outline-color: transparent;
+}
+
+/* 🔵 - Yearn Finance ******************************************************
+** Then, we import the tailwind class. They will be able to overwrite all
+** the previous classes, not the next ones directly.
+**************************************************************************/
+@tailwind components;
+@tailwind utilities;
+
+.hover-fix::before {
+	display: block;
+	content: attr(title);
+	font-weight: bold;
+	height: 0;
+	overflow: hidden;
+	visibility: hidden;
+}
+
+[type='text']:focus,
+[type='email']:focus,
+[type='url']:focus,
+[type='password']:focus,
+[type='number']:focus,
+[type='date']:focus,
+[type='datetime-local']:focus,
+[type='month']:focus,
+[type='search']:focus,
+[type='tel']:focus,
+[type='time']:focus,
+[type='week']:focus,
+[multiple]:focus,
+textarea:focus,
+select:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+.button {
+	@apply cursor-pointer px-5 flex justify-center items-center h-10 text-base transition-all relative rounded-lg;
+	&[aria-busy='true'] {
+		@apply cursor-wait;
+		color: transparent !important;
+	}
+	&:disabled {
+		@apply cursor-not-allowed;
+	}
+}
+
+.poolGradient {
+	background: linear-gradient(71.84deg, #5832f2 -10.22%, #e80766 164.53%),
+		radial-gradient(54.09% 131.33% at 14% 30.17%, rgba(186, 103, 251, 0.3) 0%, rgba(152, 21, 255, 0.06) 100%);
+}

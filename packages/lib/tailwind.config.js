@@ -15,16 +15,14 @@ function withOpacityValue(variable) {
 
 module.exports = {
 	content: [
-		'./components/**/*.{js,ts,jsx,tsx}',
-		'./components/**/**/*.{js,ts,jsx,tsx}',
-		'./contexts/**/*.{js,ts,jsx,tsx}',
-		'./hooks/**/*.{js,ts,jsx,tsx}',
-		'./pages/**/*.{js,ts,jsx,tsx}',
-		join(__dirname, 'node_modules', '@yearn-finance', 'web-lib', 'components', '**', '*.{js,ts,jsx,tsx}'),
-		join(__dirname, 'node_modules', '@yearn-finance', 'web-lib', 'contexts', '**', '*.{js,ts,jsx,tsx}'),
-		join(__dirname, 'node_modules', '@yearn-finance', 'web-lib', 'hooks', '**', '*.{js,ts,jsx,tsx}'),
-		join(__dirname, 'node_modules', '@yearn-finance', 'web-lib', 'icons', '**', '*.{js,ts,jsx,tsx}'),
-		join(__dirname, 'node_modules', '@yearn-finance', 'web-lib', 'utils', '**', '*.{js,ts,jsx,tsx}')
+		'../lib/components/**/*.{js,jsx,ts,tsx}',
+		'../lib/hooks/**/*.{js,jsx,ts,tsx}',
+		'../lib/icons/**/*.{js,jsx,ts,tsx}',
+		'../lib/common/**/*.{js,jsx,ts,tsx}',
+		'../lib/contexts/**/*.{js,jsx,ts,tsx}',
+		'../lib/primitives/**/*.{js,jsx,ts,tsx}',
+		'../lib/types/**/*.{js,jsx,ts,tsx}',
+		'../lib/utils/**/*.{js,jsx,ts,tsx}'
 	],
 	theme: {
 		colors: {

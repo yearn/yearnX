@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import Link from 'next/link';
-import {DepositPopupWrapper} from 'components/DepositModal';
 import {useReadContract} from 'wagmi';
 import {
 	cl,
@@ -26,7 +25,8 @@ import {
 	useVaultPrizeYield,
 	useVaultPromotionsApr
 } from '@generationsoftware/hyperstructure-react-hooks';
-import {PRIZE_VAULT_ABI} from '@utils/prizeVault.abi';
+import {DepositPopupWrapper} from '@lib/components/DepositModal';
+import {PRIZE_VAULT_ABI} from '@lib/utils/prizeVault.abi';
 import {Counter} from '@common/Counter';
 import {ImageWithFallback} from '@common/ImageWithFallback';
 
@@ -34,7 +34,7 @@ import {WithdrawPopupWrapper} from './WithdrawModal';
 
 import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
-import type {TVaultData} from '@utils/types';
+import type {TVaultData} from '@lib/utils/types';
 
 function DetailViewItem(props: {
 	vault: Vault;
@@ -211,7 +211,7 @@ function DetailViewItem(props: {
 				</button>
 				<button
 					onClick={() => props.onOpenDepositPopup()}
-					className={'mt-6 h-10 w-full rounded-lg bg-white font-medium text-purple'}>
+					className={'text-purple mt-6 h-10 w-full rounded-lg bg-white font-medium'}>
 					{'Deposit'}
 				</button>
 			</div>

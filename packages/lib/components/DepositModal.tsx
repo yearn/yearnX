@@ -1,5 +1,4 @@
 import React, {Fragment, useCallback, useMemo, useState} from 'react';
-import localFont from 'next/font/local';
 import InputNumber from 'rc-input-number';
 import {erc20Abi} from 'viem';
 import {useReadContracts} from 'wagmi';
@@ -19,36 +18,14 @@ import {approveERC20, defaultTxStatus, getNetwork} from '@builtbymom/web3/utils/
 import {calculateUnionProbability, SECONDS_PER_WEEK} from '@generationsoftware/hyperstructure-client-js';
 import {useDrawPeriod, usePrizeOdds} from '@generationsoftware/hyperstructure-react-hooks';
 import {Dialog, Transition} from '@headlessui/react';
-import {depositERC20} from '@utils/actions';
-import {PRIZE_VAULT_ABI} from '@utils/prizeVault.abi';
+import {depositERC20} from '@lib/utils/actions';
+import {PRIZE_VAULT_ABI} from '@lib/utils/prizeVault.abi';
 import {Button} from '@common/Button';
 import {ImageWithFallback} from '@common/ImageWithFallback';
 
 import type {ReactElement} from 'react';
 import type {PrizePool, TokenWithSupply, Vault} from '@generationsoftware/hyperstructure-client-js';
-import type {TVaultData} from '@utils/types';
-
-const aeonik = localFont({
-	variable: '--font-aeonik',
-	display: 'swap',
-	src: [
-		{
-			path: '../public/fonts/Aeonik-Regular.woff2',
-			weight: '400',
-			style: 'normal'
-		},
-		{
-			path: '../public/fonts/Aeonik-Bold.woff2',
-			weight: '700',
-			style: 'normal'
-		},
-		{
-			path: '../public/fonts/Aeonik-Black.ttf',
-			weight: '900',
-			style: 'normal'
-		}
-	]
-});
+import type {TVaultData} from '@lib/utils/types';
 
 type TDepositPopupProps = {
 	prizePool: PrizePool;
@@ -330,7 +307,7 @@ function DepositPopup(props: TDepositPopupProps): ReactElement {
 							<div className={'flex h-8 items-center justify-end gap-2 text-right'}>
 								<div className={'relative'}>
 									<ImageWithFallback
-										className={'size-8 rounded-full border border-purple'}
+										className={'border-purple size-8 rounded-full border'}
 										style={{width: 32, height: 32, minWidth: 32, minHeight: 32}}
 										src={`https://assets.smold.app/tokens/10/${props.vaultData.assetAddress}/logo-128.png`}
 										alt={props.vaultData.assetSymbol}
@@ -373,7 +350,7 @@ function DepositPopup(props: TDepositPopupProps): ReactElement {
 						}
 						onClick={onApproveOrDeposit}
 						isBusy={approvalStatus.pending || depositStatus.pending}
-						className={'h-10 w-full rounded-lg bg-white font-medium text-purple'}>
+						className={'text-purple h-10 w-full rounded-lg bg-white font-medium'}>
 						{toBigInt(data?.allowance.raw) >= fromNormalized(value || 0, props.vaultData.decimals)
 							? 'Deposit'
 							: 'Approve'}
@@ -404,7 +381,6 @@ export function DepositPopupWrapper(props: TDepositPopupProps): ReactElement {
 			<Dialog
 				as={'div'}
 				className={'relative z-[1000]'}
-				style={aeonik.style}
 				onClose={props.onClose}>
 				<Transition.Child
 					as={Fragment}
@@ -414,7 +390,7 @@ export function DepositPopupWrapper(props: TDepositPopupProps): ReactElement {
 					leave={'ease-in duration-200'}
 					leaveFrom={'opacity-100'}
 					leaveTo={'opacity-0'}>
-					<div className={'fixed inset-0 bg-primary-900/40 backdrop-blur-sm transition-opacity'} />
+					<div className={'bg-primary-900/40 fixed inset-0 backdrop-blur-sm transition-opacity'} />
 				</Transition.Child>
 
 				<div className={'fixed inset-0 z-[1001] w-screen overflow-y-auto'}>

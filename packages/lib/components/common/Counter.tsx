@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {animate} from 'framer-motion';
 import {formatAmount, parseAmount} from '@builtbymom/web3/utils';
 
@@ -19,7 +19,7 @@ export function Counter({
 	const nodeRef = useRef<any>();
 	const valueRef = useRef(value || 0);
 
-	useLayoutEffect((): (() => void) => {
+	useEffect((): (() => void) => {
 		const node = nodeRef.current;
 		if (node) {
 			const controls = animate(Number(valueRef.current || 0), value, {

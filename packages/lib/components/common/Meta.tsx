@@ -1,14 +1,21 @@
 import React from 'react';
 import Head from 'next/head';
 
-import meta from '../../public/manifest.json';
-
 import type {ReactElement} from 'react';
 
-function Meta(): ReactElement {
+type TMeta = {
+	title: string;
+	titleColor: string;
+	themeColor: string;
+	description: string;
+	og: string;
+	uri: string;
+};
+
+export function Meta(meta: TMeta): ReactElement {
 	return (
 		<Head>
-			<title>{meta.name}</title>
+			<title>{meta.title}</title>
 			<meta
 				httpEquiv={'X-UA-Compatible'}
 				content={'IE=edge'}
@@ -19,24 +26,24 @@ function Meta(): ReactElement {
 			/>
 			<meta
 				name={'description'}
-				content={meta.name}
+				content={meta.description}
 			/>
 			<meta
 				name={'msapplication-TileColor'}
-				content={meta.title_color}
+				content={meta.titleColor}
 			/>
 			<meta
 				name={'theme-color'}
-				content={meta.theme_color}
+				content={meta.themeColor}
 			/>
 
 			<meta
 				name={'application-name'}
-				content={meta.name}
+				content={meta.title}
 			/>
 			<meta
 				name={'apple-mobile-web-app-title'}
-				content={meta.name}
+				content={meta.title}
 			/>
 			<meta
 				name={'apple-mobile-web-app-capable'}
@@ -70,7 +77,7 @@ function Meta(): ReactElement {
 			<link
 				rel={'mask-icon'}
 				href={'/favicons/safari-pinned-tab.svg'}
-				color={meta.theme_color}
+				color={meta.themeColor}
 			/>
 			<link
 				rel={'shortcut icon'}
@@ -147,7 +154,7 @@ function Meta(): ReactElement {
 			/>
 			<meta
 				property={'twitter:title'}
-				content={meta.name}
+				content={meta.title}
 			/>
 			<meta
 				property={'twitter:description'}
@@ -164,7 +171,7 @@ function Meta(): ReactElement {
 			/>
 			<meta
 				property={'og:title'}
-				content={meta.name}
+				content={meta.title}
 			/>
 			<meta
 				property={'og:description'}
@@ -173,5 +180,3 @@ function Meta(): ReactElement {
 		</Head>
 	);
 }
-
-export default Meta;

@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {VaultBox} from 'components/VaultBox';
 import {erc20Abi} from 'viem';
 import {useBlockNumber} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
@@ -16,15 +15,16 @@ import {
 } from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useGrandPrize, usePrizePool} from '@generationsoftware/hyperstructure-react-hooks';
-import {PRIZE_VAULT_ABI} from '@utils/prizeVault.abi';
-import {PRIZE_VAULT_FACTORY} from '@utils/prizeVaultFactory.abi';
+import {VaultBox} from '@lib/components/VaultBox';
+import {PRIZE_VAULT_ABI} from '@lib/utils/prizeVault.abi';
+import {PRIZE_VAULT_FACTORY} from '@lib/utils/prizeVaultFactory.abi';
 import {readContract, readContracts} from '@wagmi/core';
 import {Counter} from '@common/Counter';
 
 import type {ReactElement} from 'react';
-import type {TVaultData} from '@utils/types';
+import type {TVaultData} from '@lib/utils/types';
 
-function Home(): ReactElement {
+export default function Home(): ReactElement {
 	const {address} = useWeb3();
 	const {data: blockNumber} = useBlockNumber();
 	const [vaults, set_vaults] = useState<TVaultData[] | undefined>(undefined);
@@ -210,8 +210,4 @@ function Home(): ReactElement {
 			</div>
 		</section>
 	);
-}
-
-export default function Wrapper(): ReactElement {
-	return <Home />;
 }

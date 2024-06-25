@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {useRouter} from 'next/router';
-import {VaultDetailsView} from 'components/VaultDetailsView';
 import {erc20Abi} from 'viem';
 import {useBlockNumber} from 'wagmi';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
@@ -14,12 +13,13 @@ import {
 	toNormalizedBN
 } from '@builtbymom/web3/utils';
 import {retrieveConfig} from '@builtbymom/web3/utils/wagmi';
-import {PRIZE_VAULT_ABI} from '@utils/prizeVault.abi';
+import {VaultDetailsView} from '@lib/components/VaultDetailsView';
+import {PRIZE_VAULT_ABI} from '@lib/utils/prizeVault.abi';
 import {readContracts} from '@wagmi/core';
 
 import type {GetServerSideProps} from 'next';
 import type {ReactElement} from 'react';
-import type {TVaultData} from '@utils/types';
+import type {TVaultData} from '@lib/utils/types';
 
 export default function Vault(): ReactElement {
 	const router = useRouter();
