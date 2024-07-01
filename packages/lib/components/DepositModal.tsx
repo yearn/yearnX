@@ -17,7 +17,7 @@ import {
 import {approveERC20, defaultTxStatus, getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {calculateUnionProbability, SECONDS_PER_WEEK} from '@generationsoftware/hyperstructure-client-js';
 import {useDrawPeriod, usePrizeOdds} from '@generationsoftware/hyperstructure-react-hooks';
-import {Dialog, Transition} from '@headlessui/react';
+import {Dialog, DialogPanel, DialogTitle, Transition, TransitionChild} from '@headlessui/react';
 import {depositERC20} from '@lib/utils/actions';
 import {PRIZE_VAULT_ABI} from '@lib/utils/prizeVault.abi';
 import {Button} from '@common/Button';
@@ -201,7 +201,7 @@ function DepositPopup(props: TDepositPopupProps): ReactElement {
 	}, [data?.allowance.raw, value, props, provider, refetch]);
 
 	return (
-		<Transition.Child
+		<TransitionChild
 			as={Fragment}
 			enter={'ease-out duration-300'}
 			enterFrom={'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'}
@@ -209,10 +209,10 @@ function DepositPopup(props: TDepositPopupProps): ReactElement {
 			leave={'ease-in duration-200'}
 			leaveFrom={'opacity-100 translate-y-0 sm:scale-100'}
 			leaveTo={'opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95'}>
-			<Dialog.Panel
+			<DialogPanel
 				className={cl(
 					'relative overflow-hidden flex flex-col items-center justify-center rounded-md bg-purple py-10 px-6 transition-all',
-					'sm:my-8 sm:w-full sm:max-w-xl font-sans'
+					'sm:my-8 sm:w-full sm:max-w-xl'
 				)}>
 				<div className={'absolute right-5 top-3'}>
 					<button
@@ -221,16 +221,16 @@ function DepositPopup(props: TDepositPopupProps): ReactElement {
 						{'⛌'}
 					</button>
 				</div>
-				<Dialog.Title
+				<DialogTitle
 					as={'h3'}
-					className={'font-sans text-lg font-bold leading-6 text-white'}>
+					className={'text-lg font-bold leading-6 text-white'}>
 					{`Deposit into ${props.vaultData.name}`}
-				</Dialog.Title>
+				</DialogTitle>
 
 				<div className={'py-4'}>
 					<div
 						className={
-							'mx-auto flex w-fit items-center justify-center gap-2 rounded-lg bg-white/20 px-2 py-1 text-center text-sm'
+							'mx-auto flex w-fit items-center justify-center gap-2 rounded-lg bg-white/20 px-2 py-1 text-center text-sm '
 						}>
 						<ImageWithFallback
 							src={'https://assets.smold.app/chains/10/logo-32.png'}
@@ -356,8 +356,8 @@ function DepositPopup(props: TDepositPopupProps): ReactElement {
 							: 'Approve'}
 					</Button>
 				</div>
-			</Dialog.Panel>
-		</Transition.Child>
+			</DialogPanel>
+		</TransitionChild>
 	);
 }
 
@@ -375,14 +375,14 @@ export function DepositPopupWrapper(props: TDepositPopupProps): ReactElement {
 	}
 
 	return (
-		<Transition.Root
+		<Transition
 			show={props.isOpen}
 			as={Fragment}>
 			<Dialog
 				as={'div'}
 				className={'relative z-[1000]'}
 				onClose={props.onClose}>
-				<Transition.Child
+				<TransitionChild
 					as={Fragment}
 					enter={'ease-out duration-300'}
 					enterFrom={'opacity-0'}
@@ -391,7 +391,7 @@ export function DepositPopupWrapper(props: TDepositPopupProps): ReactElement {
 					leaveFrom={'opacity-100'}
 					leaveTo={'opacity-0'}>
 					<div className={'bg-primary-900/40 fixed inset-0 backdrop-blur-sm transition-opacity'} />
-				</Transition.Child>
+				</TransitionChild>
 
 				<div className={'fixed inset-0 z-[1001] w-screen overflow-y-auto'}>
 					<div className={'flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0'}>
@@ -405,6 +405,6 @@ export function DepositPopupWrapper(props: TDepositPopupProps): ReactElement {
 					</div>
 				</div>
 			</Dialog>
-		</Transition.Root>
+		</Transition>
 	);
 }

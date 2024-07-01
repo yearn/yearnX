@@ -64,8 +64,8 @@ module.exports = {
 		},
 		extend: {
 			fontFamily: {
-				aeonik: ['var(--font-aeonik)', 'Aeonik', ...defaultTheme.fontFamily.sans],
-				sans: ['var(--font-aeonik)', 'Aeonik', ...defaultTheme.fontFamily.sans],
+				aeonik: ['var(--aeonik-font)', 'Aeonik', ...defaultTheme.fontFamily.sans],
+				sans: ['var(--aeonik-font)', 'Aeonik', ...defaultTheme.fontFamily.sans],
 				mono: ['Aeonik Mono', ...defaultTheme.fontFamily.mono]
 			},
 			width: {
