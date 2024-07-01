@@ -1,4 +1,5 @@
 import {Meta} from '@lib/components/common/Meta';
+import {WithFonts} from '@lib/components/common/WithFonts';
 
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
@@ -8,7 +9,7 @@ import '@lib/style.css';
 export default function MyApp(props: AppProps): ReactElement {
 	const {Component} = props;
 	return (
-		<>
+		<WithFonts>
 			<Meta
 				title={'Yearn x Pendle'}
 				description={'Feeling lucky Anon?'}
@@ -22,6 +23,6 @@ export default function MyApp(props: AppProps): ReactElement {
 					<Component />
 				</main>
 			</div>
-		</>
+		</WithFonts>
 	);
 }

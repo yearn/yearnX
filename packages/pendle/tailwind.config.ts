@@ -12,19 +12,15 @@ module.exports = {
 	],
 	plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography'), require('tailwindcss-animate')],
 	theme: {
-		colors: {
-			table: '#441F93',
-			background: '#4C249F',
-			white: '#FFFFFF'
-		},
-		fontSize: {
-			'7xl': '64px'
-		},
-		lineHeight: {
-			'7xl': '64px'
-		},
-		padding: {
-			'10': '40px'
+		...config.theme,
+		extend: {
+			...config.theme.extend,
+			colors: {
+				...config.theme.extend.colors,
+				table: '#441F93',
+				background: '#4C249F',
+				white: '#FFFFFF'
+			}
 		}
 	},
 	safelist: ['text-7xl', 'font-black', 'leading-7xl', 'p-10']

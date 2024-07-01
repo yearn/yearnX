@@ -81,12 +81,15 @@ module.exports = {
 				xl: ['24px', '32px'],
 				'3xl': ['32px', '40px'],
 				'4xl': ['40px', '56px'],
-				'7xl': ['80px', '96px']
+				'7xl': '64px'
 			},
 			maxWidth: {
 				xl: '552px',
 				'4xl': '904px',
 				'6xl': '1200px'
+			},
+			lineHeight: {
+				'7xl': '64px'
 			},
 			animation: {
 				fadeIn: 'fadeIn 200ms ease-in'
