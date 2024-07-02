@@ -21,7 +21,8 @@ module.exports = {
 		'../lib/contexts/**/*.{js,jsx,ts,tsx}',
 		'../lib/primitives/**/*.{js,jsx,ts,tsx}',
 		'../lib/types/**/*.{js,jsx,ts,tsx}',
-		'../lib/utils/**/*.{js,jsx,ts,tsx}'
+		'../lib/utils/**/*.{js,jsx,ts,tsx}',
+		'../lib/sections/**/*.{js,jsx,ts,tsx}'
 	],
 	theme: {
 		colors: {
@@ -60,7 +61,9 @@ module.exports = {
 			red: colors.rose,
 			green: colors.emerald,
 			blue: colors.blue,
-			teal: colors.teal
+			teal: colors.teal,
+			button: '#C521D4',
+			border: '#7054ac'
 		},
 		extend: {
 			fontFamily: {
