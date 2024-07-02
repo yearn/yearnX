@@ -81,7 +81,8 @@ module.exports = {
 				xl: ['24px', '32px'],
 				'3xl': ['32px', '40px'],
 				'4xl': ['40px', '56px'],
-				'7xl': '64px'
+				'7xl': '64px',
+				'9xl': '128px'
 			},
 			maxWidth: {
 				xl: '552px',

@@ -32,21 +32,23 @@ export function DefaultHeader({docsLink, firstLogoURL, secondLogoURL}: TDefaultH
 						alt={''}
 					/>
 				</div>
-				<Link
-					href={docsLink || ''}
-					className={'mr-6 text-white'}>
-					{'Docs'}
-				</Link>
-				<Link
-					href={''}
-					className={'font-[Aeonik] font-bold leading-3 text-white'}>
-					{'X'}
-				</Link>
+				<div className={'hidden md:block'}>
+					<Link
+						href={docsLink || ''}
+						className={'mr-6 text-white'}>
+						{'Docs'}
+					</Link>
+					<Link
+						href={''}
+						className={'font-[Aeonik] font-bold leading-3 text-white'}>
+						{'X'}
+					</Link>
+				</div>
 			</div>
 			<button
 				suppressHydrationWarning
 				onClick={openAccountModal}
-				className={'rounded-lg border border-white bg-white px-[30px] py-3 text-sm font-bold'}>
+				className={'rounded-lg border border-white bg-white p-3 text-sm font-bold text-black md:px-[30px]'}>
 				{'Connect Wallet'}
 			</button>
 		</div>

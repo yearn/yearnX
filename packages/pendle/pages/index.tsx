@@ -11,7 +11,7 @@ export default function Index(): ReactElement {
 				firstLogoURL={''}
 				secondLogoURL={''}
 			/>
-			<Section variant={1} />
+			<Section variant={4} />
 		</div>
 	);
 }

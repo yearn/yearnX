@@ -18,8 +18,8 @@ export default function MyApp(props: AppProps): ReactElement {
 				og={''}
 				uri={''}
 			/>
-			<div className={'bg-background flex w-full justify-center p-6'}>
-				<main className={'relative flex  h-[calc(100vh-48px)] w-full justify-center'}>
+			<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
+				<main className={'relative flex  w-full justify-center'}>
 					<Component />
 				</main>
 			</div>
