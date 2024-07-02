@@ -1,7 +1,5 @@
 import Image from 'next/image';
 
-import bgImg from '../public/img/bg-section.png';
-
 import type {ReactElement} from 'react';
 
 export const Section1 = ({bgImage}: {bgImage?: string}): ReactElement => {
@@ -26,8 +24,11 @@ export const Section1 = ({bgImage}: {bgImage?: string}): ReactElement => {
 			<div className={'md:h-section h-80 overflow-hidden rounded-2xl bg-cover bg-center bg-no-repeat md:mb-0'}>
 				<Image
 					className={'size-full  md:w-0'}
-					src={bgImage ?? bgImg}
+					src={bgImage ?? '/bg-placeholder.png'}
 					alt={''}
+					width={768} /* Scaled x2 to keep quality OK */
+					height={1056} /* Scaled x2 to keep quality OK */
+					style={{objectFit: 'cover', width: '100%', height: '100%'}}
 				/>
 			</div>
 		</div>
