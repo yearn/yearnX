@@ -15,7 +15,6 @@ export default function Index(): ReactElement {
 		<div className={'flex w-full max-w-[1200px] flex-col gap-y-6'}>
 			<DefaultHeader
 				docsLink={''}
-				firstLogoURL={''}
 				secondLogoURL={''}
 			/>
 			<Section variant={VARIANT_TO_USE} />
