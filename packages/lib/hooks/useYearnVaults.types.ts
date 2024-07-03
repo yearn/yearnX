@@ -176,7 +176,8 @@ export const yDaemonVaultSchema = z.object({
 		isRetired: z.boolean().default(false).catch(false),
 		isBoosted: z.boolean().default(false).catch(false),
 		isHighlighted: z.boolean().default(false).catch(false)
-	})
+	}),
+	pricePerShare: z.string().default('0').catch('0')
 });
 
 export const yDaemonVaultsSchema = z.array(yDaemonVaultSchema);

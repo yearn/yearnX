@@ -1,11 +1,12 @@
 import {Toaster} from 'react-hot-toast';
-import {arbitrum, base, gnosis, mainnet, optimism, polygon} from 'viem/chains';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
 import {Meta} from '@lib/components/common/Meta';
 import {WithFonts} from '@lib/components/common/WithFonts';
 import {IconCheck} from '@lib/components/icons/IconCheck';
 import {IconCircleCross} from '@lib/components/icons/IconCircleCross';
+import {WithPrices} from '@lib/contexts/usePrices';
+import {supportedNetworks} from '@lib/utils/tools.chains';
 
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
@@ -25,14 +26,16 @@ export default function MyApp(props: AppProps): ReactElement {
 				uri={''}
 			/>
 			<WithMom
-				supportedChains={[mainnet, polygon, optimism, base, arbitrum, gnosis]}
+				supportedChains={supportedNetworks}
 				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn-min.json']}>
 				<WalletContextApp>
-					<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
-						<main className={'relative flex  w-full justify-center'}>
-							<Component />
-						</main>
-					</div>
+					<WithPrices>
+						<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
+							<main className={'relative flex  w-full justify-center'}>
+								<Component />
+							</main>
+						</div>
+					</WithPrices>
 				</WalletContextApp>
 			</WithMom>
 			<Toaster

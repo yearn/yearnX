@@ -1,5 +1,4 @@
 import React from 'react';
-import {Source_Code_Pro} from 'next/font/google';
 import localFont from 'next/font/local';
 
 import type {ReactElement, ReactNode} from 'react';
@@ -26,23 +25,33 @@ const aeonik = localFont({
 	]
 });
 
-const sourceCodePro = Source_Code_Pro({
-	weight: ['400', '500', '600', '700'],
-	subsets: ['latin'],
+const aeonikMono = localFont({
+	variable: '--font-aeonik-mono',
 	display: 'swap',
-	variable: '--scp-font'
+	src: [
+		{
+			path: '../../public/fonts/AeonikMono-Regular.woff2',
+			weight: '400',
+			style: 'normal'
+		},
+		{
+			path: '../../public/fonts/AeonikMono-Bold.woff2',
+			weight: '700',
+			style: 'normal'
+		}
+	]
 });
 
 export function WithFonts(props: {children: ReactNode}): ReactElement {
 	return (
-		<div style={{fontFamily: `${aeonik.style.fontFamily}, ${sourceCodePro.style.fontFamily}`}}>
+		<div style={{fontFamily: `${aeonik.style.fontFamily}, ${aeonikMono.style.fontFamily}`}}>
 			<style
 				jsx
 				global>
 				{`
 					:root {
 						--aeonik-font: ${aeonik.style.fontFamily};
-						--scp-font: ${sourceCodePro.style.fontFamily};
+						--font-aeonik-mono: ${aeonikMono.style.fontFamily};
 					}
 				`}
 			</style>

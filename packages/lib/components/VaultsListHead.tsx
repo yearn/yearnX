@@ -1,7 +1,6 @@
-import {type ReactElement} from 'react';
+import {type ReactElement, useCallback} from 'react';
 import Link from 'next/link';
 import {cl} from '@builtbymom/web3/utils';
-import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 
 import {IconSort} from './icons/IconSort';
 
@@ -20,24 +19,26 @@ type TVaultsListHeadProps = {
 };
 
 export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
-	const {sortBy, sortDirection} = useSortedVaults(props.vaults);
 	/**********************************************************************************************
 	 ** This toggleSortDirection function changes sort direction between asc, desc and 'no-sort'.
 	 *********************************************************************************************/
-	const toggleSortDirection = (newSortBy: string): TSortDirection => {
-		if (sortBy === newSortBy) {
-			if (sortDirection === '') {
-				return 'desc';
+	const toggleSortDirection = useCallback(
+		(newSortBy: string): TSortDirection => {
+			if (props.sortBy === newSortBy) {
+				if (props.sortDirection === '') {
+					return 'desc';
+				}
+				if (props.sortDirection === 'desc') {
+					return 'asc';
+				}
+				if (props.sortDirection === 'asc') {
+					return '';
+				}
 			}
-			if (sortDirection === 'desc') {
-				return 'asc';
-			}
-			if (sortDirection === 'asc') {
-				return '';
-			}
-		}
-		return 'desc';
-	};
+			return 'desc';
+		},
+		[props.sortBy, props.sortDirection]
+	);
 
 	return (
 		<div className={'hidden px-2 text-neutral-600 md:col-span-7 md:grid md:grid-cols-6'}>
@@ -45,7 +46,16 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 				item.isSortable ? (
 					<Link
 						href={`?sortDirection=${toggleSortDirection(item.value)}&sortBy=${item.value}`}
-						className={'flex w-full items-center justify-center gap-x-2'}
+						className={cl(
+							'flex w-full items-center gap-x-2',
+							item.value === 'vault'
+								? 'justify-start'
+								: item.value === 'deposits'
+									? 'justify-end'
+									: item.value === 'balance'
+										? 'justify-end'
+										: 'justify-center'
+						)}
 						key={item.label}>
 						<IconSort className={'size-3'} />
 						<p className={'text-white'}>{item.label}</p>
@@ -55,7 +65,13 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 						key={item.value}
 						className={cl(
 							'flex flex-row items-center text-white',
-							item.value === 'vault' ? 'col-span-2 justify-start' : 'justify-center'
+							item.value === 'vault'
+								? 'col-span-2 justify-start'
+								: item.value === 'deposits'
+									? 'justify-end'
+									: item.value === 'balance'
+										? 'justify-end'
+										: 'justify-center'
 						)}>
 						{item.label}
 					</div>

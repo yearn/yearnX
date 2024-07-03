@@ -2,24 +2,26 @@ import {type ReactElement, useMemo} from 'react';
 import Link from 'next/link';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {formatAmount, formatPercent} from '@builtbymom/web3/utils';
+import {formatAmount, formatLocalAmount, formatPercent, toNormalizedBN} from '@builtbymom/web3/utils';
 import {getChain} from '@lib/utils/tools';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconCircleQuestion} from '../icons/IconCircleQuestion';
 import {ImageWithFallback} from './ImageWithFallback';
 
+import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
 type TVaultItem = {
 	vault: TYDaemonVault;
+	price: TNormalizedBN;
 };
 
 function toPercent(value: number): string {
 	return `${(value * 100).toFixed(2)}%`;
 }
 
-export const VaultItem = ({vault}: TVaultItem): ReactElement => {
+export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance} = useWallet();
 
 	/**********************************************************************************************
@@ -27,28 +29,33 @@ export const VaultItem = ({vault}: TVaultItem): ReactElement => {
 	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
 	 ** We will use classic hash function to create a hash from the balances object.
 	 *********************************************************************************************/
-	const currentIdentifier = useMemo(() => {
+	const currentBalanceIdentifier = useMemo(() => {
 		const hash = createUniqueID(serialize(balances));
 		return hash;
 	}, [balances]);
 
 	/**********************************************************************************************
 	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
-	 ** from the useWallet hook to retrieve the balance. We are using currentIdentifier as a
+	 ** from the useWallet hook to retrieve the balance. We are using currentBalanceIdentifier as a
 	 ** dependency to trigger the useEffect hook when the balances object changes.
 	 *********************************************************************************************/
 	const balance = useMemo(() => {
-		currentIdentifier;
+		currentBalanceIdentifier;
 		const value = getBalance({address: vault.address, chainID: vault.chainID}).normalized || 0;
-		return formatAmount(value);
-	}, [getBalance, vault.address, vault.chainID, currentIdentifier]);
+		return value;
+	}, [getBalance, vault.address, vault.chainID, currentBalanceIdentifier]);
 
 	/**********************************************************************************************
 	 ** The totalDeposits is the total value locked in the vault. We will use the tvl property
 	 ** from the vault object and format it using the formatAmount function.
 	 *********************************************************************************************/
 	const totalDeposits = useMemo(() => {
-		return formatAmount(vault.tvl.tvl, 2, 2);
+		return formatLocalAmount(vault.tvl.tvl, 4, '$', {
+			displayDigits: 2,
+			maximumFractionDigits: 2,
+			minimumFractionDigits: 2,
+			shouldCompactValue: true
+		});
 	}, [vault.tvl.tvl]);
 
 	/**********************************************************************************************
@@ -83,8 +90,15 @@ export const VaultItem = ({vault}: TVaultItem): ReactElement => {
 				<div className={'flex items-center justify-center  font-mono font-semibold'}>
 					{toPercent(vault.apr.extra.stakingRewardsAPR)}
 				</div>
-				<div className={'flex items-center justify-center'}>{totalDeposits}</div>
-				<div className={'flex items-center justify-center'}>{balance}</div>
+				<div className={'font-number flex items-center justify-end'}>{`$${totalDeposits}`}</div>
+				<div className={'font-number flex items-center justify-end text-right'}>
+					<div className={'text-right'}>
+						{`$${formatAmount(balance * price.normalized, 2, 2)}`}
+						<div className={'text-neutral-0 text-right text-xs text-opacity-40'}>
+							{`${formatAmount(balance * toNormalizedBN(vault.pricePerShare, vault.decimals).normalized)} ${vault.token.symbol}`}
+						</div>
+					</div>
+				</div>
 				<div className={'flex items-center justify-center gap-x-2'}>
 					<button className={'bg-button !h-12 w-32 rounded-xl p-3'}>{'Deposit'}</button>
 				</div>
@@ -119,7 +133,7 @@ export const VaultItem = ({vault}: TVaultItem): ReactElement => {
 					<div className={'flex items-center'}>
 						<p>{'Total Deposits'}</p>
 					</div>
-					<div>{totalDeposits}</div>
+					<div>{`$${totalDeposits}`}</div>
 				</div>
 
 				<div className={'flex w-full justify-between'}>
