@@ -11,7 +11,7 @@ function IconCircleQuestion(props: React.SVGProps<SVGSVGElement>): ReactElement 
 			viewBox={'0 0 16 16'}
 			fill={'none'}
 			xmlns={'http://www.w3.org/2000/svg'}>
-			<g clip-path={'url(#clip0_83_7562)'}>
+			<g clipPath={'url(#clip0_83_7562)'}>
 				<path
 					d={
 						'M8.00033 4.9444C8.33783 4.9444 8.61144 5.21801 8.61144 5.55551V5.56163C8.61144 5.89913 8.33783 6.17274 8.00033 6.17274C7.66282 6.17274 7.38921 5.89913 7.38921 5.56163V5.55551C7.38921 5.21801 7.66282 4.9444 8.00033 4.9444Z'

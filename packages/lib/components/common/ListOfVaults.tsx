@@ -8,11 +8,13 @@ import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
 
 type TListOfVaultsProps = {
 	vaults: TYDaemonVaults;
+	isLoading: boolean;
 	headerTabs: {value: string; label: string; isSortable: boolean}[];
 };
 
 export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 	const {sortedVaults} = useSortedVaults(props.vaults);
+
 	return (
 		<div className={'md:bg-table w-full rounded-2xl md:p-6'}>
 			<VaultsListHead

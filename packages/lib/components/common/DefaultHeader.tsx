@@ -1,5 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {truncateHex} from '@builtbymom/web3/utils';
 import {useAccountModal} from '@rainbow-me/rainbowkit';
 
 import {IconColloboration} from '../icons/IconCollaboration';
@@ -13,7 +15,9 @@ type TDefaultHeader = {
 };
 
 export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactElement {
+	const {onConnect, address, ens, clusters} = useWeb3();
 	const {openAccountModal} = useAccountModal();
+	const ensOrClusters = address && (ens || clusters?.name);
 
 	return (
 		<div className={'bg-table flex items-center justify-between rounded-3xl px-6 py-5'}>
@@ -53,9 +57,9 @@ export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactE
 			</div>
 			<button
 				suppressHydrationWarning
-				onClick={openAccountModal}
+				onClick={address ? openAccountModal : onConnect}
 				className={'rounded-lg border border-white bg-white p-3 text-sm font-bold text-black md:px-[30px]'}>
-				{'Connect Wallet'}
+				{ensOrClusters ? ensOrClusters : address ? truncateHex(address, 6) : 'Connect Wallet'}
 			</button>
 		</div>
 	);
