@@ -3,9 +3,11 @@ import Link from 'next/link';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {formatAmount, formatPercent} from '@builtbymom/web3/utils';
+import {getChain} from '@lib/utils/tools';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconCircleQuestion} from '../icons/IconCircleQuestion';
+import {ImageWithFallback} from './ImageWithFallback';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
@@ -61,11 +63,22 @@ export const VaultItem = ({vault}: TVaultItem): ReactElement => {
 	return (
 		<div>
 			{/* Desctop screen Item */}
-			<div className={'bg-background hidden min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-5'}>
+			<div className={'bg-background hidden min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-6'}>
 				<Link
 					href={yearnfiLink}
-					className={'border-border flex cursor-alias items-center rounded-xl border bg-purple-200 p-3'}>
-					{vault.name}
+					className={
+						'border-border col-span-2 flex cursor-alias  items-center justify-start rounded-xl border bg-purple-200 p-3'
+					}>
+					<ImageWithFallback
+						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
+						alt={vault.token.symbol}
+						width={28}
+						height={28}
+					/>
+					<div className={'ml-2 flex flex-col'}>
+						<p className={'w-full'}>{vault.name}</p>
+						<p className={'text-purple-0 w-full'}>{getChain(vault.chainID)}</p>
+					</div>
 				</Link>
 				<div className={'flex items-center justify-center  font-mono font-semibold'}>
 					{toPercent(vault.apr.extra.stakingRewardsAPR)}
@@ -81,8 +94,17 @@ export const VaultItem = ({vault}: TVaultItem): ReactElement => {
 			<div className={'bg-table flex w-full flex-col gap-y-6 rounded-2xl p-6 md:hidden'}>
 				<Link
 					href={'/'}
-					className={'border-border w-full rounded-xl border bg-purple-200 px-2.5 py-2'}>
-					{vault.name}
+					className={'border-border flex w-full items-center rounded-xl border bg-purple-200 px-2.5 py-2'}>
+					<ImageWithFallback
+						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
+						alt={vault.token.symbol}
+						width={28}
+						height={28}
+					/>
+					<div className={'ml-2 flex flex-col'}>
+						<p className={'w-full'}>{vault.name}</p>
+						<p className={'text-purple-0 w-full'}>{getChain(vault.chainID)}</p>
+					</div>
 				</Link>
 
 				<div className={'flex w-full justify-between'}>

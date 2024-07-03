@@ -22,6 +22,7 @@ module.exports = {
 				white: '#FFFFFF',
 				primary: '#6303FF',
 				purple: {
+					0: '#a998cd',
 					100: '#512ba2',
 					200: '#54349c'
 				}

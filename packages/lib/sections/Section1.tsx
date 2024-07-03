@@ -1,19 +1,16 @@
 import Image from 'next/image';
 
 import type {ReactElement} from 'react';
+import type {TSectionProps} from '@lib/utils/types';
 
-export const Section1 = ({bgImage}: {bgImage?: string}): ReactElement => {
+export const Section1 = ({bgImage, description}: TSectionProps): ReactElement => {
 	return (
 		<div className={'h-section grid grid-rows-3 gap-y-6 md:grid-cols-3 md:gap-x-6'}>
 			<div className={'bg-table flex flex-col justify-between rounded-2xl p-10'}>
 				<div className={'leading-4xl md:leading-7xl text-4xl font-black text-white md:text-7xl'}>
 					{'YEARN PARTNER VAULTS'}
 				</div>
-				<p>
-					{
-						'Several lines description. Several lines description. Several lines description. Several lines description. '
-					}
-				</p>
+				<p>{description}</p>
 			</div>
 			<div className={'bg-table flex items-end justify-start rounded-2xl p-10'}>
 				<div>

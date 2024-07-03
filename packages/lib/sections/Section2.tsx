@@ -1,8 +1,9 @@
 import Image from 'next/image';
 
 import type {ReactElement} from 'react';
+import type {TSectionProps} from '@lib/utils/types';
 
-export const Section2 = ({bgImage}: {bgImage?: string}): ReactElement => {
+export const Section2 = ({bgImage, description}: TSectionProps): ReactElement => {
 	return (
 		<div className={'h-section relative w-full gap-x-6'}>
 			<div className={'h-section overflow-hidden rounded-2xl bg-cover bg-center bg-no-repeat'}>
@@ -21,11 +22,7 @@ export const Section2 = ({bgImage}: {bgImage?: string}): ReactElement => {
 					<div className={'md:leading-7xl text-3xl font-black text-white md:text-7xl'}>
 						{'YEARN PARTNER VAULTS'}
 					</div>
-					<p>
-						{
-							'Several lines description. Several lines description. Several lines description. Several lines description. '
-						}
-					</p>
+					<p>{description}</p>
 				</div>
 			</div>
 		</div>

@@ -19,7 +19,12 @@ export default function Index(): ReactElement {
 				docsLink={''}
 				secondLogoURL={''}
 			/>
-			<Section variant={VARIANT_TO_USE} />
+			<Section
+				variant={VARIANT_TO_USE}
+				description={
+					'Several lines description. Several lines description. Several lines description. Several lines description. '
+				}
+			/>
 			<ListOfVaults
 				vaults={vaultsValues}
 				isLoading={isLoading}

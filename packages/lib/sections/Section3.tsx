@@ -1,8 +1,9 @@
 import Image from 'next/image';
 
 import type {ReactElement} from 'react';
+import type {TSectionProps} from '@lib/utils/types';
 
-export const Section3 = ({bgImage}: {bgImage?: string}): ReactElement => {
+export const Section3 = ({bgImage}: TSectionProps): ReactElement => {
 	return (
 		<div className={'flex flex-col gap-y-6'}>
 			<div className={'h-section flex flex-col-reverse gap-x-6 md:flex-row'}>

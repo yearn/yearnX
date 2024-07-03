@@ -13,3 +13,5 @@ export type TVaultData = {
 };
 
 export type TVaultsSortBy = 'vault' | 'apr' | 'deposits' | 'balance';
+
+export type TSectionProps = {bgImage?: string; description?: string};

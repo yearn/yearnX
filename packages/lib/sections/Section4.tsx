@@ -1,8 +1,9 @@
 import Image from 'next/image';
 
 import type {ReactElement} from 'react';
+import type {TSectionProps} from '@lib/utils/types';
 
-export const Section4 = ({bgImage}: {bgImage?: string}): ReactElement => {
+export const Section4 = ({bgImage}: TSectionProps): ReactElement => {
 	return (
 		<div className={'h-section flex flex-col-reverse gap-x-6 md:flex-row'}>
 			<div className={'bg-table flex flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'}>

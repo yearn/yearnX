@@ -8,19 +8,20 @@ import type {ReactElement} from 'react';
 
 type TSectionProps = {
 	variant: 1 | 2 | 3 | 4 | 5;
+	description: string;
 };
 
-export function Section({variant}: TSectionProps): ReactElement {
+export function Section({variant, description}: TSectionProps): ReactElement {
 	switch (variant) {
 		case 1:
-			return <Section1 />;
+			return <Section1 description={description} />;
 		case 2:
-			return <Section2 />;
+			return <Section2 description={description} />;
 		case 3:
-			return <Section3 />;
+			return <Section3 description={description} />;
 		case 4:
-			return <Section4 />;
+			return <Section4 description={description} />;
 		case 5:
-			return <Section5 />;
+			return <Section5 description={description} />;
 	}
 }

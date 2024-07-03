@@ -40,7 +40,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 	};
 
 	return (
-		<div className={'hidden px-2 text-neutral-600 md:col-span-7 md:grid md:grid-cols-5'}>
+		<div className={'hidden px-2 text-neutral-600 md:col-span-7 md:grid md:grid-cols-6'}>
 			{props.items.map(item =>
 				item.isSortable ? (
 					<Link
@@ -55,7 +55,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 						key={item.value}
 						className={cl(
 							'flex flex-row items-center text-white',
-							item.value === 'vault' ? 'justify-start' : 'justify-center'
+							item.value === 'vault' ? 'col-span-2 justify-start' : 'justify-center'
 						)}>
 						{item.label}
 					</div>
