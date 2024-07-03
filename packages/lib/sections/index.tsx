@@ -11,7 +11,6 @@ type TSectionProps = {
 	description: string;
 	bgImage?: string;
 };
-
 export function Section({variant, description, bgImage}: TSectionProps): ReactElement {
 	switch (variant) {
 		case 1:
