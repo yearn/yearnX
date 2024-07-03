@@ -1,4 +1,4 @@
-export const VARIANT_TO_USE = 5;
+export const VARIANT_TO_USE = 1;
 export const VAULT_FILTER = 'pendle';
 
 export const HEADER_TABS = [

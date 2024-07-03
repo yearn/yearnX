@@ -61,9 +61,7 @@ module.exports = {
 			red: colors.rose,
 			green: colors.emerald,
 			blue: colors.blue,
-			teal: colors.teal,
-			button: '#C521D4',
-			border: '#7054ac'
+			teal: colors.teal
 		},
 		extend: {
 			fontFamily: {
@@ -84,16 +82,16 @@ module.exports = {
 				xl: ['24px', '32px'],
 				'3xl': ['32px', '40px'],
 				'4xl': ['40px', '56px'],
-				'7xl': '64px',
+				'7xl': ['64px', '72px'],
 				'9xl': '128px'
+			},
+			opacity: {
+				3: '.03'
 			},
 			maxWidth: {
 				xl: '552px',
 				'4xl': '904px',
 				'6xl': '1200px'
-			},
-			lineHeight: {
-				'7xl': '64px'
 			},
 			animation: {
 				fadeIn: 'fadeIn 200ms ease-in'

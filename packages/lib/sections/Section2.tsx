@@ -1,29 +1,38 @@
 import Image from 'next/image';
+import {cl} from '@builtbymom/web3/utils';
 
 import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
-export const Section2 = ({bgImage, description}: TSectionProps): ReactElement => {
+export const Section2 = ({bgImage}: TSectionProps): ReactElement => {
 	return (
-		<div className={'h-section relative w-full gap-x-6'}>
-			<div className={'h-section overflow-hidden rounded-2xl bg-cover bg-center bg-no-repeat'}>
+		<div className={'h-section min-h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
+			<div
+				className={cl(
+					'col-span-12 md:col-span-5',
+					'bg-table flex flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'
+				)}>
+				<div className={'leading-4xl md:leading-7xl text-4xl font-black text-white md:text-7xl'}>
+					{'YEARN PARTNER VAULTS'}
+				</div>
+				<div className={'bg-primary text-accentText w-full rounded-2xl p-6'}>
+					<b className={'block'}>{'GRAND PRIZE'}</b>
+					<div className={'flex items-end'}>
+						<p className={'leading-4xl md:leading-7xl font-mono text-4xl font-black md:text-7xl'}>
+							{'123.69'}
+							<span className={'pl-2 font-mono text-xl font-bold'}>{'ETH'}</span>
+						</p>
+					</div>
+				</div>
+			</div>
+			<div className={cl('col-span-12 md:col-span-7', 'size-full overflow-hidden rounded-t-2xl md:rounded-2xl')}>
 				<Image
 					src={bgImage ?? '/bg-placeholder.png'}
-					alt={''}
-					width={2400} /* Scaled x2 to keep quality OK */
+					alt={'img'}
+					width={1408} /* Scaled x2 to keep quality OK */
 					height={1056} /* Scaled x2 to keep quality OK */
 					style={{objectFit: 'cover', width: '100%', height: '100%'}}
 				/>
-				<div
-					style={{top: '20px', left: '20px', height: '488px'}}
-					className={
-						'bg-background absolute flex h-full w-2/3 flex-col justify-between rounded-2xl p-6 md:w-1/3'
-					}>
-					<div className={'md:leading-7xl text-3xl font-black text-white md:text-7xl'}>
-						{'YEARN PARTNER VAULTS'}
-					</div>
-					<p>{description}</p>
-				</div>
 			</div>
 		</div>
 	);

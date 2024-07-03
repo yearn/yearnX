@@ -3,25 +3,29 @@ import Image from 'next/image';
 import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
-export const Section4 = ({bgImage}: TSectionProps): ReactElement => {
+export const Section4 = ({bgImage, description}: TSectionProps): ReactElement => {
 	return (
-		<div className={'h-section flex flex-col-reverse gap-x-6 md:flex-row'}>
-			<div className={'bg-table flex flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'}>
+		<div className={'h-section min-h-section grid grid-cols-1 md:grid-cols-3 md:gap-6'}>
+			<div className={'bg-table flex flex-col justify-between rounded-2xl p-10'}>
 				<div className={'leading-4xl md:leading-7xl text-4xl font-black text-white md:text-7xl'}>
 					{'YEARN PARTNER VAULTS'}
 				</div>
-				<div className={'bg-primary w-full rounded-2xl p-6'}>
-					<p className={'font-black'}>{'GRAND PRIZE'}</p>
-					<div className={'flex items-end'}>
-						<p className={'leading-4xl md:leading-7xl text-4xl font-black md:text-7xl'}>{'123.69'}</p>
-					</div>
+				<p>{description}</p>
+			</div>
+
+			<div className={'bg-table flex items-end justify-start rounded-2xl p-10'}>
+				<div>
+					<p>{'Several lines description.'}</p>
+					<p className={'leading-7xl text-7xl font-black'}>{'192%'}</p>
 				</div>
 			</div>
-			<div className={'size-full overflow-hidden rounded-t-2xl md:w-2/3 md:rounded-2xl'}>
+
+			<div className={'overflow-hidden rounded-2xl bg-cover bg-center bg-no-repeat md:mb-0'}>
 				<Image
+					className={'size-full md:w-0'}
 					src={bgImage ?? '/bg-placeholder.png'}
-					alt={'img'}
-					width={1408} /* Scaled x2 to keep quality OK */
+					alt={''}
+					width={768} /* Scaled x2 to keep quality OK */
 					height={1056} /* Scaled x2 to keep quality OK */
 					style={{objectFit: 'cover', width: '100%', height: '100%'}}
 				/>

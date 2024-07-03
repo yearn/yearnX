@@ -21,6 +21,7 @@ export default function Index(): ReactElement {
 			/>
 			<Section
 				variant={VARIANT_TO_USE}
+				bgImage={'/bg.webp'}
 				description={
 					'Several lines description. Several lines description. Several lines description. Several lines description. '
 				}

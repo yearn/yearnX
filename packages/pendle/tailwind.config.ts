@@ -17,15 +17,25 @@ module.exports = {
 			...config.theme.extend,
 			colors: {
 				...config.theme.extend.colors,
-				table: '#441F93',
-				background: '#4C249F',
 				white: '#FFFFFF',
-				primary: '#6303FF',
+
+				button: '#1BE3C2',
+				buttonHover: '#1EFCD8',
+				accentText: '#0C0C0C',
+				background: '#090D18',
+				table: '#151E2F',
+				primary: '#1BE3C2',
+				secondary: '#6079FF',
+
+				border: '#7054ac',
 				purple: {
 					0: '#a998cd',
 					100: '#512ba2',
 					200: '#54349c'
 				}
+			},
+			minHeight: {
+				section: '528px'
 			},
 			height: {
 				section: '528px'

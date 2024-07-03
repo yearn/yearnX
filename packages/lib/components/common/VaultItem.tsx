@@ -70,11 +70,12 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	return (
 		<div>
 			{/* Desctop screen Item */}
-			<div className={'bg-background hidden min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-6'}>
+			<div className={'bg-white/3 hidden min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-6'}>
 				<Link
 					href={yearnfiLink}
+					target={'_blank'}
 					className={
-						'border-border col-span-2 flex cursor-alias  items-center justify-start rounded-xl border bg-purple-200 p-3'
+						'col-span-2 flex cursor-alias items-center justify-start rounded-xl border border-white/15 bg-white/5 p-3'
 					}>
 					<ImageWithFallback
 						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
@@ -82,9 +83,9 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						width={28}
 						height={28}
 					/>
-					<div className={'ml-2 flex flex-col'}>
-						<p className={'w-full'}>{vault.name}</p>
-						<p className={'text-purple-0 w-full'}>{getChain(vault.chainID)}</p>
+					<div className={'ml-2 flex flex-col overflow-hidden'}>
+						<p className={'w-full truncate'}>{vault.name}</p>
+						<p className={'w-full text-white/50'}>{getChain(vault.chainID)}</p>
 					</div>
 				</Link>
 				<div className={'flex items-center justify-center  font-mono font-semibold'}>
@@ -100,15 +101,21 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 					</div>
 				</div>
 				<div className={'flex items-center justify-center gap-x-2'}>
-					<button className={'bg-button !h-12 w-32 rounded-xl p-3'}>{'Deposit'}</button>
+					<button
+						className={
+							'bg-button hover:bg-buttonHover text-accentText !h-12 w-32 rounded-xl p-3 transition-colors'
+						}>
+						{'Deposit'}
+					</button>
 				</div>
 			</div>
 
 			{/* Mobile screen Item */}
 			<div className={'bg-table flex w-full flex-col gap-y-6 rounded-2xl p-6 md:hidden'}>
 				<Link
-					href={'/'}
-					className={'border-border flex w-full items-center rounded-xl border bg-purple-200 px-2.5 py-2'}>
+					href={yearnfiLink}
+					target={'_blank'}
+					className={'flex w-full items-center rounded-xl border border-white/15 bg-white/5 px-2.5 py-2'}>
 					<ImageWithFallback
 						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
 						alt={vault.token.symbol}
@@ -145,7 +152,12 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 
 				<div className={'flex gap-x-6'}>
 					<button className={'w-full rounded-xl border border-white p-3'}>{'Withdraw'}</button>
-					<button className={'bg-button w-full rounded-xl p-3'}>{'Deposit'}</button>
+					<button
+						className={
+							'bg-button hover:bg-buttonHover text-accentText w-full rounded-xl p-3 transition-colors'
+						}>
+						{'Deposit'}
+					</button>
 				</div>
 			</div>
 		</div>

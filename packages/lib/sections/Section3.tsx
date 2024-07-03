@@ -1,27 +1,30 @@
 import Image from 'next/image';
+import {cl} from '@builtbymom/web3/utils';
 
 import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
-export const Section3 = ({bgImage}: TSectionProps): ReactElement => {
+export const Section3 = ({description, bgImage}: TSectionProps): ReactElement => {
 	return (
-		<div className={'flex flex-col gap-y-6'}>
-			<div className={'h-section flex flex-col-reverse gap-x-6 md:flex-row'}>
-				<div className={'bg-table flex flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'}>
+		<div className={'grid gap-6'}>
+			<div className={'h-section min-h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
+				<div
+					className={cl(
+						'col-span-12 md:col-span-5',
+						'bg-table flex flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'
+					)}>
 					<div className={'leading-4xl md:leading-7xl text-4xl font-black text-white md:text-7xl'}>
 						{'YEARN PARTNER VAULTS'}
 					</div>
-					<div className={'bg-primary mt-5 w-full rounded-2xl p-6 md:mt-0'}>
-						<p className={'font-black'}>{'GRAND PRIZE'}</p>
-						<div className={'flex items-end'}>
-							<p className={'leading-4xl md:leading-7xl text-4xl font-black md:text-7xl'}>{'123.69'}</p>
-						</div>
+					<div className={'w-full rounded-2xl'}>
+						<p className={'text-lg'}>{description}</p>
 					</div>
 				</div>
 				<div
-					className={
-						'w-full overflow-hidden rounded-t-2xl bg-cover bg-center bg-no-repeat md:w-2/3 md:rounded-2xl'
-					}>
+					className={cl(
+						'col-span-12 md:col-span-7',
+						'w-full overflow-hidden rounded-t-2xl bg-cover bg-center bg-no-repeat md:rounded-2xl'
+					)}>
 					<Image
 						src={bgImage ?? '/bg-placeholder.png'}
 						alt={'img'}
@@ -33,18 +36,21 @@ export const Section3 = ({bgImage}: TSectionProps): ReactElement => {
 				</div>
 			</div>
 
-			<div className={'bg-table grid w-full grid-rows-3 gap-y-6 rounded-2xl p-10 md:grid-cols-3 md:gap-x-6'}>
+			<div
+				className={
+					'bg-primary text-accentText grid w-full grid-cols-1 gap-y-6 rounded-2xl px-10 py-16 md:grid-cols-3 md:gap-x-6'
+				}>
 				<div className={'flex flex-col'}>
-					<p className={'font-black md:mb-2'}>{'GRAND PRIZE'}</p>
-					<p className={'text-3xl font-black md:text-7xl'}>{'123.69'}</p>
+					<b className={'block md:mb-4'}>{'GRAND PRIZE'}</b>
+					<b className={'font-mono text-3xl md:text-7xl'}>{'123.69'}</b>
 				</div>
 				<div className={'flex flex-col'}>
-					<p className={'font-black md:mb-2'}>{'GRAND PRIZE'}</p>
-					<p className={'text-3xl font-black  md:text-7xl'}>{'123.69'}</p>
+					<b className={'block md:mb-4'}>{'GRAND PRIZE'}</b>
+					<b className={'font-mono text-3xl md:text-7xl'}>{'123.69'}</b>
 				</div>
 				<div className={'flex flex-col'}>
-					<p className={'font-black md:mb-2'}>{'GRAND PRIZE'}</p>
-					<p className={'text-3xl font-black  md:text-7xl'}>{'123.69'}</p>
+					<b className={'block md:mb-4'}>{'GRAND PRIZE'}</b>
+					<b className={'font-mono text-3xl md:text-7xl'}>{'123.69'}</b>
 				</div>
 			</div>
 		</div>

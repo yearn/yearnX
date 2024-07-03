@@ -58,13 +58,13 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 						)}
 						key={item.label}>
 						<IconSort className={'size-3'} />
-						<p className={'text-white'}>{item.label}</p>
+						<p className={'text-white/80'}>{item.label}</p>
 					</Link>
 				) : (
 					<div
 						key={item.value}
 						className={cl(
-							'flex flex-row items-center text-white',
+							'flex flex-row items-center text-white/80',
 							item.value === 'vault'
 								? 'col-span-2 justify-start'
 								: item.value === 'deposits'
