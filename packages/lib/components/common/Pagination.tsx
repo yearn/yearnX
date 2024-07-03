@@ -29,8 +29,8 @@ export const Pagintaion = (props: TPaginationProps): ReactElement => {
 	};
 
 	return (
-		<div className={'flex w-full  pt-6'}>
-			<div className={'flex-start whitespace-nowrap md:absolute '}>
+		<div className={'flex w-full pt-6'}>
+			<div className={'flex-start mt-0 whitespace-nowrap md:absolute md:mt-3 '}>
 				{'Showing '}
 				{getFrom()}
 				{' to '}
@@ -44,19 +44,27 @@ export const Pagintaion = (props: TPaginationProps): ReactElement => {
 					className={'flex items-center gap-x-4'}
 					pageCount={amountOfPages}
 					previousLabel={
-						<button onClick={prevPage}>
-							<IconArrowLeft className={'size-5'} />
+						<button
+							onClick={prevPage}
+							className={'hover:bg-gray-0 mb-2 rounded-lg p-3 outline-1 outline-gray-100 hover:outline'}>
+							<IconArrowLeft className={'size-3'} />
 						</button>
 					}
 					nextLabel={
-						<button onClick={nextPage}>
-							<IconArrowLeft className={'size-5 rotate-180 text-white'} />
+						<button
+							onClick={nextPage}
+							className={
+								'hover:bg-gray-0 mb-2 rounded-lg p-3 text-white outline-1 outline-gray-100 hover:outline'
+							}>
+							<IconArrowLeft className={'size-3 rotate-180 text-white'} />
 						</button>
 					}
 					onPageChange={({selected}) => onPageClick(selected + 1)}
 					pageRangeDisplayed={1}
 					marginPagesDisplayed={5}
-					pageClassName={'text-gray-100'}
+					pageClassName={
+						'text-gray-100 hover:outline outline-gray-100 outline-1 rounded-lg px-4 py-2 hover:text-white hover:bg-gray-0'
+					}
 					activeClassName={'text-white'}
 					breakClassName={'text-gray-100'}
 					nextClassName={'mt-2'}
