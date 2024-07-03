@@ -27,33 +27,35 @@ export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 	const {sortBy, sortDirection, sortedVaults} = useSortedVaults(props.vaults, allPrices);
 
 	return (
-		<div className={'md:bg-table w-full rounded-2xl md:p-6'}>
-			<VaultsListHead
-				items={props.headerTabs}
-				sortBy={sortBy}
-				sortDirection={sortDirection}
-				vaults={props.vaults}
-			/>
+		<div className={'pb-10'}>
+			<div className={'md:bg-table w-full rounded-2xl md:p-6'}>
+				<VaultsListHead
+					items={props.headerTabs}
+					sortBy={sortBy}
+					sortDirection={sortDirection}
+					vaults={props.vaults}
+				/>
 
-			<div className={'mt-4'}>
-				{sortedVaults?.length ? (
-					<div className={'flex flex-col gap-y-4'}>
-						{sortedVaults.map(vault => (
-							<VaultItem
-								key={vault.address}
-								vault={vault}
-								price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
-							/>
-						))}
-					</div>
-				) : (
-					<div
-						className={
-							'flex h-80 w-full items-center justify-center rounded-2xl bg-purple-100 py-10 text-lg md:bg-transparent'
-						}>
-						{'Nothing to display'}
-					</div>
-				)}
+				<div className={'mt-4'}>
+					{sortedVaults?.length ? (
+						<div className={'flex flex-col gap-y-4'}>
+							{sortedVaults.map(vault => (
+								<VaultItem
+									key={vault.address}
+									vault={vault}
+									price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
+								/>
+							))}
+						</div>
+					) : (
+						<div
+							className={
+								'flex h-80 w-full items-center justify-center rounded-2xl bg-purple-100 py-10 text-lg md:bg-transparent'
+							}>
+							{'Nothing to display'}
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);
