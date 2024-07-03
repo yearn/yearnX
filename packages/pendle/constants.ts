@@ -1,5 +1,5 @@
 export const VARIANT_TO_USE = 5;
-export const VAULT_FILTER = 'v2';
+export const VAULT_FILTER = 'juiced';
 
 export const HEADER_TABS = [
 	{value: 'vault', label: 'Vault', isSortable: false},
