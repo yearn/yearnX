@@ -11,3 +11,5 @@ export type TVaultData = {
 	totalSupply: TNormalizedBN;
 	balanceOf: TNormalizedBN;
 };
+
+export type TVaultsSortBy = 'vault' | 'apr' | 'deposits' | 'balance';

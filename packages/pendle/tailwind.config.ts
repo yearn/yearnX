@@ -20,7 +20,11 @@ module.exports = {
 				table: '#441F93',
 				background: '#4C249F',
 				white: '#FFFFFF',
-				primary: '#6303FF'
+				primary: '#6303FF',
+				purple: {
+					100: '#512ba2',
+					200: '#54349c'
+				}
 			},
 			height: {
 				section: '528px'

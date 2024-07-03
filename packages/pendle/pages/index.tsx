@@ -12,11 +12,7 @@ export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
 
 	console.log(vaults, isLoading);
-
-	const values = [...Object.values(vaults)];
-
-	console.log(values);
-
+	//[...Object.values(vaults)]
 	return (
 		<div className={'flex w-full max-w-[1200px] flex-col gap-y-6 pb-6'}>
 			<DefaultHeader
