@@ -2,7 +2,7 @@ import {type ReactElement, useMemo} from 'react';
 import Link from 'next/link';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {formatAmount, formatLocalAmount, formatPercent, toNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, formatAmount, formatLocalAmount, formatPercent, toNormalizedBN} from '@builtbymom/web3/utils';
 import {getChain} from '@lib/utils/tools';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
@@ -70,7 +70,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	return (
 		<div>
 			{/* Desctop screen Item */}
-			<div className={'bg-white/3 hidden min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-6'}>
+			<div className={'bg-white/3 hidden min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>
 				<Link
 					href={yearnfiLink}
 					target={'_blank'}
@@ -100,7 +100,15 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						</div>
 					</div>
 				</div>
-				<div className={'flex items-center justify-center gap-x-2'}>
+				<div className={cl('col-span-2 flex items-center justify-end gap-x-2')}>
+					{vault.tvl.tvl ? (
+						<button
+							className={
+								'bg-gray-0 !h-12 w-32 rounded-xl border border-gray-100 p-3 text-white transition-colors hover:bg-gray-100'
+							}>
+							{'Withdraw'}
+						</button>
+					) : null}
 					<button
 						className={
 							'bg-button hover:bg-buttonHover text-accentText !h-12 w-32 rounded-xl p-3 transition-colors'
@@ -124,7 +132,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 					/>
 					<div className={'ml-2 flex flex-col'}>
 						<p className={'w-full'}>{vault.name}</p>
-						<p className={'text-purple-0 w-full'}>{getChain(vault.chainID)}</p>
+						<p className={'w-full text-white/50'}>{getChain(vault.chainID)}</p>
 					</div>
 				</Link>
 
@@ -151,11 +159,18 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				</div>
 
 				<div className={'flex gap-x-6'}>
-					<button className={'w-full rounded-xl border border-white p-3'}>{'Withdraw'}</button>
+					{vault.tvl.tvl ? (
+						<button
+							className={
+								'bg-gray-0 !h-12 w-full rounded-xl border border-gray-100 p-3 text-white transition-colors hover:bg-gray-100'
+							}>
+							{'Withdraw'}
+						</button>
+					) : null}
 					<button
-						className={
-							'bg-button hover:bg-buttonHover text-accentText w-full rounded-xl p-3 transition-colors'
-						}>
+						className={cl(
+							'bg-button hover:bg-buttonHover w-full text-accentText !h-12 rounded-xl p-3 transition-colors'
+						)}>
 						{'Deposit'}
 					</button>
 				</div>

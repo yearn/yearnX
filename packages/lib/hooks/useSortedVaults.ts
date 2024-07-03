@@ -22,6 +22,7 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 	const {balances, getBalance} = useWallet();
 	const sortDirection = searchParams.get('sortDirection');
 	const sortBy = searchParams.get('sortBy');
+	const currentPage = searchParams.get('page') ?? 1;
 
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
@@ -39,9 +40,9 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 	 *********************************************************************************************/
 	useEffect(() => {
 		if (!sortDirection && sortBy) {
-			router.push('');
+			router.push(`?page=${currentPage}`);
 		}
-	}, [router, sortBy, sortDirection]);
+	}, [currentPage, router, sortBy, sortDirection]);
 
 	/**********************************************************************************************
 	 ** This is memoized sorted vaults by apr.

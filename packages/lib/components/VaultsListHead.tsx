@@ -1,5 +1,5 @@
 import {type ReactElement, useCallback} from 'react';
-import Link from 'next/link';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {cl} from '@builtbymom/web3/utils';
 
 import {IconSort} from './icons/IconSort';
@@ -19,6 +19,10 @@ type TVaultsListHeadProps = {
 };
 
 export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const currentPage = searchParams.get('page');
+
 	/**********************************************************************************************
 	 ** This toggleSortDirection function changes sort direction between asc, desc and 'no-sort'.
 	 *********************************************************************************************/
@@ -41,25 +45,23 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 	);
 
 	return (
-		<div className={'hidden px-2 text-neutral-600 md:col-span-7 md:grid md:grid-cols-6'}>
+		<div className={'hidden px-2 text-neutral-600 md:col-span-7 md:grid md:grid-cols-7'}>
 			{props.items.map(item =>
 				item.isSortable ? (
-					<Link
-						href={`?sortDirection=${toggleSortDirection(item.value)}&sortBy=${item.value}`}
+					<button
+						onClick={() =>
+							router.push(
+								`?page=${currentPage}&sortDirection=${toggleSortDirection(item.value)}&sortBy=${item.value}`
+							)
+						}
 						className={cl(
 							'flex w-full items-center gap-x-2',
-							item.value === 'vault'
-								? 'justify-start'
-								: item.value === 'deposits'
-									? 'justify-end'
-									: item.value === 'balance'
-										? 'justify-end'
-										: 'justify-center'
+							item.value === 'deposits' || item.value === 'balance' ? 'justify-end' : 'justify-center'
 						)}
 						key={item.label}>
 						<IconSort className={'size-3'} />
-						<p className={'text-white/80'}>{item.label}</p>
-					</Link>
+						<p className={'text-right text-white/80'}>{item.label}</p>
+					</button>
 				) : (
 					<div
 						key={item.value}
@@ -67,11 +69,9 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 							'flex flex-row items-center text-white/80',
 							item.value === 'vault'
 								? 'col-span-2 justify-start'
-								: item.value === 'deposits'
-									? 'justify-end'
-									: item.value === 'balance'
-										? 'justify-end'
-										: 'justify-center'
+								: item.value === 'manage'
+									? 'justify-center col-span-2'
+									: 'justify-end'
 						)}>
 						{item.label}
 					</div>

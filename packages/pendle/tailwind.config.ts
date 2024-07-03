@@ -18,7 +18,6 @@ module.exports = {
 			colors: {
 				...config.theme.extend.colors,
 				white: '#FFFFFF',
-
 				button: '#1BE3C2',
 				buttonHover: '#1EFCD8',
 				accentText: '#0C0C0C',
@@ -26,11 +25,10 @@ module.exports = {
 				table: '#151E2F',
 				primary: '#1BE3C2',
 				secondary: '#6079FF',
-
 				border: '#7054ac',
-				purple: {
-					0: '#a998cd',
-					100: '#512ba2',
+				gray: {
+					0: '#28303f',
+					100: '#504c5c',
 					200: '#54349c'
 				}
 			},

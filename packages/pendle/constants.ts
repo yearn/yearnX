@@ -1,5 +1,6 @@
 export const VARIANT_TO_USE = 1;
 export const VAULT_FILTER = 'pendle';
+export const VAULTS_PER_PAGE = 20;
 
 export const HEADER_TABS = [
 	{value: 'vault', label: 'Vault', isSortable: false},
