@@ -101,7 +101,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 					</div>
 				</div>
 				<div className={cl('col-span-2 flex items-center justify-end gap-x-2')}>
-					{vault.tvl.tvl ? (
+					{balance ? (
 						<button
 							className={
 								'bg-gray-0 !h-12 w-32 rounded-xl border border-gray-100 p-3 text-white transition-colors hover:bg-gray-100'

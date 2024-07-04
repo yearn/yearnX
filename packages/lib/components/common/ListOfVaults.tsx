@@ -65,8 +65,6 @@ export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 
 			<Pagintaion
 				currentPage={currentPage}
-				totalVaultLength={props.vaults.length}
-				vaultsPerPage={VAULTS_PER_PAGE}
 				nextPage={nextPage}
 				prevPage={prevPage}
 				amountOfPages={amountOfPages}

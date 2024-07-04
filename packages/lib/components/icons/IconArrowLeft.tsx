@@ -6,15 +6,15 @@ function IconArrowLeft(props: React.SVGProps<SVGSVGElement>): ReactElement {
 	return (
 		<svg
 			{...props}
-			width={'10'}
-			height={'8'}
-			viewBox={'0 0 10 8'}
+			width={'16'}
+			height={'16'}
+			viewBox={'0 0 16 16'}
 			fill={'none'}
 			xmlns={'http://www.w3.org/2000/svg'}>
 			<path
-				d={'M9 3.66667L1 3.66667M1 3.66667L3.66667 1M1 3.66667L3.66667 6.33333'}
-				stroke={'currentColor'}
-				strokeOpacity={'0.3'}
+				d={'M12 7.66667L4 7.66667M4 7.66667L6.66667 5M4 7.66667L6.66667 10.3333'}
+				stroke={'currentcolor'}
+				strokeOpacity={'1'}
 				strokeWidth={'1.5'}
 				strokeLinecap={'round'}
 				strokeLinejoin={'round'}

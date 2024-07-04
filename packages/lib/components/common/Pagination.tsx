@@ -1,5 +1,6 @@
 import ReactPaginate from 'react-paginate';
 import {useRouter} from 'next/navigation';
+import {cl} from '@builtbymom/web3/utils';
 
 import {IconArrowLeft} from '../icons/IconArrowLeft';
 
@@ -7,22 +8,13 @@ import type {ReactElement} from 'react';
 
 type TPaginationProps = {
 	currentPage: number;
-	totalVaultLength: number;
-	vaultsPerPage: number;
 	amountOfPages: number;
 	nextPage: () => void;
 	prevPage: () => void;
 };
 export const Pagintaion = (props: TPaginationProps): ReactElement => {
-	const {currentPage, totalVaultLength, vaultsPerPage, nextPage, prevPage, amountOfPages} = props;
+	const {currentPage, nextPage, prevPage, amountOfPages} = props;
 	const router = useRouter();
-	const getFrom = (): number => {
-		return currentPage === 1 ? 1 : (currentPage - 1) * vaultsPerPage + 1;
-	};
-
-	const getTo = (): number => {
-		return currentPage === amountOfPages ? totalVaultLength : currentPage * vaultsPerPage;
-	};
 
 	const onPageClick = (num: number): void => {
 		router.push(`?page=${num}`);
@@ -30,42 +22,48 @@ export const Pagintaion = (props: TPaginationProps): ReactElement => {
 
 	return (
 		<div className={'flex w-full pt-6'}>
-			<div className={'flex-start mt-0 whitespace-nowrap md:absolute md:mt-3 '}>
-				{'Showing '}
-				{getFrom()}
-				{' to '}
-				{getTo()}
-				{' of '}
-				{totalVaultLength}
-				{' results'}
-			</div>
 			<div className={'flex w-full items-center justify-center'}>
 				<ReactPaginate
-					className={'flex items-center gap-x-4'}
+					className={'flex items-center'}
 					pageCount={amountOfPages}
+					breakLabel={<span className={'p-3'}>{'...'}</span>}
+					pageRangeDisplayed={2}
 					previousLabel={
 						<button
 							onClick={prevPage}
-							className={'hover:bg-gray-0 mb-2 rounded-lg p-3 outline-1 outline-gray-100 hover:outline'}>
-							<IconArrowLeft className={'size-3'} />
+							disabled={currentPage === 1}
+							className={cl(
+								'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-gray-100',
+								'hover:bg-gray-0 hover:outline',
+								currentPage === 1 ? 'text-gray-100' : 'text-white'
+							)}>
+							<IconArrowLeft className={'size-5'} />
 						</button>
 					}
 					nextLabel={
 						<button
 							onClick={nextPage}
-							className={
-								'hover:bg-gray-0 mb-2 rounded-lg p-3 text-white outline-1 outline-gray-100 hover:outline'
-							}>
-							<IconArrowLeft className={'size-3 rotate-180 text-white'} />
+							disabled={currentPage === amountOfPages}
+							className={cl(
+								'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-gray-100',
+								'hover:outline hover:bg-gray-0',
+								currentPage === amountOfPages ? 'text-gray-100' : 'text-white'
+							)}>
+							<IconArrowLeft className={'size-5 rotate-180'} />
 						</button>
 					}
 					onPageChange={({selected}) => onPageClick(selected + 1)}
-					pageRangeDisplayed={1}
-					marginPagesDisplayed={5}
-					pageClassName={
-						'text-gray-100 hover:outline outline-gray-100 outline-1 rounded-lg px-4 py-2 hover:text-white hover:bg-gray-0'
-					}
+					pageLabelBuilder={page => (
+						<button
+							className={cl(
+								'rounded-lg px-3 md:px-4 py-1 md:py-2 outline-1 outline-gray-100',
+								'hover:text-white hover:outline hover:bg-gray-0'
+							)}>
+							{page}
+						</button>
+					)}
 					activeClassName={'text-white'}
+					pageClassName={'text-gray-100'}
 					breakClassName={'text-gray-100'}
 					nextClassName={'mt-2'}
 					previousClassName={'mt-2'}
