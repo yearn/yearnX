@@ -21,7 +21,7 @@ type TVaultsListHeadProps = {
 export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const currentPage = searchParams.get('page');
+	const currentPage = searchParams.get('page') ?? 1;
 
 	/**********************************************************************************************
 	 ** This toggleSortDirection function changes sort direction between asc, desc and 'no-sort'.
