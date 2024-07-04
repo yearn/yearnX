@@ -1,7 +1,21 @@
-import {useEffect, useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 
 import type {TYDaemonVaults} from './useYearnVaults.types';
+
+/**************************************************************************************************
+ ** Window.location.href is WAY faster to load than the useSearchParams hook and is available from
+ ** the start. We can then use this function to get the currentPage from the URL without having a
+ ** re-render once the proper state is set after a few ms/seconds.
+ *************************************************************************************************/
+function getCurrentPageFromUrl(): number {
+	if (typeof window !== 'undefined') {
+		const url = new URL(window.location.href);
+		const page = url.searchParams.get('page');
+		return page ? Number(page) : 1;
+	}
+	return 1;
+}
 
 export const useVaultsPagination = (
 	vaultsPerPage: number,
@@ -9,17 +23,20 @@ export const useVaultsPagination = (
 ): {currentPage: number; vaults: TYDaemonVaults; nextPage: () => void; prevPage: () => void; amountOfPages: number} => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const currentPage = searchParams.get('page') ?? 1;
+	const [currentPage, set_currentPage] = useState<number>(getCurrentPageFromUrl());
+
+	useEffect(() => {
+		const page = Number(searchParams.get('page')) ?? 1;
+		if (page < 1 || page > Math.ceil(vaults.length / vaultsPerPage) || isNaN(page)) {
+			set_currentPage(1);
+		} else {
+			set_currentPage(page);
+		}
+	}, [searchParams, vaults.length, vaultsPerPage]);
 
 	const currentPageVaults = useMemo(() => {
 		return vaults.slice((Number(currentPage) - 1) * vaultsPerPage, Number(currentPage) * vaultsPerPage);
 	}, [currentPage, vaults, vaultsPerPage]);
-
-	useEffect(() => {
-		if (!currentPage) {
-			router.push('?page=1');
-		}
-	});
 
 	const amountOfPages = useMemo(() => Math.ceil(vaults.length / vaultsPerPage), [vaults.length, vaultsPerPage]);
 

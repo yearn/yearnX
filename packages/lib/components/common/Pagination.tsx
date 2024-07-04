@@ -1,10 +1,11 @@
+import {type ReactElement, useCallback} from 'react';
 import ReactPaginate from 'react-paginate';
-import {useRouter} from 'next/navigation';
+import {useRouter} from 'next/router';
 import {cl} from '@builtbymom/web3/utils';
 
 import {IconArrowLeft} from '../icons/IconArrowLeft';
 
-import type {ReactElement} from 'react';
+import type {ParsedUrlQueryInput} from 'querystring';
 
 type TPaginationProps = {
 	currentPage: number;
@@ -12,13 +13,28 @@ type TPaginationProps = {
 	nextPage: () => void;
 	prevPage: () => void;
 };
-export const Pagintaion = (props: TPaginationProps): ReactElement => {
+export const Pagination = (props: TPaginationProps): ReactElement => {
 	const {currentPage, nextPage, prevPage, amountOfPages} = props;
 	const router = useRouter();
 
-	const onPageClick = (num: number): void => {
-		router.push(`?page=${num}`);
-	};
+	/**********************************************************************************************
+	 ** When the user clicks on a page number, the page number is updated in the URL query string.
+	 ** If the page number is 1, the page number is removed from the URL query string.
+	 *********************************************************************************************/
+	const onPageClick = useCallback(
+		(num: number): void => {
+			const currentRouterArguments = router.query;
+			let query: ParsedUrlQueryInput = {...currentRouterArguments};
+			if (num === 1) {
+				delete currentRouterArguments.page;
+				query = {...currentRouterArguments};
+			} else {
+				query = {...currentRouterArguments, page: num};
+			}
+			router.push({pathname: router.pathname, query}, undefined, {shallow: true, scroll: true});
+		},
+		[router]
+	);
 
 	return (
 		<div className={'flex w-full pt-6'}>
@@ -67,6 +83,7 @@ export const Pagintaion = (props: TPaginationProps): ReactElement => {
 					breakClassName={'text-gray-100'}
 					nextClassName={'mt-2'}
 					previousClassName={'mt-2'}
+					forcePage={currentPage - 1}
 				/>
 			</div>
 		</div>

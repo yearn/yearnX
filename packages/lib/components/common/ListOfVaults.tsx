@@ -6,7 +6,7 @@ import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
 
 import {VaultsListHead} from '../VaultsListHead';
-import {Pagintaion} from './Pagination';
+import {Pagination} from './Pagination';
 import {VaultItem} from './VaultItem';
 
 import type {TToken} from '@builtbymom/web3/types';
@@ -63,7 +63,7 @@ export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 				</div>
 			</div>
 
-			<Pagintaion
+			<Pagination
 				currentPage={currentPage}
 				nextPage={nextPage}
 				prevPage={prevPage}
