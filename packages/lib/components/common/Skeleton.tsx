@@ -1,6 +1,6 @@
 import type {ReactElement} from 'react';
 
-function SceletonRow(): ReactElement {
+function SkeletonRow(): ReactElement {
 	return (
 		<>
 			<div className={'bg-white/3 hidden h-24 place-content-center rounded-xl p-2.5 md:grid md:grid-cols-7'}>
@@ -55,11 +55,11 @@ function SceletonRow(): ReactElement {
 	);
 }
 
-export function Sceleton(): ReactElement {
+export function Skeleton(): ReactElement {
 	return (
 		<div className={'flex flex-col gap-y-2'}>
 			{new Array(20).fill(1).map((_, i) => (
-				<SceletonRow key={i} />
+				<SkeletonRow key={i} />
 			))}
 		</div>
 	);

@@ -7,7 +7,7 @@ import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
 
 import {VaultsListHead} from '../VaultsListHead';
 import {Pagination} from './Pagination';
-import {Sceleton} from './Sceleton';
+import {Skeleton} from './Skeleton';
 import {VaultItem} from './VaultItem';
 
 import type {TToken} from '@builtbymom/web3/types';
@@ -34,7 +34,7 @@ export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 
 	const getLayout = (): ReactElement => {
 		if (props.isLoading) {
-			return <Sceleton />;
+			return <Skeleton />;
 		}
 
 		if (sortedVaults?.length) {
