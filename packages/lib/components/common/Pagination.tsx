@@ -83,7 +83,7 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 					breakClassName={'text-white/15'}
 					nextClassName={'mt-2'}
 					previousClassName={'mt-2'}
-					forcePage={currentPage - 1}
+					forcePage={currentPage - 1 > 0 ? currentPage - 1 : 0}
 				/>
 			</div>
 		</div>

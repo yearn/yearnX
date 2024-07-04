@@ -2,6 +2,7 @@ import {assert, assertAddress} from '@builtbymom/web3/utils';
 import {handleTx, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 
 import {PRIZE_VAULT_ABI} from './prizeVault.abi';
+import {VAULT_ABI} from './vault.abi';
 
 import type {TTxResponse, TWriteTransaction} from '@builtbymom/web3/utils/wagmi';
 
@@ -51,5 +52,27 @@ export async function depositERC20(props: TDepositERC20Args): Promise<TTxRespons
 		functionName: 'deposit',
 		confirmation: 1,
 		args: [props.amount, wagmiProvider.address]
+	});
+}
+
+/**************************************************************************************************
+ ** withdrawShares is a _WRITE_ function that withdraw an ERC20 token from a vault.
+ **
+ ** @app - Vaults
+ ** @param amount - The amount of ERC20 to withdraw.
+ *************************************************************************************************/
+type TWithdrawSharesArgs = TWriteTransaction & {
+	amount: bigint;
+};
+export async function withdrawShares(props: TWithdrawSharesArgs): Promise<TTxResponse> {
+	assertAddress(props.contractAddress);
+	assert(props.amount > 0n, 'Amount is 0');
+	assert(props.connector, 'No connector');
+
+	return await handleTx(props, {
+		address: props.contractAddress,
+		abi: VAULT_ABI,
+		functionName: 'withdraw',
+		args: [props.amount]
 	});
 }

@@ -10,6 +10,7 @@ import {IconCircleQuestion} from '../icons/IconCircleQuestion';
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {DepositModal} from './DepositModal';
 import {ImageWithFallback} from './ImageWithFallback';
+import {WithdrawModal} from './WithdrawModal';
 
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
@@ -25,7 +26,8 @@ function toPercent(value: number): string {
 
 export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance} = useWallet();
-	const [isModalOpen, set_isModalOpen] = useState(false);
+	const [isDepositModalOpen, set_isDepositModalOpen] = useState(false);
+	const [isWithdrawModalOpen, set_isWithdrawModalOpen] = useState(false);
 
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
@@ -73,8 +75,15 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	return (
 		<div>
 			<DepositModal
-				isOpen={isModalOpen}
-				onClose={() => set_isModalOpen(false)}
+				isOpen={isDepositModalOpen}
+				onClose={() => set_isDepositModalOpen(false)}
+				vault={vault}
+				yearnfiLink={yearnfiLink}
+				hasBalanceForVault={balance > 0}
+			/>
+			<WithdrawModal
+				isOpen={isWithdrawModalOpen}
+				onClose={() => set_isWithdrawModalOpen(false)}
 				vault={vault}
 				yearnfiLink={yearnfiLink}
 				hasBalanceForVault={balance > 0}
@@ -114,19 +123,20 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						</div>
 					</div>
 				</div>
-				<div className={cl('col-span-2 flex items-center justify-end gap-x-2')}>
+				<div className={cl('col-span-2 flex items-center justify-end gap-x-2 pl-10')}>
 					{balance ? (
 						<button
+							onClick={() => set_isWithdrawModalOpen(true)}
 							className={
-								'!h-12 w-32 rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15 '
+								'!h-12 w-full rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15 '
 							}>
 							{'Withdraw'}
 						</button>
 					) : null}
 					<button
-						onClick={() => set_isModalOpen(true)}
+						onClick={() => set_isDepositModalOpen(true)}
 						className={
-							'bg-button hover:bg-buttonHover text-accentText !h-12 w-32 rounded-xl p-3 transition-colors'
+							'bg-button hover:bg-buttonHover text-accentText !h-12 w-full rounded-xl p-3 transition-colors'
 						}>
 						{'Deposit'}
 					</button>

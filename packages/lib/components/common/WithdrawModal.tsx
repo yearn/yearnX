@@ -3,9 +3,11 @@ import Link from 'next/link';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, toAddress, toBigInt, zeroNormalizedBN} from '@builtbymom/web3/utils';
-import {defaultTxStatus, getNetwork} from '@builtbymom/web3/utils/wagmi';
+import {defaultTxStatus, getNetwork, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
-import {depositERC20} from '@lib/utils/actions';
+import {redeemV3Shares, withdrawShares} from '@lib/utils/actions';
+import {VAULT_ABI} from '@lib/utils/vault.abi';
+import {readContract} from '@wagmi/core';
 
 import {IconCross} from '../icons/IconCross';
 import {IconExternalLink} from '../icons/IconExternalLink';
@@ -15,7 +17,7 @@ import {TokenAmountWrapper} from './TokenAmountInput';
 import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
-type TDepositModalProps = {
+type TWithdrawModalProps = {
 	isOpen: boolean;
 	onClose: () => void;
 	vault: TYDaemonVault;
@@ -23,44 +25,69 @@ type TDepositModalProps = {
 	hasBalanceForVault: boolean;
 };
 
-export function DepositModal(props: TDepositModalProps): ReactElement {
+export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 	const {provider} = useWeb3();
 	const {onRefresh} = useWallet();
 	const [assetToUse, set_assetToUse] = useState<TToken>({
 		chainID: props.vault.chainID,
-		address: props.vault.token.address,
-		name: props.vault.token.name,
-		symbol: props.vault.token.symbol,
-		decimals: props.vault.token.decimals,
+		address: props.vault.address,
+		name: props.vault.name,
+		symbol: props.vault.symbol,
+		decimals: props.vault.decimals,
 		value: 0,
 		balance: zeroNormalizedBN
 	});
 	const [value, set_value] = useState<TNormalizedBN | undefined>(undefined);
 	const [actionStatus, set_actionStatus] = useState(defaultTxStatus);
 
-	const onDeposit = useCallback(async () => {
+	const onWithdraw = useCallback(async () => {
 		if (assetToUse.address === props.vault.address) {
-			throw new Error('CANNOT DEPOSIT THE VAULT ITSELF');
-		} else if (assetToUse.address === props.vault.token.address) {
-			const result = await depositERC20({
-				connector: provider,
-				chainID: props.vault.chainID,
-				contractAddress: toAddress(props.vault.address),
-				amount: toBigInt(value?.raw),
-				statusHandler: set_actionStatus
+			const pricePerShare = await readContract(retrieveConfig(), {
+				abi: VAULT_ABI,
+				address: props.vault.address,
+				functionName: 'pricePerShare',
+				chainId: props.vault.chainID
 			});
-			if (result.isSuccessful) {
-				await onRefresh([
-					{chainID: props.vault.chainID, address: props.vault.address},
-					{chainID: props.vault.chainID, address: props.vault.token.address}
-				]);
-				set_value(undefined);
-				props.onClose();
+			const shareValue = toBigInt(value?.raw) / toBigInt(pricePerShare);
+			if (props.vault.version.startsWith('3')) {
+				const result = await redeemV3Shares({
+					connector: provider,
+					chainID: props.vault.chainID,
+					contractAddress: toAddress(props.vault.address),
+					amount: shareValue,
+					statusHandler: set_actionStatus
+				});
+				if (result.isSuccessful) {
+					await onRefresh([
+						{chainID: props.vault.chainID, address: props.vault.address},
+						{chainID: props.vault.chainID, address: props.vault.token.address}
+					]);
+					set_value(undefined);
+					props.onClose();
+				}
+			} else {
+				const result = await withdrawShares({
+					connector: provider,
+					chainID: props.vault.chainID,
+					contractAddress: toAddress(props.vault.address),
+					amount: shareValue,
+					statusHandler: set_actionStatus
+				});
+				if (result.isSuccessful) {
+					await onRefresh([
+						{chainID: props.vault.chainID, address: props.vault.address},
+						{chainID: props.vault.chainID, address: props.vault.token.address}
+					]);
+					set_value(undefined);
+					props.onClose();
+				}
 			}
+		} else if (assetToUse.address === props.vault.token.address) {
+			throw new Error('CANNOT WITHDRAW THE TOKEN ITSELF');
 		} else {
 			throw new Error('PORTALS SUPPORT TODO');
 		}
-	}, [onRefresh, props, provider, assetToUse.address, value?.raw]);
+	}, [assetToUse.address, props, value?.raw, provider, onRefresh]);
 
 	return (
 		<Transition
@@ -116,9 +143,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 								/>
 								<div className={'ml-2 flex flex-col md:w-48'}>
 									<div className={'flex items-center gap-x-2'}>
-										<p className={'w-full truncate text-left md:whitespace-nowrap'}>
-											{props.vault.name}
-										</p>
+										<p className={'w-full text-left md:whitespace-nowrap'}>{props.vault.name}</p>
 										<IconExternalLink className={'size-4'} />
 									</div>
 
@@ -127,15 +152,15 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 									</p>
 								</div>
 							</Link>
-							<div className={'mb-8 flex w-full flex-col items-start gap-y-1'}>
+							<div className={'mt-4 flex w-full flex-col items-start gap-y-1'}>
 								<TokenAmountWrapper
 									assetToUse={assetToUse}
 									vault={props.vault}
 									value={value}
 									onChangeValue={set_value}
-									label={'Deposit'}
+									label={'Withdraw'}
+									onActionClick={onWithdraw}
 									isPerformingAction={actionStatus.pending}
-									onActionClick={onDeposit}
 								/>
 							</div>
 						</div>
