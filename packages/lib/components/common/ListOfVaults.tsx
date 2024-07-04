@@ -7,6 +7,7 @@ import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
 
 import {VaultsListHead} from '../VaultsListHead';
 import {Pagination} from './Pagination';
+import {Sceleton} from './Sceleton';
 import {VaultItem} from './VaultItem';
 
 import type {TToken} from '@builtbymom/web3/types';
@@ -31,6 +32,35 @@ export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 
 	const {sortBy, sortDirection, sortedVaults} = useSortedVaults(vaults, allPrices);
 
+	const getLayout = (): ReactElement => {
+		if (props.isLoading) {
+			return <Sceleton />;
+		}
+
+		if (sortedVaults?.length) {
+			return (
+				<div className={'flex flex-col gap-y-4'}>
+					{sortedVaults.map(vault => (
+						<VaultItem
+							key={vault.address}
+							vault={vault}
+							price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
+						/>
+					))}
+				</div>
+			);
+		}
+
+		return (
+			<div
+				className={
+					'bg-table flex h-80 w-full items-center justify-center rounded-2xl py-10 text-lg md:bg-transparent'
+				}>
+				{'Nothing to display'}
+			</div>
+		);
+	};
+
 	return (
 		<div className={'md:pb-10'}>
 			<div className={'md:bg-table w-full rounded-2xl md:p-6'}>
@@ -41,26 +71,7 @@ export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 					vaults={props.vaults}
 				/>
 
-				<div className={'mt-4'}>
-					{sortedVaults?.length ? (
-						<div className={'flex flex-col gap-y-4'}>
-							{sortedVaults.map(vault => (
-								<VaultItem
-									key={vault.address}
-									vault={vault}
-									price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
-								/>
-							))}
-						</div>
-					) : (
-						<div
-							className={
-								'bg-gray-0 flex h-80 w-full items-center justify-center rounded-2xl py-10 text-lg md:bg-transparent'
-							}>
-							{'Nothing to display'}
-						</div>
-					)}
-				</div>
+				<div className={'mt-4'}>{getLayout()}</div>
 			</div>
 
 			<Pagination

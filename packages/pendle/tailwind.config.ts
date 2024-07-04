@@ -25,12 +25,7 @@ module.exports = {
 				table: '#151E2F',
 				primary: '#1BE3C2',
 				secondary: '#6079FF',
-				border: '#7054ac',
-				gray: {
-					0: '#28303f',
-					100: '#504c5c',
-					200: '#54349c'
-				}
+				border: '#7054ac'
 			},
 			minHeight: {
 				section: '528px'

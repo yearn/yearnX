@@ -49,9 +49,9 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 							onClick={prevPage}
 							disabled={currentPage === 1}
 							className={cl(
-								'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-gray-100',
-								'hover:bg-gray-0 hover:outline',
-								currentPage === 1 ? 'text-gray-100' : 'text-white'
+								'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-white/15',
+								'hover:bg-white/5 hover:outline',
+								currentPage === 1 ? 'text-white/15' : 'text-white'
 							)}>
 							<IconArrowLeft className={'size-5'} />
 						</button>
@@ -61,9 +61,9 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 							onClick={nextPage}
 							disabled={currentPage === amountOfPages}
 							className={cl(
-								'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-gray-100',
-								'hover:outline hover:bg-gray-0',
-								currentPage === amountOfPages ? 'text-gray-100' : 'text-white'
+								'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-white/15',
+								'hover:outline hover:bg-white/5',
+								currentPage === amountOfPages ? 'text-white/15' : 'text-white'
 							)}>
 							<IconArrowLeft className={'size-5 rotate-180'} />
 						</button>
@@ -72,15 +72,15 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 					pageLabelBuilder={page => (
 						<button
 							className={cl(
-								'rounded-lg px-3 md:px-4 py-1 md:py-2 outline-1 outline-gray-100',
-								'hover:text-white hover:outline hover:bg-gray-0'
+								'rounded-lg px-3 md:px-4 py-1 md:py-2 outline-1 outline-white/15',
+								'hover:text-white hover:outline hover:bg-white/5'
 							)}>
 							{page}
 						</button>
 					)}
-					activeClassName={'text-white'}
-					pageClassName={'text-gray-100'}
-					breakClassName={'text-gray-100'}
+					activeClassName={'!text-white'}
+					pageClassName={'text-white/15'}
+					breakClassName={'text-white/15'}
 					nextClassName={'mt-2'}
 					previousClassName={'mt-2'}
 					forcePage={currentPage - 1}

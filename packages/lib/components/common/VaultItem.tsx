@@ -1,12 +1,14 @@
-import {type ReactElement, useMemo} from 'react';
+import {type ReactElement, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {cl, formatAmount, formatLocalAmount, formatPercent, toNormalizedBN} from '@builtbymom/web3/utils';
-import {getChain} from '@lib/utils/tools';
+import {getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconCircleQuestion} from '../icons/IconCircleQuestion';
+import {IconExternalLink} from '../icons/IconExternalLink';
+import {DepositModal} from './DepositModal';
 import {ImageWithFallback} from './ImageWithFallback';
 
 import type {TNormalizedBN} from '@builtbymom/web3/types';
@@ -23,6 +25,7 @@ function toPercent(value: number): string {
 
 export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance} = useWallet();
+	const [isModalOpen, set_isModalOpen] = useState(false);
 
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
@@ -69,6 +72,13 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 
 	return (
 		<div>
+			<DepositModal
+				isOpen={isModalOpen}
+				onClose={() => set_isModalOpen(false)}
+				vault={vault}
+				yearnfiLink={yearnfiLink}
+				hasBalanceForVault={balance > 0}
+			/>
 			{/* Desctop screen Item */}
 			<div className={'bg-white/3 hidden min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>
 				<Link
@@ -83,9 +93,13 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						width={28}
 						height={28}
 					/>
-					<div className={'ml-2 flex flex-col overflow-hidden'}>
-						<p className={'w-full truncate'}>{vault.name}</p>
-						<p className={'w-full text-white/50'}>{getChain(vault.chainID)}</p>
+					<div className={'ml-2 flex flex-col justify-start'}>
+						<div className={'flex max-w-[250px] items-center  gap-x-2 '}>
+							<p className={'w-full truncate'}>{vault.name}</p>
+							<IconExternalLink className={'size-4'} />
+						</div>
+
+						<p className={'w-full text-white/50'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
 				<div className={'flex items-center justify-center  font-mono font-semibold'}>
@@ -104,12 +118,13 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 					{balance ? (
 						<button
 							className={
-								'bg-gray-0 !h-12 w-32 rounded-xl border border-gray-100 p-3 text-white transition-colors hover:bg-gray-100'
+								'!h-12 w-32 rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15 '
 							}>
 							{'Withdraw'}
 						</button>
 					) : null}
 					<button
+						onClick={() => set_isModalOpen(true)}
 						className={
 							'bg-button hover:bg-buttonHover text-accentText !h-12 w-32 rounded-xl p-3 transition-colors'
 						}>
@@ -130,9 +145,13 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						width={28}
 						height={28}
 					/>
-					<div className={'ml-2 flex flex-col'}>
-						<p className={'w-full'}>{vault.name}</p>
-						<p className={'w-full text-white/50'}>{getChain(vault.chainID)}</p>
+					<div className={'ml-2 flex flex-col justify-start'}>
+						<div className={'flex items-center gap-x-2'}>
+							<p className={'w-full'}>{vault.name}</p>
+							<IconExternalLink className={'size-4'} />
+						</div>
+
+						<p className={'w-full text-white/50'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
 
@@ -162,7 +181,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 					{vault.tvl.tvl ? (
 						<button
 							className={
-								'bg-gray-0 !h-12 w-full rounded-xl border border-gray-100 p-3 text-white transition-colors hover:bg-gray-100'
+								'!h-12 w-full rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15'
 							}>
 							{'Withdraw'}
 						</button>
