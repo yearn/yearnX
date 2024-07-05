@@ -114,7 +114,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 									width={28}
 									height={28}
 								/>
-								<div className={'ml-2 flex flex-col md:w-48'}>
+								<div className={'ml-2 flex w-48 flex-col md:w-80'}>
 									<div className={'flex items-center gap-x-2'}>
 										<p className={'w-full truncate text-left md:whitespace-nowrap'}>
 											{props.vault.name}

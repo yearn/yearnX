@@ -94,7 +94,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 					href={yearnfiLink}
 					target={'_blank'}
 					className={
-						'col-span-2 flex cursor-alias items-center justify-start rounded-xl border border-white/15 bg-white/5 p-3'
+						'col-span-2 flex cursor-alias items-center justify-start overflow-hidden rounded-xl border border-white/15 bg-white/5 p-3'
 					}>
 					<ImageWithFallback
 						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
@@ -103,7 +103,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						height={28}
 					/>
 					<div className={'ml-2 flex flex-col justify-start'}>
-						<div className={'flex max-w-[250px] items-center  gap-x-2 '}>
+						<div className={'flex max-w-[250px] items-center gap-x-2 overflow-hidden '}>
 							<p className={'w-full truncate'}>{vault.name}</p>
 							<IconExternalLink className={'size-4'} />
 						</div>
@@ -188,18 +188,20 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				</div>
 
 				<div className={'flex gap-x-6'}>
-					{vault.tvl.tvl ? (
+					{balance ? (
 						<button
+							onClick={() => set_isWithdrawModalOpen(true)}
 							className={
-								'!h-12 w-full rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15'
+								'!h-12 w-full rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15 '
 							}>
 							{'Withdraw'}
 						</button>
 					) : null}
 					<button
-						className={cl(
-							'bg-button hover:bg-buttonHover w-full text-accentText !h-12 rounded-xl p-3 transition-colors'
-						)}>
+						onClick={() => set_isDepositModalOpen(true)}
+						className={
+							'bg-button hover:bg-buttonHover text-accentText !h-12 w-full rounded-xl p-3 transition-colors'
+						}>
 						{'Deposit'}
 					</button>
 				</div>

@@ -81,11 +81,11 @@ export function ChainSelector({
 
 	return (
 		<>
-			<div
-				role={'button'}
+			<button
+				disabled={!address}
 				onClick={toggleOpen}
 				className={
-					'relative flex !h-16 items-center gap-x-1 rounded-lg border border-white/15 bg-white/5 px-4 py-3'
+					'relative flex !h-16 items-center gap-x-1 rounded-lg border border-white/15 bg-white/5 px-4 py-3 disabled:cursor-not-allowed'
 				}>
 				<ImageWithFallback
 					src={`https://assets.smold.app/tokens/${vault.chainID}/${assetToUse.address}/logo-128.png`}
@@ -94,11 +94,11 @@ export function ChainSelector({
 					height={32}
 				/>
 				<IconChevron className={'size-4 text-white'} />
-			</div>
+			</button>
 			{isOpen && (
 				<div
 					className={
-						'bg-table no-scrollbar absolute mt-2 rounded-lg border border-white/15 py-5 md:min-w-[507px]'
+						'bg-table no-scrollbar absolute z-[1003] mt-2 rounded-lg border border-white/15 py-5 md:min-w-[507px]'
 					}>
 					<label
 						className={cl(

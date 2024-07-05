@@ -141,7 +141,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 									width={28}
 									height={28}
 								/>
-								<div className={'ml-2 flex flex-col md:w-48'}>
+								<div className={'ml-2 flex w-48 flex-col md:w-80'}>
 									<div className={'flex items-center gap-x-2'}>
 										<p className={'w-full text-left md:whitespace-nowrap'}>{props.vault.name}</p>
 										<IconExternalLink className={'size-4'} />

@@ -72,16 +72,19 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 				</div>
 				<button
 					onClick={props.onMaxClick}
-					className={'rounded-lg border border-white/15 bg-white/5 p-2 text-white'}>
+					disabled={!address}
+					className={
+						'rounded-lg border border-white/15 bg-white/5 p-2 text-white disabled:cursor-not-allowed'
+					}>
 					{'Max'}
 				</button>
 			</label>
 
-			<div className={'w-[120px]'}>
+			<div className={'hidden w-[120px] md:flex'}>
 				<Button
 					onClick={address ? props.onActionClick : onConnect}
 					isBusy={props.isPerformingAction}
-					isDisabled={!props.value || props.value.raw === 0n}
+					isDisabled={(!props.value || props.value.raw === 0n) && !!address}
 					className={cl(
 						'text-background flex w-full justify-center whitespace-nowrap rounded-lg bg-white px-[34.5px] py-5 font-bold',
 						'disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed',
@@ -115,6 +118,7 @@ export function TokenAmountWrapper({
 	set_assetToUse
 }: TTokenAmountWrapperProps): ReactElement {
 	const {balances, getBalance} = useWallet();
+	const {address, onConnect} = useWeb3();
 
 	/**********************************************************************************************
 	 ** Retrieve the price per share for the current vault.
@@ -184,24 +188,37 @@ export function TokenAmountWrapper({
 	}, [assetToUse.address, assetToUse.symbol, vault.address, vault.token.symbol]);
 
 	return (
-		<>
-			<p>{label}</p>
-			<TokenAmountInput
-				vault={vault}
-				label={label}
-				value={value}
-				isPerformingAction={isPerformingAction}
-				onChangeValue={onChangeValue}
-				onMaxClick={() => onChangeValue(balanceToUse)}
-				onActionClick={onActionClick}
-				set_assetToUse={set_assetToUse}
-				assetToUse={assetToUse}
-			/>
+		<div className={'flex w-full flex-col items-start gap-y-2'}>
+			<div className={'flex flex-col gap-y-1'}>
+				<p className={'w-min'}>{label}</p>
+				<TokenAmountInput
+					vault={vault}
+					label={label}
+					value={value}
+					isPerformingAction={isPerformingAction}
+					onChangeValue={onChangeValue}
+					onMaxClick={() => onChangeValue(balanceToUse)}
+					onActionClick={onActionClick}
+					set_assetToUse={set_assetToUse}
+					assetToUse={assetToUse}
+				/>
+			</div>
 			<button
 				onClick={() => onChangeValue(balanceToUse)}
 				className={'text-neutral-0 text-right text-xs text-opacity-40'}>
 				{`Available: ${formatAmount(balanceToUse.normalized)} ${assetName}`}
 			</button>
-		</>
+			<Button
+				onClick={address ? onActionClick : onConnect}
+				isBusy={isPerformingAction}
+				isDisabled={(!value || value.raw === 0n) && !!address}
+				className={cl(
+					'md:hidden text-background flex w-full justify-center whitespace-nowrap rounded-lg bg-white py-5 font-bold',
+					'disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed',
+					!address ? '!w-32 !h-full' : '!h-full'
+				)}>
+				{address ? label : 'Connect wallet'}
+			</Button>
+		</div>
 	);
 }
