@@ -153,6 +153,15 @@ select:focus {
 		@apply cursor-not-allowed;
 	}
 }
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+}
 
 .poolGradient {
 	background: linear-gradient(71.84deg, #5832f2 -10.22%, #e80766 164.53%),

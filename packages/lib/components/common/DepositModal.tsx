@@ -136,6 +136,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 									label={'Deposit'}
 									isPerformingAction={actionStatus.pending}
 									onActionClick={onDeposit}
+									set_assetToUse={set_assetToUse}
 								/>
 							</div>
 						</div>

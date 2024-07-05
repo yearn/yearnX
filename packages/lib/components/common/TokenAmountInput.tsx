@@ -1,4 +1,4 @@
-import {type ReactElement, useMemo} from 'react';
+import {type ReactElement, useMemo, useState} from 'react';
 import InputNumber from 'rc-input-number';
 import {serialize, useReadContract} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
@@ -21,16 +21,26 @@ type TTokenAmountInputProps = {
 	onChangeValue: (value: TNormalizedBN | undefined) => void;
 	onMaxClick: () => void;
 	onActionClick: () => void;
+	set_assetToUse: (token: TToken) => void;
+	assetToUse: TToken;
 };
 
 function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
-	const {label, vault} = props;
+	const {label, vault, set_assetToUse, assetToUse} = props;
 	const {address, onConnect} = useWeb3();
+
+	const [isChainSelectorOpen, set_isChainSelectorOpen] = useState<boolean>(false);
 
 	return (
 		<div className={'flex w-full gap-x-2'}>
 			<div className={'h-full'}>
-				<ChainSelector vault={vault} />
+				<ChainSelector
+					vault={vault}
+					isOpen={isChainSelectorOpen}
+					toggleOpen={() => set_isChainSelectorOpen(prev => !prev)}
+					set_assetToUse={set_assetToUse}
+					assetToUse={assetToUse}
+				/>
 			</div>
 			<label
 				className={cl(
@@ -92,6 +102,7 @@ type TTokenAmountWrapperProps = {
 	isPerformingAction: boolean;
 	onChangeValue: (value: TNormalizedBN | undefined) => void;
 	onActionClick: () => void;
+	set_assetToUse: (token: TToken) => void;
 };
 export function TokenAmountWrapper({
 	label,
@@ -100,7 +111,8 @@ export function TokenAmountWrapper({
 	value,
 	isPerformingAction,
 	onChangeValue,
-	onActionClick
+	onActionClick,
+	set_assetToUse
 }: TTokenAmountWrapperProps): ReactElement {
 	const {balances, getBalance} = useWallet();
 
@@ -182,6 +194,8 @@ export function TokenAmountWrapper({
 				onChangeValue={onChangeValue}
 				onMaxClick={() => onChangeValue(balanceToUse)}
 				onActionClick={onActionClick}
+				set_assetToUse={set_assetToUse}
+				assetToUse={assetToUse}
 			/>
 			<button
 				onClick={() => onChangeValue(balanceToUse)}

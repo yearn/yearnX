@@ -161,6 +161,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 									label={'Withdraw'}
 									onActionClick={onWithdraw}
 									isPerformingAction={actionStatus.pending}
+									set_assetToUse={set_assetToUse}
 								/>
 							</div>
 						</div>
