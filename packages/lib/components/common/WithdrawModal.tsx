@@ -31,7 +31,6 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 	const {provider} = useWeb3();
 	const {onRefresh} = useWallet();
 	const {configuration, dispatchConfiguration} = useManageVaults();
-	const [value, set_value] = useState<TNormalizedBN | undefined>(undefined);
 	const [actionStatus, set_actionStatus] = useState(defaultTxStatus);
 
 	const onSetTokenToWithdraw = (token: TTokenToUse): void => {
@@ -46,7 +45,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 				functionName: 'pricePerShare',
 				chainId: props.vault.chainID
 			});
-			const shareValue = toBigInt(value?.raw) / toBigInt(pricePerShare);
+			const shareValue = toBigInt(configuration.assetToWithdraw.amount?.raw) / toBigInt(pricePerShare);
 			if (props.vault.version.startsWith('3')) {
 				const result = await redeemV3Shares({
 					connector: provider,
@@ -60,7 +59,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 						{chainID: props.vault.chainID, address: props.vault.address},
 						{chainID: props.vault.chainID, address: props.vault.token.address}
 					]);
-					set_value(undefined);
+					dispatchConfiguration({type: 'SET_ASSET_TO_WITHDRAW', payload: {amount: undefined}});
 					props.onClose();
 				}
 			} else {
@@ -76,7 +75,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 						{chainID: props.vault.chainID, address: props.vault.address},
 						{chainID: props.vault.chainID, address: props.vault.token.address}
 					]);
-					set_value(undefined);
+					dispatchConfiguration({type: 'SET_ASSET_TO_WITHDRAW', payload: {amount: undefined}});
 					props.onClose();
 				}
 			}
@@ -85,7 +84,14 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 		} else {
 			throw new Error('PORTALS SUPPORT TODO');
 		}
-	}, [configuration.assetToWithdraw.token?.address, props, value?.raw, provider, onRefresh]);
+	}, [
+		configuration.assetToWithdraw.token?.address,
+		configuration.assetToWithdraw.amount?.raw,
+		props,
+		provider,
+		onRefresh,
+		dispatchConfiguration
+	]);
 
 	return (
 		<Transition
@@ -154,9 +160,8 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 								<TokenAmountWrapper
 									assetToUse={configuration.assetToWithdraw}
 									vault={props.vault}
-									value={value}
+									value={configuration.assetToWithdraw.amount}
 									onChangeValue={(val?: TNormalizedBN) => {
-										set_value(val);
 										dispatchConfiguration({
 											type: 'SET_ASSET_TO_WITHDRAW',
 											payload: {amount: val}
