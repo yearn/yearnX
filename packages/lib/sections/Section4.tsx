@@ -24,6 +24,7 @@ export const Section4 = ({bgImage, description}: TSectionProps): ReactElement =>
 				<Image
 					className={'size-full md:w-0'}
 					src={bgImage ?? '/bg-placeholder.png'}
+					priority
 					alt={''}
 					width={768} /* Scaled x2 to keep quality OK */
 					height={1056} /* Scaled x2 to keep quality OK */

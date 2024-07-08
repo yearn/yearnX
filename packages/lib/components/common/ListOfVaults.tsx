@@ -21,15 +21,12 @@ type TListOfVaultsProps = {
 
 export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 	const {getPrices, pricingHash} = usePrices();
-
 	const allPrices = useMemo(() => {
-		pricingHash;
 		const allTokens = props.vaults.map(vault => ({chainID: vault.chainID, address: vault.address}));
 		return getPrices(allTokens as TToken[]);
-	}, [props.vaults, getPrices, pricingHash]);
+	}, [props.vaults, getPrices, pricingHash]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const {vaults, nextPage, prevPage, currentPage, amountOfPages} = useVaultsPagination(VAULTS_PER_PAGE, props.vaults);
-
 	const {sortBy, sortDirection, sortedVaults} = useSortedVaults(vaults, allPrices);
 
 	const getLayout = (): ReactElement => {

@@ -33,6 +33,7 @@ export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactE
 						<Image
 							src={secondLogoURL}
 							alt={'partner logo'}
+							priority
 							width={32}
 							height={32}
 						/>

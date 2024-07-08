@@ -1,3 +1,4 @@
+import {type ReactElement} from 'react';
 import {DefaultHeader} from '@lib/components/common/DefaultHeader';
 import {Footer} from '@lib/components/common/Footer';
 import {ListOfVaults} from '@lib/components/common/ListOfVaults';
@@ -6,8 +7,6 @@ import {Section} from '@lib/sections';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {HEADER_TABS, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
-
-import type {ReactElement} from 'react';
 
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);

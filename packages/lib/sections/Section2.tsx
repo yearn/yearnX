@@ -28,7 +28,8 @@ export const Section2 = ({bgImage}: TSectionProps): ReactElement => {
 			<div className={cl('col-span-12 md:col-span-7', 'size-full overflow-hidden rounded-t-2xl md:rounded-2xl')}>
 				<Image
 					src={bgImage ?? '/bg-placeholder.png'}
-					alt={'img'}
+					priority
+					alt={''}
 					width={1408} /* Scaled x2 to keep quality OK */
 					height={1056} /* Scaled x2 to keep quality OK */
 					style={{objectFit: 'cover', width: '100%', height: '100%'}}

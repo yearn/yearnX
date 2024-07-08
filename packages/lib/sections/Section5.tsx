@@ -10,6 +10,7 @@ export const Section5 = ({bgImage, description}: TSectionProps): ReactElement =>
 			<div className={'h-full rounded-2xl'}>
 				<Image
 					src={bgImage ?? '/bg-placeholder.png'}
+					priority
 					alt={''}
 					width={2400} /* Scaled x2 to keep quality OK */
 					height={1056} /* Scaled x2 to keep quality OK */
