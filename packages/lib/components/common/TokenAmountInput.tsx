@@ -1,5 +1,7 @@
-import {type ReactElement, useMemo, useState} from 'react';
+import {type ReactElement, useMemo, useRef, useState} from 'react';
 import InputNumber from 'rc-input-number';
+import {useOnClickOutside} from 'usehooks-ts';
+import {zeroAddress} from 'viem';
 import {serialize, useReadContract} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
@@ -8,38 +10,41 @@ import {createUniqueID} from '@lib/utils/tools.identifiers';
 import {VAULT_ABI} from '@lib/utils/vault.abi';
 
 import {Button} from './Button';
-import {ChainSelector} from './ChainSelector';
+import {TokenSelector} from './TokenSelector';
 
 import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TTokenToUse} from '@lib/utils/types';
 
 type TTokenAmountInputProps = {
 	label: string;
 	vault: TYDaemonVault;
-	value: TNormalizedBN | undefined;
 	isPerformingAction: boolean;
-	onChangeValue: (value: TNormalizedBN | undefined) => void;
+	onChangeValue: (value: TNormalizedBN | undefined, token?: TToken) => void;
 	onMaxClick: () => void;
 	onActionClick: () => void;
-	set_assetToUse: (token: TToken) => void;
-	assetToUse: TToken;
+	set_assetToUse: (token: TTokenToUse) => void;
+	assetToUse: TTokenToUse;
+	isButtonDisabled: boolean;
 };
 
 function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 	const {label, vault, set_assetToUse, assetToUse} = props;
 	const {address, onConnect} = useWeb3();
-
 	const [isChainSelectorOpen, set_isChainSelectorOpen] = useState<boolean>(false);
+	const selectorRef = useRef<HTMLDivElement>(null);
+	useOnClickOutside(selectorRef, () => set_isChainSelectorOpen(false));
 
 	return (
 		<div className={'flex w-full gap-x-2'}>
 			<div className={'h-full'}>
-				<ChainSelector
+				<TokenSelector
 					vault={vault}
 					isOpen={isChainSelectorOpen}
 					toggleOpen={() => set_isChainSelectorOpen(prev => !prev)}
 					set_assetToUse={set_assetToUse}
 					assetToUse={assetToUse}
+					selectorRef={selectorRef}
 				/>
 			</div>
 			<label
@@ -61,7 +66,7 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 						decimalSeparator={'.'}
 						placeholder={'0.00'}
 						controls={false}
-						value={props.value?.normalized}
+						value={assetToUse.amount?.normalized}
 						onChange={value => {
 							if (!value) {
 								return props.onChangeValue(undefined);
@@ -84,13 +89,13 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 				<Button
 					onClick={address ? props.onActionClick : onConnect}
 					isBusy={props.isPerformingAction}
-					isDisabled={(!props.value || props.value.raw === 0n) && !!address}
+					isDisabled={props.isButtonDisabled}
 					className={cl(
 						'text-background flex w-full justify-center whitespace-nowrap rounded-lg bg-white px-[34.5px] py-5 font-bold',
 						'disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed',
 						!address ? '!w-32 !h-full' : '!h-full'
 					)}>
-					{address ? label : 'Connect wallet'}
+					{label}
 				</Button>
 			</div>
 		</div>
@@ -99,19 +104,18 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 
 type TTokenAmountWrapperProps = {
 	label: string;
-	assetToUse: TToken;
+	assetToUse: Partial<{token: TToken; amount: TNormalizedBN}>;
 	vault: TYDaemonVault;
 	value: TNormalizedBN | undefined;
 	isPerformingAction: boolean;
 	onChangeValue: (value: TNormalizedBN | undefined) => void;
 	onActionClick: () => void;
-	set_assetToUse: (token: TToken) => void;
+	set_assetToUse: (token: TTokenToUse) => void;
 };
 export function TokenAmountWrapper({
 	label,
 	vault,
 	assetToUse,
-	value,
 	isPerformingAction,
 	onChangeValue,
 	onActionClick,
@@ -147,7 +151,7 @@ export function TokenAmountWrapper({
 	 *********************************************************************************************/
 	const balanceOfAsset = useMemo(() => {
 		currentBalanceIdentifier;
-		const value = getBalance({address: assetToUse.address, chainID: vault.chainID});
+		const value = getBalance({address: assetToUse.token?.address || zeroAddress, chainID: vault.chainID});
 		return value;
 	}, [getBalance, assetToUse, vault.chainID, currentBalanceIdentifier]);
 
@@ -158,10 +162,17 @@ export function TokenAmountWrapper({
 	 *********************************************************************************************/
 	const balanceInShares = useMemo(() => {
 		currentBalanceIdentifier;
-		const value = getBalance({address: assetToUse.address, chainID: vault.chainID});
+		const value = getBalance({address: assetToUse.token?.address || zeroAddress, chainID: vault.chainID});
 		const pps = vaultPricePerShare;
 		return toNormalizedBN(value.raw * toBigInt(pps), vault.decimals * 2);
-	}, [currentBalanceIdentifier, getBalance, assetToUse.address, vault.chainID, vaultPricePerShare, vault.decimals]);
+	}, [
+		currentBalanceIdentifier,
+		getBalance,
+		assetToUse.token?.address,
+		vault.chainID,
+		vaultPricePerShare,
+		vault.decimals
+	]);
 
 	/**********************************************************************************************
 	 ** BalanceToUse is the balance that we will use to display to the user. If the user is
@@ -169,11 +180,11 @@ export function TokenAmountWrapper({
 	 ** from the vault, we will use the balance in shares.
 	 *********************************************************************************************/
 	const balanceToUse = useMemo(() => {
-		if (assetToUse.address === vault.address) {
+		if (assetToUse.token?.address === vault.address) {
 			return balanceInShares;
 		}
 		return balanceOfAsset;
-	}, [assetToUse.address, vault.address, balanceOfAsset, balanceInShares]);
+	}, [assetToUse.token?.address, vault.address, balanceOfAsset, balanceInShares]);
 
 	/**********************************************************************************************
 	 ** AssetName is the name of the asset that we will display to the user. If the user is
@@ -181,11 +192,20 @@ export function TokenAmountWrapper({
 	 ** from the vault, we will use the asset symbol.
 	 *********************************************************************************************/
 	const assetName = useMemo(() => {
-		if (assetToUse.address === vault.address) {
+		if (assetToUse.token?.address === vault.address) {
 			return vault.token.symbol;
 		}
-		return assetToUse.symbol;
-	}, [assetToUse.address, assetToUse.symbol, vault.address, vault.token.symbol]);
+		return assetToUse.token?.symbol;
+	}, [assetToUse.token?.address, assetToUse.token?.symbol, vault.address, vault.token.symbol]);
+
+	/**********************************************************************************************
+	 ** If there's no amount or it equals to 0 we don't want user to be able to click the button.
+	 ** Also if user doesn't have enough money on his balance we just disable the button as well.
+	 *********************************************************************************************/
+	const isButtonDisabled =
+		!assetToUse.amount ||
+		assetToUse.amount.raw === 0n ||
+		(assetToUse.amount && assetToUse.amount?.normalized > balanceToUse.normalized);
 
 	return (
 		<div className={'flex w-full flex-col items-start gap-y-2'}>
@@ -194,13 +214,13 @@ export function TokenAmountWrapper({
 				<TokenAmountInput
 					vault={vault}
 					label={label}
-					value={value}
 					isPerformingAction={isPerformingAction}
 					onChangeValue={onChangeValue}
 					onMaxClick={() => onChangeValue(balanceToUse)}
 					onActionClick={onActionClick}
 					set_assetToUse={set_assetToUse}
 					assetToUse={assetToUse}
+					isButtonDisabled={isButtonDisabled}
 				/>
 			</div>
 			<button
@@ -211,13 +231,13 @@ export function TokenAmountWrapper({
 			<Button
 				onClick={address ? onActionClick : onConnect}
 				isBusy={isPerformingAction}
-				isDisabled={(!value || value.raw === 0n) && !!address}
+				isDisabled={isButtonDisabled}
 				className={cl(
 					'md:hidden text-background flex w-full justify-center whitespace-nowrap rounded-lg bg-white py-5 font-bold',
 					'disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed',
 					!address ? '!w-32 !h-full' : '!h-full'
 				)}>
-				{address ? label : 'Connect wallet'}
+				{label}
 			</Button>
 		</div>
 	);

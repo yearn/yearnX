@@ -5,6 +5,7 @@ import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, toAddress, toBigInt, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {defaultTxStatus, getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
+import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {depositERC20} from '@lib/utils/actions';
 
 import {IconCross} from '../icons/IconCross';
@@ -12,8 +13,9 @@ import {IconExternalLink} from '../icons/IconExternalLink';
 import {ImageWithFallback} from './ImageWithFallback';
 import {TokenAmountWrapper} from './TokenAmountInput';
 
-import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TTokenToUse} from '@lib/utils/types';
 
 type TDepositModalProps = {
 	isOpen: boolean;
@@ -24,29 +26,36 @@ type TDepositModalProps = {
 };
 
 export function DepositModal(props: TDepositModalProps): ReactElement {
-	const {provider} = useWeb3();
+	const {provider, address} = useWeb3();
 	const {onRefresh} = useWallet();
-	const [assetToUse, set_assetToUse] = useState<TToken>({
-		chainID: props.vault.chainID,
-		address: props.vault.token.address,
-		name: props.vault.token.name,
-		symbol: props.vault.token.symbol,
-		decimals: props.vault.token.decimals,
-		value: 0,
-		balance: zeroNormalizedBN
-	});
-	const [value, set_value] = useState<TNormalizedBN | undefined>(undefined);
+	const {configuration, dispatchConfiguration} = useManageVaults();
+
 	const [actionStatus, set_actionStatus] = useState(defaultTxStatus);
 
+	const onSetTokenToDeposit = (token: TTokenToUse): void => {
+		dispatchConfiguration({type: 'SET_ASSET_TO_DEPOSIT', payload: token});
+	};
+
+	const getButtonTitle = (): string => {
+		if (!address) {
+			return 'Connect wallet';
+		}
+		// if (isApproved) {
+		// 	return 'Deposit';
+		// }
+
+		return 'Approve';
+	};
+
 	const onDeposit = useCallback(async () => {
-		if (assetToUse.address === props.vault.address) {
+		if (configuration.assetToDeposit.token?.address === props.vault.address) {
 			throw new Error('CANNOT DEPOSIT THE VAULT ITSELF');
-		} else if (assetToUse.address === props.vault.token.address) {
+		} else if (configuration.assetToDeposit.token?.address === props.vault.token.address) {
 			const result = await depositERC20({
 				connector: provider,
 				chainID: props.vault.chainID,
 				contractAddress: toAddress(props.vault.address),
-				amount: toBigInt(value?.raw),
+				amount: toBigInt(configuration.assetToDeposit.amount?.raw),
 				statusHandler: set_actionStatus
 			});
 			if (result.isSuccessful) {
@@ -54,13 +63,20 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 					{chainID: props.vault.chainID, address: props.vault.address},
 					{chainID: props.vault.chainID, address: props.vault.token.address}
 				]);
-				set_value(undefined);
+				dispatchConfiguration({type: 'SET_ASSET_TO_DEPOSIT', payload: {amount: undefined}});
 				props.onClose();
 			}
 		} else {
 			throw new Error('PORTALS SUPPORT TODO');
 		}
-	}, [onRefresh, props, provider, assetToUse.address, value?.raw]);
+	}, [
+		configuration.assetToDeposit.token?.address,
+		configuration.assetToDeposit.amount?.raw,
+		props,
+		provider,
+		onRefresh,
+		dispatchConfiguration
+	]);
 
 	return (
 		<Transition
@@ -129,14 +145,19 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 							</Link>
 							<div className={'mb-8 flex w-full flex-col items-start gap-y-1'}>
 								<TokenAmountWrapper
-									assetToUse={assetToUse}
+									assetToUse={configuration.assetToDeposit}
 									vault={props.vault}
-									value={value}
-									onChangeValue={set_value}
-									label={'Deposit'}
+									value={configuration.assetToDeposit.amount}
+									onChangeValue={(val?: TNormalizedBN) => {
+										dispatchConfiguration({
+											type: 'SET_ASSET_TO_DEPOSIT',
+											payload: {amount: val ?? zeroNormalizedBN}
+										});
+									}}
+									label={getButtonTitle()}
 									isPerformingAction={actionStatus.pending}
 									onActionClick={onDeposit}
-									set_assetToUse={set_assetToUse}
+									set_assetToUse={onSetTokenToDeposit}
 								/>
 							</div>
 						</div>

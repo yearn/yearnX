@@ -2,9 +2,10 @@ import {Fragment, type ReactElement, useCallback, useState} from 'react';
 import Link from 'next/link';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, toAddress, toBigInt, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, toAddress, toBigInt} from '@builtbymom/web3/utils';
 import {defaultTxStatus, getNetwork, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
+import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {redeemV3Shares, withdrawShares} from '@lib/utils/actions';
 import {VAULT_ABI} from '@lib/utils/vault.abi';
 import {readContract} from '@wagmi/core';
@@ -14,8 +15,9 @@ import {IconExternalLink} from '../icons/IconExternalLink';
 import {ImageWithFallback} from './ImageWithFallback';
 import {TokenAmountWrapper} from './TokenAmountInput';
 
-import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TTokenToUse} from '@lib/utils/types';
 
 type TWithdrawModalProps = {
 	isOpen: boolean;
@@ -28,20 +30,16 @@ type TWithdrawModalProps = {
 export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 	const {provider} = useWeb3();
 	const {onRefresh} = useWallet();
-	const [assetToUse, set_assetToUse] = useState<TToken>({
-		chainID: props.vault.chainID,
-		address: props.vault.address,
-		name: props.vault.name,
-		symbol: props.vault.symbol,
-		decimals: props.vault.decimals,
-		value: 0,
-		balance: zeroNormalizedBN
-	});
+	const {configuration, dispatchConfiguration} = useManageVaults();
 	const [value, set_value] = useState<TNormalizedBN | undefined>(undefined);
 	const [actionStatus, set_actionStatus] = useState(defaultTxStatus);
 
+	const onSetTokenToWithdraw = (token: TTokenToUse): void => {
+		dispatchConfiguration({type: 'SET_ASSET_TO_WITHDRAW', payload: token});
+	};
+
 	const onWithdraw = useCallback(async () => {
-		if (assetToUse.address === props.vault.address) {
+		if (configuration.assetToWithdraw.token?.address === props.vault.address) {
 			const pricePerShare = await readContract(retrieveConfig(), {
 				abi: VAULT_ABI,
 				address: props.vault.address,
@@ -82,12 +80,12 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 					props.onClose();
 				}
 			}
-		} else if (assetToUse.address === props.vault.token.address) {
+		} else if (configuration.assetToWithdraw.token?.address === props.vault.token.address) {
 			throw new Error('CANNOT WITHDRAW THE TOKEN ITSELF');
 		} else {
 			throw new Error('PORTALS SUPPORT TODO');
 		}
-	}, [assetToUse.address, props, value?.raw, provider, onRefresh]);
+	}, [configuration.assetToWithdraw.token?.address, props, value?.raw, provider, onRefresh]);
 
 	return (
 		<Transition
@@ -154,14 +152,20 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 							</Link>
 							<div className={'mt-4 flex w-full flex-col items-start gap-y-1'}>
 								<TokenAmountWrapper
-									assetToUse={assetToUse}
+									assetToUse={configuration.assetToWithdraw}
 									vault={props.vault}
 									value={value}
-									onChangeValue={set_value}
+									onChangeValue={(val?: TNormalizedBN) => {
+										set_value(val);
+										dispatchConfiguration({
+											type: 'SET_ASSET_TO_WITHDRAW',
+											payload: {amount: val}
+										});
+									}}
 									label={'Withdraw'}
 									onActionClick={onWithdraw}
 									isPerformingAction={actionStatus.pending}
-									set_assetToUse={set_assetToUse}
+									set_assetToUse={onSetTokenToWithdraw}
 								/>
 							</div>
 						</div>

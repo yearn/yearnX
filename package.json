@@ -33,6 +33,7 @@
     "swr": "^2.2.5",
     "tailwindcss": "^3.4.3",
     "tailwindcss-animate": "^1.0.7",
+    "usehooks-ts": "^3.1.0",
     "vaul": "^0.9.1",
     "viem": "^2.17.0",
     "wagmi": "^2.10.9",

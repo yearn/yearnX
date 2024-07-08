@@ -1,4 +1,5 @@
-import {type ReactElement, useCallback, useState} from 'react';
+import {type ReactElement, type RefObject, useCallback, useState} from 'react';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, toBigInt, truncateHex} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
@@ -10,21 +11,24 @@ import {ImageWithFallback} from './ImageWithFallback';
 
 import type {TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TTokenToUse} from '@lib/utils/types';
 
 type TChainSelectorProps = {
 	vault: TYDaemonVault;
 	isOpen: boolean;
 	toggleOpen: VoidFunction;
-	set_assetToUse: (token: TToken) => void;
-	assetToUse: TToken;
+	set_assetToUse: (token: TTokenToUse) => void;
+	assetToUse: TTokenToUse;
+	selectorRef: RefObject<HTMLDivElement>;
 };
 
-export function ChainSelector({
+export function TokenSelector({
 	vault,
 	isOpen,
 	toggleOpen,
 	set_assetToUse,
-	assetToUse
+	assetToUse,
+	selectorRef
 }: TChainSelectorProps): ReactElement {
 	const {listTokensWithBalance} = useTokensWithBalance();
 	const {getPrice} = usePrices();
@@ -79,6 +83,8 @@ export function ChainSelector({
 		[getPrice]
 	);
 
+	const {getBalance} = useWallet();
+
 	return (
 		<>
 			<button
@@ -88,8 +94,8 @@ export function ChainSelector({
 					'relative flex !h-16 items-center gap-x-1 rounded-lg border border-white/15 bg-white/5 px-4 py-3 disabled:cursor-not-allowed'
 				}>
 				<ImageWithFallback
-					src={`https://assets.smold.app/tokens/${vault.chainID}/${assetToUse.address}/logo-128.png`}
-					alt={assetToUse.address}
+					src={`https://assets.smold.app/tokens/${vault.chainID}/${assetToUse.token?.address}/logo-128.png`}
+					alt={assetToUse.token?.address || 'address'}
 					width={32}
 					height={32}
 				/>
@@ -97,6 +103,7 @@ export function ChainSelector({
 			</button>
 			{isOpen && (
 				<div
+					ref={selectorRef}
 					className={
 						'bg-table no-scrollbar absolute z-[1003] mt-2 rounded-lg border border-white/15 py-5 md:min-w-[507px]'
 					}>
@@ -131,7 +138,10 @@ export function ChainSelector({
 							<button
 								onClick={() => {
 									toggleOpen();
-									set_assetToUse(item);
+									set_assetToUse({
+										token: item,
+										amount: getBalance({address: item.address, chainID: item.chainID})
+									});
 								}}
 								className={'flex w-full items-center justify-between px-6  py-3.5 hover:bg-white/5'}>
 								<div className={'flex gap-x-4'}>

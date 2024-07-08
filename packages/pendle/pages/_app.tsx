@@ -5,6 +5,7 @@ import {Meta} from '@lib/components/common/Meta';
 import {WithFonts} from '@lib/components/common/WithFonts';
 import {IconCheck} from '@lib/components/icons/IconCheck';
 import {IconCircleCross} from '@lib/components/icons/IconCircleCross';
+import {VaultsContextApp} from '@lib/contexts/useManageVaults';
 import {WithPrices} from '@lib/contexts/usePrices';
 import {supportedNetworks} from '@lib/utils/tools.chains';
 
@@ -30,11 +31,13 @@ export default function MyApp(props: AppProps): ReactElement {
 				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn-min.json']}>
 				<WalletContextApp>
 					<WithPrices supportedNetworks={supportedNetworks}>
-						<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
-							<main className={'relative flex  w-full justify-center'}>
-								<Component />
-							</main>
-						</div>
+						<VaultsContextApp>
+							<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
+								<main className={'relative flex  w-full justify-center'}>
+									<Component />
+								</main>
+							</div>
+						</VaultsContextApp>
 					</WithPrices>
 				</WalletContextApp>
 			</WithMom>

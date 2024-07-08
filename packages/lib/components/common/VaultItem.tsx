@@ -1,9 +1,10 @@
-import {type ReactElement, useMemo, useState} from 'react';
+import {type ReactElement, useCallback, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {cl, formatAmount, formatLocalAmount, formatPercent, toNormalizedBN} from '@builtbymom/web3/utils';
 import {getNetwork} from '@builtbymom/web3/utils/wagmi';
+import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconCircleQuestion} from '../icons/IconCircleQuestion';
@@ -28,6 +29,49 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance} = useWallet();
 	const [isDepositModalOpen, set_isDepositModalOpen] = useState(false);
 	const [isWithdrawModalOpen, set_isWithdrawModalOpen] = useState(false);
+
+	const {dispatchConfiguration} = useManageVaults();
+
+	const onDepositClick = useCallback((): void => {
+		set_isDepositModalOpen(true);
+		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
+		dispatchConfiguration({
+			type: 'SET_ASSET_TO_DEPOSIT',
+			payload: {
+				token: {
+					address: vault.token.address,
+					name: vault.token.name,
+					symbol: vault.token.symbol,
+					decimals: vault.token.decimals,
+					chainID: vault.chainID,
+					value: 0,
+					balance: getBalance({address: vault.token.address, chainID: vault.chainID})
+				},
+				amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+			}
+		});
+	}, [dispatchConfiguration, getBalance, vault]);
+
+	const onWithdrawClick = useCallback((): void => {
+		set_isWithdrawModalOpen(true);
+		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
+		dispatchConfiguration({
+			type: 'SET_ASSET_TO_WITHDRAW',
+			payload: {
+				token: {
+					address: vault.token.address,
+					name: vault.token.name,
+					symbol: vault.token.symbol,
+					decimals: vault.token.decimals,
+					chainID: vault.chainID,
+					value: 0,
+					balance: getBalance({address: vault.token.address, chainID: vault.chainID})
+				},
+
+				amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+			}
+		});
+	}, [dispatchConfiguration, getBalance, vault]);
 
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
@@ -126,7 +170,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				<div className={cl('col-span-2 flex items-center justify-end gap-x-2 pl-10')}>
 					{balance ? (
 						<button
-							onClick={() => set_isWithdrawModalOpen(true)}
+							onClick={onWithdrawClick}
 							className={
 								'!h-12 w-full rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15 '
 							}>
@@ -134,7 +178,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						</button>
 					) : null}
 					<button
-						onClick={() => set_isDepositModalOpen(true)}
+						onClick={onDepositClick}
 						className={
 							'bg-button hover:bg-buttonHover text-accentText !h-12 w-full rounded-xl p-3 transition-colors'
 						}>
@@ -190,7 +234,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				<div className={'flex gap-x-6'}>
 					{balance ? (
 						<button
-							onClick={() => set_isWithdrawModalOpen(true)}
+							onClick={onWithdrawClick}
 							className={
 								'!h-12 w-full rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15 '
 							}>
@@ -198,7 +242,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						</button>
 					) : null}
 					<button
-						onClick={() => set_isDepositModalOpen(true)}
+						onClick={onDepositClick}
 						className={
 							'bg-button hover:bg-buttonHover text-accentText !h-12 w-full rounded-xl p-3 transition-colors'
 						}>
