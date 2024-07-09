@@ -43,7 +43,6 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		// if (isApproved) {
 		// 	return 'Deposit';
 		// }
-
 		return 'Approve';
 	};
 
