@@ -36,7 +36,7 @@ export const ListOfVaults = (props: TListOfVaultsProps): ReactElement => {
 
 		if (sortedVaults?.length) {
 			return (
-				<div className={'flex flex-col gap-y-4'}>
+				<div className={'flex flex-col gap-y-3'}>
 					{sortedVaults.map(vault => (
 						<VaultItem
 							key={vault.address}

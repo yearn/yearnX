@@ -3,10 +3,13 @@ import type {ReactElement} from 'react';
 function SkeletonRow(): ReactElement {
 	return (
 		<>
-			<div className={'bg-white/3 hidden h-24 place-content-center rounded-xl p-2.5 md:grid md:grid-cols-7'}>
+			<div
+				className={
+					'bg-white/3 hidden h-24 min-h-[68px] place-content-center rounded-xl p-2.5 md:grid md:grid-cols-7'
+				}>
 				<div
 					className={
-						'col-span-2 grid grid-cols-7 items-center gap-x-4 rounded-xl border border-white/15 bg-white/5 px-3 py-2'
+						'col-span-2 grid h-[76px] grid-cols-7 items-center gap-x-4 rounded-xl border border-white/15 bg-white/5 px-3 py-2'
 					}>
 					<div className={'col-span-1 size-8 rounded-full bg-white/5'}></div>
 					<div className={'col-span-4 h-4 w-full rounded-xl bg-white/5'}></div>
@@ -57,7 +60,7 @@ function SkeletonRow(): ReactElement {
 
 export function Skeleton(): ReactElement {
 	return (
-		<div className={'flex flex-col gap-y-2'}>
+		<div className={'flex flex-col gap-y-3'}>
 			{new Array(20).fill(1).map((_, i) => (
 				<SkeletonRow key={i} />
 			))}

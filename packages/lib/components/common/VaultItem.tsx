@@ -133,7 +133,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				hasBalanceForVault={balance > 0}
 			/>
 			{/* Desctop screen Item */}
-			<div className={'bg-white/3 hidden min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>
+			<div className={'bg-white/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>
 				<Link
 					href={yearnfiLink}
 					target={'_blank'}
