@@ -10,6 +10,7 @@ import {
 	assignLlamaPrices,
 	assignYDaemonPrices,
 	mergeLlamaResponse,
+	mergeYDaemonResponse,
 	prepareQueryStringForLlama,
 	prepareQueryStringForYDaemon,
 	usePricesDefaultProps
@@ -111,34 +112,33 @@ export const WithPrices = (props: {children: ReactElement; supportedNetworks?: C
 			 ** Thus, we will create an array of requests to fetch the prices for the tokens with
 			 ** a batch of 100 tokens per request.
 			 *************************************************************************************/
-			// const ydaemonRequests = [];
-			// if (_tokensToUse.length > 100) {
-			// 	const tokens = _tokensToUse.slice();
-			// 	while (tokens.length) {
-			// 		const chunk = tokens.splice(0, 100);
-			// 		ydaemonRequests.push(
-			// 			axios.get(`https://ydaemon.yearn.fi/prices/some/${prepareQueryStringForYDaemon(chunk)}`)
-			// 		);
-			// 	}
-			// } else {
-			// 	ydaemonRequests.push(axios.get(`https://ydaemon.yearn.fi/prices/some/${queryStringForYDaemon}`));
-			// }
+			const ydaemonRequests = [];
+			if (_tokensToUse.length > 100) {
+				const tokens = _tokensToUse.slice();
+				while (tokens.length) {
+					const chunk = tokens.splice(0, 100);
+					ydaemonRequests.push(
+						axios.get(`https://ydaemon.yearn.fi/prices/some/${prepareQueryStringForYDaemon(chunk)}`)
+					);
+				}
+			} else {
+				ydaemonRequests.push(axios.get(`https://ydaemon.yearn.fi/prices/some/${queryStringForYDaemon}`));
+			}
 
 			/**************************************************************************************
 			 ** Once we know what to fetch, we will use the Promise.allSettled function to fetch
 			 ** the prices from the yDaemon and llama endpoints, waiting for all requests to be
 			 ** resolved or rejected before updating the prices.
 			 *************************************************************************************/
-			const [pricesFromYDaemon, ...allPricesFromLlama] = await Promise.allSettled([
-				axios.post('https://ydaemon.yearn.fi/prices/some', {addresses: queryStringForYDaemon}),
-				// ydaemonRequests,
-				...llamaRequests
-			]);
+			const allPrices = await Promise.allSettled([...ydaemonRequests, ...llamaRequests]);
+			const allPricesFromYDaemon = allPrices.slice(0, ydaemonRequests.length);
+			const allPricesFromLlama = allPrices.slice(llamaRequests.length);
 
 			/**************************************************************************************
 			 ** For simplicity, we will merge the prices from the llama endpoint in a single object
 			 ** as if it was a single request.
 			 *************************************************************************************/
+			const pricesFromYDaemon = mergeYDaemonResponse(allPricesFromYDaemon);
 			const pricesFromLlama = mergeLlamaResponse(allPricesFromLlama);
 
 			/**************************************************************************************
