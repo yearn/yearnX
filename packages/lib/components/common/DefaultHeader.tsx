@@ -25,7 +25,7 @@ export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactE
 				<div className={'bg-background bg-opacity/90 flex h-12 items-center gap-x-2 rounded-xl p-2 text-white'}>
 					<LogoYearn
 						className={'size-8'}
-						front={'text-white'}
+						front={'text-[#FFFFFF]'}
 						back={'text-[#0657F9]'}
 					/>
 					<IconColloboration className={'size-4 text-white'} />
@@ -41,7 +41,7 @@ export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactE
 						<LogoYearn
 							className={'size-8'}
 							front={'text-white'}
-							back={'text-black'}
+							back={'text-regularText'}
 						/>
 					)}
 				</div>

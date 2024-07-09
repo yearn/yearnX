@@ -6,7 +6,7 @@ function IconSpinner(props: React.SVGProps<SVGSVGElement>): ReactElement {
 	return (
 		<svg
 			{...props}
-			className={'size-4 animate-spin text-neutral-900'}
+			className={'size-4 animate-spin text-black'}
 			xmlns={'http://www.w3.org/2000/svg'}
 			fill={'none'}
 			viewBox={'0 0 24 24'}>

@@ -16,41 +16,16 @@
 	--color-neutral-700: 229 34% 24%;
 	--color-neutral-800: 229 34% 16%;
 	--color-neutral-900: 229 34% 13%;
-
-	--color-yellow-900: 32 100% 45%;
-	--color-yellow-300: 32 100% 95%;
-	--color-yellow-200: 32 100% 90%;
-	--color-error-900: 328 100% 45%;
-	--color-error-300: 328 100% 95%;
-	--color-error-200: 328 100% 90%;
-	--color-red-900: 0 100% 45%;
-	--color-red-300: 0 100% 95%;
-	--color-red-200: 0 100% 90%;
-
-	--default-rounded: 6px;
-}
-
-:root.dark {
-	--color-neutral-900: 229 34% 100%;
-	--color-neutral-800: 229 34% 96%;
-	--color-neutral-600: 229 34% 90%;
-	--color-neutral-500: 229 34% 90%;
-	--color-neutral-400: 229 34% 48%;
-	--color-neutral-300: 229 34% 36%;
-	--color-neutral-200: 229 34% 24%;
-	--color-neutral-100: 229 34% 16%;
-	--color-neutral-50: 229 34% 8%;
-	--color-neutral-0: 229 34% 13%;
 }
 
 body {
-	@apply text-neutral-0;
+	@apply text-white;
 }
 h1 {
-	@apply text-xl font-bold text-neutral-900;
+	@apply text-xl font-bold text-regularText;
 }
 h4 {
-	@apply text-lg font-bold text-neutral-700;
+	@apply text-lg font-bold text-regularText/80;
 }
 .max-w-6xl {
 	@apply max-w-[1232px] px-4;

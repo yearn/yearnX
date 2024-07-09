@@ -390,7 +390,7 @@ export function DepositPopupWrapper(props: TDepositPopupProps): ReactElement {
 					leave={'ease-in duration-200'}
 					leaveFrom={'opacity-100'}
 					leaveTo={'opacity-0'}>
-					<div className={'bg-primary-900/40 fixed inset-0 backdrop-blur-sm transition-opacity'} />
+					<div className={'bg-black/40 fixed inset-0 backdrop-blur-sm transition-opacity'} />
 				</TransitionChild>
 
 				<div className={'fixed inset-0 z-[1001] w-screen overflow-y-auto'}>

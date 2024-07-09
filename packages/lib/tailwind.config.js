@@ -31,19 +31,6 @@ module.exports = {
 			transparent: 'transparent',
 			inherit: 'inherit',
 			purple: '#4C249F',
-			primary: {
-				0: '#FFFFFF',
-				50: '#ebf4f3',
-				100: '#d7eae6',
-				200: '#b0d5cd',
-				300: '#88bfb5',
-				400: '#61aa9c',
-				500: '#399583',
-				600: '#2e7769',
-				700: '#22594f',
-				800: '#173c34',
-				900: '#0b1e1a'
-			},
 			neutral: {
 				0: withOpacityValue('--color-neutral-0'),
 				50: withOpacityValue('--color-neutral-50'),
@@ -56,12 +43,7 @@ module.exports = {
 				700: withOpacityValue('--color-neutral-700'),
 				800: withOpacityValue('--color-neutral-800'),
 				900: withOpacityValue('--color-neutral-900')
-			},
-			pink: colors.pink,
-			red: colors.rose,
-			green: colors.emerald,
-			blue: colors.blue,
-			teal: colors.teal
+			}
 		},
 		extend: {
 			fontFamily: {

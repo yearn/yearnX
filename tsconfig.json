@@ -54,15 +54,17 @@
 		"**/*.ts",
 		"**/*.tsx",
 		"**/*.d.tsx",
+		"**/next.config.js",
+		"**/postcss.config.js",
+		"**/tailwind.config.ts",
 		"public",
 		"public/manifest.json",
-		"packages/poolTogether/postcss.config.js",
-		"packages/lib/tailwind.config.js",
-		"packages/poolTogether/next.config.js",
 		"theme.config.js",
 		".eslintrc.js",
 		".next/types/**/*.ts",
 		"stylelint.config",
-		"commitlint.config"
+		"commitlint.config",
+		"packages/pendle/constants.ts",
+		"packages/pendle/constants.ts"
 	]
 }

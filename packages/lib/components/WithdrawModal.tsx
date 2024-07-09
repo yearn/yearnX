@@ -319,7 +319,7 @@ export function WithdrawPopupWrapper(props: TWithdrawPopupProps): ReactElement {
 					leave={'ease-in duration-200'}
 					leaveFrom={'opacity-100'}
 					leaveTo={'opacity-0'}>
-					<div className={'bg-primary-900/40 fixed inset-0 backdrop-blur-sm transition-opacity'} />
+					<div className={'fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity'} />
 				</Transition.Child>
 
 				<div className={'fixed inset-0 z-[1001] w-screen overflow-y-auto'}>
