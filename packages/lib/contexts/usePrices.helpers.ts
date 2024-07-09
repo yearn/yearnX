@@ -101,7 +101,6 @@ export function assignYDaemonPrices(
 	newPrices: TPrices
 ): TPrices {
 	if (pricesFromYDaemon.status === 'fulfilled') {
-		console.warn(pricesFromYDaemon);
 		for (const chainID in pricesFromYDaemon.values) {
 			const item = pricesFromYDaemon.values[Number(chainID)];
 			if (!newPrices[Number(chainID)]) {
