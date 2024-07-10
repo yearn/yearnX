@@ -1,5 +1,7 @@
 import * as all from 'viem/chains';
 
+import type {TAddress} from '@builtbymom/web3/types';
+
 const {...chains} = all;
 
 export function getChain(chainId: number): string {
@@ -9,4 +11,8 @@ export function getChain(chainId: number): string {
 		}
 	}
 	return '';
+}
+
+export function allowanceKey(chainID: number, token: TAddress, spender: TAddress, owner: TAddress): string {
+	return `${chainID}_${token}_${spender}_${owner}`;
 }

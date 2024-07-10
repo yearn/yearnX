@@ -18,7 +18,7 @@ import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
 type TTokenAmountInputProps = {
 	buttonTitle: string;
-	vault: TYDaemonVault;
+	chainID: number;
 	isPerformingAction: boolean;
 	onChangeValue: (value: TNormalizedBN | undefined, token?: TToken) => void;
 	onMaxClick: () => void;
@@ -27,7 +27,7 @@ type TTokenAmountInputProps = {
 };
 
 function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
-	const {buttonTitle, vault} = props;
+	const {buttonTitle, chainID} = props;
 	const {address, onConnect} = useWeb3();
 	const [isChainSelectorOpen, set_isChainSelectorOpen] = useState<boolean>(false);
 	const {configuration} = useManageVaults();
@@ -45,7 +45,7 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 		<div className={'flex w-full gap-x-2'}>
 			<div className={'h-full'}>
 				<TokenSelector
-					vault={vault}
+					chainID={chainID}
 					isOpen={isChainSelectorOpen}
 					toggleOpen={() => set_isChainSelectorOpen(prev => !prev)}
 					selectorRef={selectorRef}
@@ -73,10 +73,11 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 						controls={false}
 						value={configuration?.tokenToSpend.amount?.normalized}
 						onChange={value => {
-							if (!value) {
+							if (!value || !configuration.tokenToSpend.token) {
 								return props.onChangeValue(undefined);
 							}
-							props.onChangeValue(toNormalizedBN(fromNormalized(value, vault.decimals), vault.decimals));
+							const {decimals} = configuration.tokenToSpend.token;
+							props.onChangeValue(toNormalizedBN(fromNormalized(value, decimals), decimals));
 						}}
 					/>
 				</div>
@@ -125,7 +126,6 @@ export function TokenAmountWrapper({
 }: TTokenAmountWrapperProps): ReactElement {
 	const {balances, getBalance} = useWallet();
 	const {address, onConnect} = useWeb3();
-
 	const {configuration, dispatchConfiguration} = useManageVaults();
 
 	/**********************************************************************************************
@@ -229,7 +229,7 @@ export function TokenAmountWrapper({
 			<div className={'flex flex-col gap-y-1'}>
 				<p className={'w-min'}>{label}</p>
 				<TokenAmountInput
-					vault={vault}
+					chainID={vault.chainID}
 					buttonTitle={buttonTitle}
 					isPerformingAction={isPerformingAction}
 					onChangeValue={(val?: TNormalizedBN) => {

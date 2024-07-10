@@ -24,7 +24,7 @@ export const COLORS = {
 };
 
 // OPTIMISM colors
-// export const COLORS_ = {
+// export const COLORS = {
 // 	button: '#ff0420', // The main color of the button
 // 	buttonHover: '#b80018', // The hover color of the button
 // 	regularText: '#000000', // The color of the regular text

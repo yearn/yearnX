@@ -200,7 +200,7 @@ export async function getQuote(
 		return {result: null, error: 'Invalid sell amount'};
 	}
 
-	return getPortalsEstimate({
+	const estimate = await getPortalsEstimate({
 		params: {
 			inputToken: `${network}:${toAddress(inputToken)}`,
 			outputToken: `${network}:${toAddress(request.outputToken)}`,
@@ -208,4 +208,5 @@ export async function getQuote(
 			slippageTolerancePercentage: String(zapSlippage)
 		}
 	});
+	return estimate;
 }

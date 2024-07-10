@@ -8,10 +8,9 @@ import {approveERC20, defaultTxStatus, retrieveConfig} from '@builtbymom/web3/ut
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {deposit} from '@lib/utils/actions';
+import {allowanceKey} from '@lib/utils/tools';
 import {readContract} from '@wagmi/core';
-import {allowanceKey} from '@yearn-finance/web-lib/utils/helpers';
 
-// import {allowanceKey} from '@yearn-finance/web-lib/utils/helpers';
 import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
 
@@ -76,8 +75,6 @@ export const useVanilaSolver = (): TSolverContextBase => {
 		},
 		[address, configuration?.tokenToSpend.token, configuration?.vault, provider]
 	);
-
-	console.log(allowance);
 
 	/**********************************************************************************************
 	 ** SWR hook to get the expected out for a given in/out pair with a specific amount. This hook

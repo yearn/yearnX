@@ -86,10 +86,8 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		isApproved,
 		isFetchingAllowance,
 		approvalStatus,
-
 		onExecuteDeposit,
 		depositStatus,
-
 		isFetchingQuote,
 		quote
 	} = useSolvers();

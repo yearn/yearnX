@@ -23,8 +23,8 @@ import {
 	type TPortalsEstimate
 } from '@lib/utils/api.portals';
 import {isValidPortalsErrorObject} from '@lib/utils/isValidPortalsErrorObject';
+import {allowanceKey} from '@lib/utils/tools';
 import {readContract, sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
-import {allowanceKey} from '@yearn-finance/web-lib/utils/helpers';
 
 import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';

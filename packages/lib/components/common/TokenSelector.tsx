@@ -11,10 +11,9 @@ import {IconSearch} from '../icons/IconSearch';
 import {ImageWithFallback} from './ImageWithFallback';
 
 import type {TToken} from '@builtbymom/web3/types';
-import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
 type TChainSelectorProps = {
-	vault: TYDaemonVault;
+	chainID: number;
 	isOpen: boolean;
 	toggleOpen: VoidFunction;
 	selectorRef: RefObject<HTMLDivElement>;
@@ -22,7 +21,7 @@ type TChainSelectorProps = {
 };
 
 export function TokenSelector({
-	vault,
+	chainID,
 	isOpen,
 	toggleOpen,
 	selectorRef,
@@ -31,17 +30,14 @@ export function TokenSelector({
 	const {listTokensWithBalance} = useTokensWithBalance();
 	const {getPrice} = usePrices();
 	const {address} = useWeb3();
-
 	const [searchValue, set_searchValue] = useState('');
-
-	const tokensOnCurrentChain = listTokensWithBalance(vault.chainID);
+	const tokensOnCurrentChain = listTokensWithBalance(chainID);
+	const {configuration, dispatchConfiguration} = useManageVaults();
 
 	const searchFilteredTokens = tokensOnCurrentChain.filter(token => {
 		const lowercaseValue = searchValue.toLowerCase();
 		return token.name.toLowerCase().includes(lowercaseValue) || token.symbol.toLowerCase().includes(lowercaseValue);
 	});
-
-	const {configuration, dispatchConfiguration} = useManageVaults();
 
 	/**********************************************************************************************
 	 ** The tokenBalance memoized value contains the string representation of the token balance,
@@ -95,7 +91,7 @@ export function TokenSelector({
 					'border-regularText/15 bg-regularText/5 relative flex !h-16 items-center gap-x-1 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
 				}>
 				<ImageWithFallback
-					src={`https://assets.smold.app/tokens/${vault.chainID}/${configuration?.tokenToSpend.token?.address}/logo-128.png`}
+					src={`https://assets.smold.app/tokens/${chainID}/${configuration?.tokenToSpend.token?.address}/logo-128.png`}
 					alt={configuration?.tokenToSpend.token?.address || 'address'}
 					width={32}
 					height={32}
@@ -154,7 +150,7 @@ export function TokenSelector({
 									<div className={'flex items-center'}>
 										<ImageWithFallback
 											src={`https://assets.smold.app/tokens/${item.chainID}/${item.address}/logo-128.png`}
-											alt={vault.token.address}
+											alt={item.name}
 											width={32}
 											height={32}
 										/>
