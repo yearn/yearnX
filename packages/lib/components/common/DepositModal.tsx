@@ -1,21 +1,21 @@
-import {Fragment, type ReactElement, useCallback, useState} from 'react';
+import {Fragment, type ReactElement, useCallback, useMemo} from 'react';
 import Link from 'next/link';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, toAddress, toBigInt, zeroNormalizedBN} from '@builtbymom/web3/utils';
-import {defaultTxStatus, getNetwork} from '@builtbymom/web3/utils/wagmi';
+import {useChainID} from '@builtbymom/web3/hooks/useChainID';
+import {cl, ETH_TOKEN_ADDRESS, toAddress} from '@builtbymom/web3/utils';
+import {getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {depositERC20} from '@lib/utils/actions';
+import {useSolvers} from '@lib/contexts/useSolver';
+import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 
 import {IconCross} from '../icons/IconCross';
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {ImageWithFallback} from './ImageWithFallback';
 import {TokenAmountWrapper} from './TokenAmountInput';
 
-import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
-import type {TTokenToUse} from '@lib/utils/types';
 
 type TDepositModalProps = {
 	isOpen: boolean;
@@ -26,55 +26,107 @@ type TDepositModalProps = {
 };
 
 export function DepositModal(props: TDepositModalProps): ReactElement {
-	const {provider, address} = useWeb3();
+	const {address} = useWeb3();
 	const {onRefresh} = useWallet();
-	const {configuration, dispatchConfiguration} = useManageVaults();
-
-	const [actionStatus, set_actionStatus] = useState(defaultTxStatus);
-
-	const onSetTokenToDeposit = (token: TTokenToUse): void => {
-		dispatchConfiguration({type: 'SET_ASSET_TO_DEPOSIT', payload: token});
-	};
+	const {safeChainID} = useChainID();
+	const {configuration} = useManageVaults();
 
 	const getButtonTitle = (): string => {
 		if (!address) {
 			return 'Connect wallet';
 		}
-		// if (isApproved) {
-		// 	return 'Deposit';
-		// }
+		if (isApproved) {
+			return 'Deposit';
+		}
+
 		return 'Approve';
 	};
 
-	const onDeposit = useCallback(async () => {
-		if (configuration.assetToDeposit.token?.address === props.vault.address) {
-			throw new Error('CANNOT DEPOSIT THE VAULT ITSELF');
-		} else if (configuration.assetToDeposit.token?.address === props.vault.token.address) {
-			const result = await depositERC20({
-				connector: provider,
-				chainID: props.vault.chainID,
-				contractAddress: toAddress(props.vault.address),
-				amount: toBigInt(configuration.assetToDeposit.amount?.raw),
-				statusHandler: set_actionStatus
+	const onRefreshTokens = useCallback(() => {
+		const tokensToRefresh = [];
+		if (configuration?.tokenToSpend.token) {
+			tokensToRefresh.push({
+				decimals: configuration?.tokenToSpend.token.decimals,
+				name: configuration?.tokenToSpend.token.name,
+				symbol: configuration?.tokenToSpend.token.symbol,
+				address: toAddress(configuration?.tokenToSpend.token.address),
+				chainID: Number(configuration?.tokenToSpend.token.chainID)
 			});
-			if (result.isSuccessful) {
-				await onRefresh([
-					{chainID: props.vault.chainID, address: props.vault.address},
-					{chainID: props.vault.chainID, address: props.vault.token.address}
-				]);
-				dispatchConfiguration({type: 'SET_ASSET_TO_DEPOSIT', payload: {amount: undefined}});
-				props.onClose();
-			}
-		} else {
-			throw new Error('PORTALS SUPPORT TODO');
 		}
+		if (configuration?.vault) {
+			tokensToRefresh.push({
+				decimals: configuration?.vault.decimals,
+				name: configuration?.tokenToSpend.token?.name,
+				symbol: configuration?.tokenToSpend.token?.symbol,
+				address: toAddress(configuration?.tokenToSpend.token?.address),
+				chainID: Number(configuration?.tokenToSpend.token?.chainID)
+			});
+		}
+
+		const currentChainID =
+			configuration?.vault?.chainID || configuration?.tokenToSpend.token?.chainID || safeChainID;
+
+		const {nativeCurrency} = getNetwork(Number(currentChainID));
+		if (nativeCurrency) {
+			tokensToRefresh.push({
+				decimals: 18,
+				name: nativeCurrency.name,
+				symbol: nativeCurrency.symbol,
+				address: ETH_TOKEN_ADDRESS,
+				chainID: Number(currentChainID)
+			});
+		}
+		onRefresh(tokensToRefresh, false, true);
+	}, [configuration?.tokenToSpend.token, configuration?.vault, onRefresh, safeChainID]);
+
+	const {
+		onApprove,
+		isApproved,
+		isFetchingAllowance,
+		approvalStatus,
+
+		onExecuteDeposit,
+		depositStatus,
+
+		isFetchingQuote,
+		quote
+	} = useSolvers();
+
+	const isZapNeeded = useIsZapNeeded();
+
+	const onAction = useCallback(async () => {
+		if (isZapNeeded) {
+			//remove when add portals
+			return;
+		}
+		if (isApproved) {
+			return onExecuteDeposit(() => {
+				onRefreshTokens();
+				props.onClose();
+			});
+		}
+		return onApprove(() => onRefreshTokens());
+	}, [isApproved, isZapNeeded, onApprove, onExecuteDeposit, onRefreshTokens, props]);
+
+	const isValid = useMemo((): boolean => {
+		if (isZapNeeded && !quote) {
+			return false;
+		}
+		if (!configuration?.tokenToSpend.amount || !configuration?.tokenToSpend.token) {
+			return false;
+		}
+
+		if (configuration?.tokenToSpend.token.address === configuration?.vault?.address) {
+			return false;
+		}
+
+		return true;
 	}, [
-		configuration.assetToDeposit.token?.address,
-		configuration.assetToDeposit.amount?.raw,
-		props,
-		provider,
-		onRefresh,
-		dispatchConfiguration
+		configuration?.tokenToSpend.amount,
+		configuration?.tokenToSpend.token,
+		configuration?.vault?.address,
+		isZapNeeded,
+		quote
 	]);
 
 	return (
@@ -144,19 +196,17 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 							</Link>
 							<div className={'mb-8 flex w-full flex-col items-start gap-y-1'}>
 								<TokenAmountWrapper
-									assetToUse={configuration.assetToDeposit}
 									vault={props.vault}
-									value={configuration.assetToDeposit.amount}
-									onChangeValue={(val?: TNormalizedBN) => {
-										dispatchConfiguration({
-											type: 'SET_ASSET_TO_DEPOSIT',
-											payload: {amount: val ?? zeroNormalizedBN}
-										});
-									}}
-									label={getButtonTitle()}
-									isPerformingAction={actionStatus.pending}
-									onActionClick={onDeposit}
-									set_assetToUse={onSetTokenToDeposit}
+									label={'Deposit'}
+									buttonTitle={getButtonTitle()}
+									isPerformingAction={
+										isFetchingAllowance ||
+										approvalStatus.pending ||
+										depositStatus.pending ||
+										isFetchingQuote
+									}
+									onActionClick={onAction}
+									isDisabled={!isValid}
 								/>
 							</div>
 						</div>

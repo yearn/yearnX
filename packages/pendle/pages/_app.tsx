@@ -7,6 +7,7 @@ import {IconCheck} from '@lib/components/icons/IconCheck';
 import {IconCircleCross} from '@lib/components/icons/IconCircleCross';
 import {VaultsContextApp} from '@lib/contexts/useManageVaults';
 import {WithPrices} from '@lib/contexts/usePrices';
+import {SolverContextApp} from '@lib/contexts/useSolver';
 import {supportedNetworks} from '@lib/utils/tools.chains';
 
 import type {AppProps} from 'next/app';
@@ -32,11 +33,13 @@ export default function MyApp(props: AppProps): ReactElement {
 				<WalletContextApp>
 					<WithPrices supportedNetworks={supportedNetworks}>
 						<VaultsContextApp>
-							<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
-								<main className={'relative flex  w-full justify-center'}>
-									<Component />
-								</main>
-							</div>
+							<SolverContextApp>
+								<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
+									<main className={'relative flex  w-full justify-center'}>
+										<Component />
+									</main>
+								</div>
+							</SolverContextApp>
 						</VaultsContextApp>
 					</WithPrices>
 				</WalletContextApp>

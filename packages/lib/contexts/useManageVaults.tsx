@@ -11,15 +11,15 @@ import type {TTokenToUse} from '@lib/utils/types';
 
 type TVaultsActions =
 	| {
-			type: 'SET_ASSET_TO_DEPOSIT';
+			type: 'SET_TOKEN_TO_SPEND';
 			payload: Partial<{token: TToken; amount: TNormalizedBN}>;
 	  }
-	| {type: 'SET_ASSET_TO_WITHDRAW'; payload: Partial<{token: TToken; amount: TNormalizedBN}>}
+	| {type: 'SET_TOKEN_TO_RECEIVE'; payload: Partial<{token: TToken; amount: TNormalizedBN}>}
 	| {type: 'SET_VAULT'; payload: TYDaemonVault};
 
 type TVaultsConfiguration = {
-	assetToDeposit: TTokenToUse;
-	assetToWithdraw: TTokenToUse;
+	tokenToSpend: TTokenToUse;
+	tokenToReceive: TTokenToUse;
 	vault: TYDaemonVault | undefined;
 };
 
@@ -30,7 +30,7 @@ export type TVaults = {
 
 const defaultProps: TVaults = {
 	configuration: {
-		assetToDeposit: {
+		tokenToSpend: {
 			token: {
 				chainID: 1,
 				address: zeroAddress,
@@ -42,7 +42,7 @@ const defaultProps: TVaults = {
 			},
 			amount: zeroNormalizedBN
 		},
-		assetToWithdraw: {
+		tokenToReceive: {
 			token: {
 				chainID: 1,
 				address: zeroAddress,
@@ -64,23 +64,23 @@ const VaultsContext = createContext<TVaults>(defaultProps);
 export const VaultsContextApp = ({children}: {children: TOptionalRenderProps<TVaults, ReactElement>}): ReactElement => {
 	const configurationReducer = (state: TVaultsConfiguration, action: TVaultsActions): TVaultsConfiguration => {
 		switch (action.type) {
-			case 'SET_ASSET_TO_DEPOSIT': {
+			case 'SET_TOKEN_TO_SPEND': {
 				return {
 					...state,
-					assetToDeposit: {...state.assetToDeposit, ...action.payload}
+					tokenToSpend: {...state?.tokenToSpend, ...action.payload}
 				};
 			}
-			case 'SET_ASSET_TO_WITHDRAW': {
+			case 'SET_TOKEN_TO_RECEIVE': {
 				return {
 					...state,
-					assetToWithdraw: {...state.assetToWithdraw, ...action.payload}
+					tokenToReceive: {...state?.tokenToReceive, ...action.payload}
 				};
 			}
 
 			case 'SET_VAULT': {
 				return {
 					...state,
-					vault: {...state.vault, ...action.payload}
+					vault: {...state?.vault, ...action.payload}
 				};
 			}
 		}

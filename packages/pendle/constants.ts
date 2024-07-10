@@ -1,5 +1,5 @@
 export const VARIANT_TO_USE = 1;
-export const VAULT_FILTER = 'v2';
+export const VAULT_FILTER = 'v3';
 export const VAULTS_PER_PAGE = 20;
 
 export const HEADER_TABS = [

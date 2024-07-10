@@ -36,7 +36,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		set_isDepositModalOpen(true);
 		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
 		dispatchConfiguration({
-			type: 'SET_ASSET_TO_DEPOSIT',
+			type: 'SET_TOKEN_TO_SPEND',
 			payload: {
 				token: {
 					address: vault.token.address,
@@ -56,7 +56,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		set_isWithdrawModalOpen(true);
 		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
 		dispatchConfiguration({
-			type: 'SET_ASSET_TO_WITHDRAW',
+			type: 'SET_TOKEN_TO_SPEND',
 			payload: {
 				token: {
 					address: vault.token.address,

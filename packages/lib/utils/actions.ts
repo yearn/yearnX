@@ -37,10 +37,10 @@ export async function redeemV3Shares(props: TRedeemV3Shares): Promise<TTxRespons
  ** @app - Vaults
  ** @param amount - The amount of ERC20 to deposit.
  *************************************************************************************************/
-type TDepositERC20Args = TWriteTransaction & {
+type TDepositArgs = TWriteTransaction & {
 	amount: bigint;
 };
-export async function depositERC20(props: TDepositERC20Args): Promise<TTxResponse> {
+export async function depositERC20(props: TDepositArgs): Promise<TTxResponse> {
 	assertAddress(props.contractAddress);
 	assert(props.amount > 0n, 'Amount is 0');
 	assert(props.connector, 'No connector');
@@ -51,6 +51,20 @@ export async function depositERC20(props: TDepositERC20Args): Promise<TTxRespons
 		abi: PRIZE_VAULT_ABI,
 		functionName: 'deposit',
 		confirmation: 1,
+		args: [props.amount, wagmiProvider.address]
+	});
+}
+
+export async function deposit(props: TDepositArgs): Promise<TTxResponse> {
+	assert(props.amount > 0n, 'Amount is 0');
+	assertAddress(props.contractAddress);
+	const wagmiProvider = await toWagmiProvider(props.connector);
+	assertAddress(wagmiProvider.address, 'wagmiProvider.address');
+
+	return await handleTx(props, {
+		address: props.contractAddress,
+		abi: VAULT_ABI,
+		functionName: 'deposit',
 		args: [props.amount, wagmiProvider.address]
 	});
 }

@@ -2,6 +2,7 @@ import {type ReactElement, type RefObject, useCallback, useState} from 'react';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, toBigInt, truncateHex} from '@builtbymom/web3/utils';
+import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePrices} from '@lib/contexts/usePrices';
 import {useTokensWithBalance} from '@lib/hooks/useTokensWithBalance';
 
@@ -11,25 +12,15 @@ import {ImageWithFallback} from './ImageWithFallback';
 
 import type {TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
-import type {TTokenToUse} from '@lib/utils/types';
 
 type TChainSelectorProps = {
 	vault: TYDaemonVault;
 	isOpen: boolean;
 	toggleOpen: VoidFunction;
-	set_assetToUse: (token: TTokenToUse) => void;
-	assetToUse: TTokenToUse;
 	selectorRef: RefObject<HTMLDivElement>;
 };
 
-export function TokenSelector({
-	vault,
-	isOpen,
-	toggleOpen,
-	set_assetToUse,
-	assetToUse,
-	selectorRef
-}: TChainSelectorProps): ReactElement {
+export function TokenSelector({vault, isOpen, toggleOpen, selectorRef}: TChainSelectorProps): ReactElement {
 	const {listTokensWithBalance} = useTokensWithBalance();
 	const {getPrice} = usePrices();
 	const {address} = useWeb3();
@@ -42,6 +33,8 @@ export function TokenSelector({
 		const lowercaseValue = searchValue.toLowerCase();
 		return token.name.toLowerCase().includes(lowercaseValue) || token.symbol.toLowerCase().includes(lowercaseValue);
 	});
+
+	const {configuration, dispatchConfiguration} = useManageVaults();
 
 	/**********************************************************************************************
 	 ** The tokenBalance memoized value contains the string representation of the token balance,
@@ -94,8 +87,8 @@ export function TokenSelector({
 					'border-regularText/15 bg-regularText/5 relative flex !h-16 items-center gap-x-1 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
 				}>
 				<ImageWithFallback
-					src={`https://assets.smold.app/tokens/${vault.chainID}/${assetToUse.token?.address}/logo-128.png`}
-					alt={assetToUse.token?.address || 'address'}
+					src={`https://assets.smold.app/tokens/${vault.chainID}/${configuration?.tokenToSpend.token?.address}/logo-128.png`}
+					alt={configuration?.tokenToSpend.token?.address || 'address'}
 					width={32}
 					height={32}
 				/>
@@ -138,9 +131,12 @@ export function TokenSelector({
 							<button
 								onClick={() => {
 									toggleOpen();
-									set_assetToUse({
-										token: item,
-										amount: getBalance({address: item.address, chainID: item.chainID})
+									dispatchConfiguration({
+										type: 'SET_TOKEN_TO_SPEND',
+										payload: {
+											token: item,
+											amount: getBalance({address: item.address, chainID: item.chainID})
+										}
 									});
 								}}
 								className={
