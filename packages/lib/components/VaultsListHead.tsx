@@ -61,7 +61,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 								: 'justify-center'
 						)}
 						key={item.label}>
-						<IconSort className={'size-3'} />
+						<IconSort className={'text-regularText/80 size-3'} />
 						<p className={'text-regularText/80 text-right'}>{item.label}</p>
 					</button>
 				) : (

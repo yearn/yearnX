@@ -152,7 +152,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						height={28}
 					/>
 					<div className={'ml-2 flex w-full flex-col justify-start overflow-hidden'}>
-						<div className={'flex max-w-56 items-center justify-between gap-x-2'}>
+						<div className={'flex items-center justify-between gap-x-2'}>
 							<p className={'w-full truncate'}>{vault.name}</p>
 							<IconExternalLink className={'ml-auto size-3 min-w-3'} />
 						</div>

@@ -1,3 +1,5 @@
+export const PROJECT_TITLE = 'Yearn x Pendle';
+export const PROJECT_DESCRIPTION = 'Feeling lucky Penle Anon?';
 export const VARIANT_TO_USE = 1;
 export const VAULT_FILTER = 'v3';
 export const VAULTS_PER_PAGE = 20;
@@ -10,7 +12,6 @@ export const HEADER_TABS = [
 	{value: 'manage', label: 'Manage', isSortable: false}
 ];
 
-//PENDLE colors
 export const COLORS = {
 	button: '#1BE3C2', // The main color of the button
 	buttonHover: '#1EFCD8', // The hover color of the button
@@ -22,16 +23,3 @@ export const COLORS = {
 	secondary: '#6079FF', // The secondary color of the page
 	headerTag: '#090D18' // The color of the header tag [Yearn x Something]
 };
-
-// OPTIMISM colors
-// export const COLORS = {
-// 	button: '#ff0420', // The main color of the button
-// 	buttonHover: '#b80018', // The hover color of the button
-// 	regularText: '#000000', // The color of the regular text
-// 	accentText: '#FFFFFF', // The color of the text on the button or the primary color
-// 	background: '#fff0f1', // The background color of the page
-// 	table: '#FFFFFF', // The background color of the table (front element)
-// 	primary: '#ff0420', // The primary color of the page
-// 	secondary: '#3374db', // The secondary color of the page
-// 	headerTag: '#ff0420' // The color of the header tag [Yearn x Something]
-// };

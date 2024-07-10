@@ -1,3 +1,4 @@
+import {type ReactElement, useMemo} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
@@ -7,8 +8,6 @@ import {useAccountModal} from '@rainbow-me/rainbowkit';
 import {IconColloboration} from '../icons/IconCollaboration';
 import {LogoYearn} from '../icons/LogoYearn';
 
-import type {ReactElement} from 'react';
-
 type TDefaultHeader = {
 	docsLink: string;
 	secondLogoURL: string;
@@ -17,7 +16,7 @@ type TDefaultHeader = {
 export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactElement {
 	const {onConnect, address, ens, clusters} = useWeb3();
 	const {openAccountModal} = useAccountModal();
-	const ensOrClusters = address && (ens || clusters?.name);
+	const ensOrClusters = useMemo(() => address && (ens || clusters?.name), [address, ens, clusters]);
 
 	return (
 		<div className={'bg-table flex items-center justify-between rounded-3xl px-6 py-5'}>

@@ -104,6 +104,24 @@ export const WithPrices = (props: {children: ReactElement; supportedNetworks?: C
 			} else {
 				llamaRequests.push(axios.get(`https://coins.llama.fi/prices/current/${queryStringForLlama}`));
 			}
+			const allPricesFromLlama = await Promise.allSettled(llamaRequests);
+			const pricesFromLlama = mergeLlamaResponse(allPricesFromLlama);
+			const assignedPricesFromLlama = assignLlamaPrices(pricesFromLlama, {});
+
+			/**************************************************************************************
+			 ** Now we want to create a new _tokensToUse array only with the tokens we are
+			 ** missing the price
+			 *************************************************************************************/
+			const missingTokens = [];
+			for (const chainID in assignedPricesFromLlama) {
+				for (const address in assignedPricesFromLlama[chainID]) {
+					if (!assignedPricesFromLlama[chainID][address]) {
+						missingTokens.push({chainID: Number(chainID), address: toAddress(address)});
+					} else if (assignedPricesFromLlama[chainID][address].raw === 0n) {
+						missingTokens.push({chainID: Number(chainID), address: toAddress(address)});
+					}
+				}
+			}
 
 			/**************************************************************************************
 			 ** The ydaemon endpoint needs a GET request with some query arguments. In the web
@@ -113,8 +131,8 @@ export const WithPrices = (props: {children: ReactElement; supportedNetworks?: C
 			 ** a batch of 100 tokens per request.
 			 *************************************************************************************/
 			const ydaemonRequests = [];
-			if (_tokensToUse.length > 100) {
-				const tokens = _tokensToUse.slice();
+			if (missingTokens.length > 100) {
+				const tokens = missingTokens.slice();
 				while (tokens.length) {
 					const chunk = tokens.splice(0, 100);
 					ydaemonRequests.push(
@@ -124,22 +142,8 @@ export const WithPrices = (props: {children: ReactElement; supportedNetworks?: C
 			} else {
 				ydaemonRequests.push(axios.get(`https://ydaemon.yearn.fi/prices/some/${queryStringForYDaemon}`));
 			}
-
-			/**************************************************************************************
-			 ** Once we know what to fetch, we will use the Promise.allSettled function to fetch
-			 ** the prices from the yDaemon and llama endpoints, waiting for all requests to be
-			 ** resolved or rejected before updating the prices.
-			 *************************************************************************************/
-			const allPrices = await Promise.allSettled([...ydaemonRequests, ...llamaRequests]);
-			const allPricesFromYDaemon = allPrices.slice(0, ydaemonRequests.length);
-			const allPricesFromLlama = allPrices.slice(llamaRequests.length);
-
-			/**************************************************************************************
-			 ** For simplicity, we will merge the prices from the llama endpoint in a single object
-			 ** as if it was a single request.
-			 *************************************************************************************/
+			const allPricesFromYDaemon = await Promise.allSettled(ydaemonRequests);
 			const pricesFromYDaemon = mergeYDaemonResponse(allPricesFromYDaemon);
-			const pricesFromLlama = mergeLlamaResponse(allPricesFromLlama);
 
 			/**************************************************************************************
 			 ** We will update the prices object with the new prices from the llama and yDaemon

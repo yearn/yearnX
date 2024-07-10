@@ -75,6 +75,12 @@ module.exports = {
 				'4xl': '904px',
 				'6xl': '1200px'
 			},
+			minHeight: {
+				section: '528px'
+			},
+			height: {
+				section: '528px'
+			},
 			animation: {
 				fadeIn: 'fadeIn 200ms ease-in'
 			},
