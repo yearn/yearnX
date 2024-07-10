@@ -3,9 +3,10 @@ import Link from 'next/link';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {cl, formatAmount, formatLocalAmount, formatPercent, toNormalizedBN} from '@builtbymom/web3/utils';
-import {getNetwork} from '@builtbymom/web3/utils/wagmi';
+import {getNetwork, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
+import {switchChain} from '@wagmi/core';
 
 import {IconCircleQuestion} from '../icons/IconCircleQuestion';
 import {IconExternalLink} from '../icons/IconExternalLink';
@@ -28,12 +29,15 @@ function toPercent(value: number): string {
 export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance} = useWallet();
 	const [isDepositModalOpen, set_isDepositModalOpen] = useState(false);
+
 	const [isWithdrawModalOpen, set_isWithdrawModalOpen] = useState(false);
 
 	const {dispatchConfiguration} = useManageVaults();
 
-	const onDepositClick = useCallback((): void => {
+	const onDepositClick = useCallback(async (): Promise<void> => {
 		set_isDepositModalOpen(true);
+		await switchChain(retrieveConfig(), {chainId: vault.chainID});
+
 		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
 		dispatchConfiguration({
 			type: 'SET_TOKEN_TO_SPEND',
@@ -52,8 +56,9 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		});
 	}, [dispatchConfiguration, getBalance, vault]);
 
-	const onWithdrawClick = useCallback((): void => {
+	const onWithdrawClick = useCallback(async (): Promise<void> => {
 		set_isWithdrawModalOpen(true);
+		await switchChain(retrieveConfig(), {chainId: vault.chainID});
 		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
 		dispatchConfiguration({
 			type: 'SET_TOKEN_TO_SPEND',

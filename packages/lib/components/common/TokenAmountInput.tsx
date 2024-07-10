@@ -32,11 +32,14 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 	const [isChainSelectorOpen, set_isChainSelectorOpen] = useState<boolean>(false);
 	const {configuration} = useManageVaults();
 	const selectorRef = useRef<HTMLDivElement>(null);
+	const selectorButtonRef = useRef<HTMLButtonElement>(null);
 
 	/**********************************************************************************************
 	 ** In TokenSelector we add this useOnClickOutside to close token list on outside click.
 	 *********************************************************************************************/
-	useOnClickOutside(selectorRef, () => set_isChainSelectorOpen(false));
+	useOnClickOutside<HTMLDivElement | HTMLButtonElement>([selectorRef, selectorButtonRef], () =>
+		set_isChainSelectorOpen(false)
+	);
 
 	return (
 		<div className={'flex w-full gap-x-2'}>
@@ -46,6 +49,7 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 					isOpen={isChainSelectorOpen}
 					toggleOpen={() => set_isChainSelectorOpen(prev => !prev)}
 					selectorRef={selectorRef}
+					selectorButtonRef={selectorButtonRef}
 				/>
 			</div>
 			<label

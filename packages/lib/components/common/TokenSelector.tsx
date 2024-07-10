@@ -18,9 +18,16 @@ type TChainSelectorProps = {
 	isOpen: boolean;
 	toggleOpen: VoidFunction;
 	selectorRef: RefObject<HTMLDivElement>;
+	selectorButtonRef: RefObject<HTMLButtonElement>;
 };
 
-export function TokenSelector({vault, isOpen, toggleOpen, selectorRef}: TChainSelectorProps): ReactElement {
+export function TokenSelector({
+	vault,
+	isOpen,
+	toggleOpen,
+	selectorRef,
+	selectorButtonRef
+}: TChainSelectorProps): ReactElement {
 	const {listTokensWithBalance} = useTokensWithBalance();
 	const {getPrice} = usePrices();
 	const {address} = useWeb3();
@@ -82,6 +89,7 @@ export function TokenSelector({vault, isOpen, toggleOpen, selectorRef}: TChainSe
 		<>
 			<button
 				disabled={!address}
+				ref={selectorButtonRef}
 				onClick={toggleOpen}
 				className={
 					'border-regularText/15 bg-regularText/5 relative flex !h-16 items-center gap-x-1 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'

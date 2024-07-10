@@ -2,7 +2,10 @@ import {createContext, useContext, useMemo} from 'react';
 import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {defaultTxStatus, type TTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
+import {usePortalsSolver} from '@lib/solvers/usePortalsSolver';
 import {useVanilaSolver} from '@lib/solvers/useVanilaSolver';
+
+import {useManageVaults} from './useManageVaults';
 
 import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
@@ -58,6 +61,9 @@ const SolverContext = createContext<TSolverContext>({
 
 export function SolverContextApp({children}: {children: ReactElement}): ReactElement {
 	const vanila = useVanilaSolver();
+	const portals = usePortalsSolver();
+
+	const {configuration} = useManageVaults();
 
 	const isZapNeeded = useIsZapNeeded();
 
@@ -65,12 +71,12 @@ export function SolverContextApp({children}: {children: ReactElement}): ReactEle
 		if (!isZapNeeded) {
 			return vanila;
 		}
-		// if (configuration.asset.token?.chainID === configuration.opportunity?.chainID) {
-		// 	return portals;
-		// }
+		if (configuration?.tokenToSpend.token?.chainID === configuration?.vault?.chainID) {
+			return portals;
+		}
 
 		return vanila;
-	}, [isZapNeeded, vanila]);
+	}, [configuration?.tokenToSpend.token?.chainID, configuration?.vault?.chainID, isZapNeeded, portals, vanila]);
 
 	return <SolverContext.Provider value={{...currentSolver}}>{children}</SolverContext.Provider>;
 }

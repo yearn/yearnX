@@ -59,7 +59,8 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 				name: configuration?.tokenToSpend.token?.name,
 				symbol: configuration?.tokenToSpend.token?.symbol,
 				address: toAddress(configuration?.tokenToSpend.token?.address),
-				chainID: Number(configuration?.tokenToSpend.token?.chainID)
+				chainID: Number(configuration?.tokenToSpend.token?.chainID),
+				balance: configuration?.vault.tvl.tvl
 			});
 		}
 
@@ -76,6 +77,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 				chainID: Number(currentChainID)
 			});
 		}
+
 		onRefresh(tokensToRefresh, false, true);
 	}, [configuration?.tokenToSpend.token, configuration?.vault, onRefresh, safeChainID]);
 
@@ -95,10 +97,6 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	const isZapNeeded = useIsZapNeeded();
 
 	const onAction = useCallback(async () => {
-		if (isZapNeeded) {
-			//remove when add portals
-			return;
-		}
 		if (isApproved) {
 			return onExecuteDeposit(() => {
 				onRefreshTokens();
@@ -106,7 +104,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 			});
 		}
 		return onApprove(() => onRefreshTokens());
-	}, [isApproved, isZapNeeded, onApprove, onExecuteDeposit, onRefreshTokens, props]);
+	}, [isApproved, onApprove, onExecuteDeposit, onRefreshTokens, props]);
 
 	const isValid = useMemo((): boolean => {
 		if (isZapNeeded && !quote) {
