@@ -45,7 +45,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 	);
 
 	return (
-		<div className={'hidden px-2 text-neutral-600 md:col-span-7 md:grid md:grid-cols-7'}>
+		<div className={'hidden px-2 md:col-span-7 md:grid md:grid-cols-7'}>
 			{props.items.map(item =>
 				item.isSortable ? (
 					<button
@@ -60,13 +60,13 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 						)}
 						key={item.label}>
 						<IconSort className={'size-3'} />
-						<p className={'text-right text-white/80'}>{item.label}</p>
+						<p className={'text-regularText/80 text-right'}>{item.label}</p>
 					</button>
 				) : (
 					<div
 						key={item.value}
 						className={cl(
-							'flex flex-row items-center text-white/80',
+							'flex flex-row items-center text-regularText/80',
 							item.value === 'vault'
 								? 'col-span-2 justify-start'
 								: item.value === 'manage'

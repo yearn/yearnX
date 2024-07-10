@@ -7,7 +7,7 @@ export const Section4 = ({bgImage, description}: TSectionProps): ReactElement =>
 	return (
 		<div className={'h-section min-h-section grid grid-cols-1 md:grid-cols-3 md:gap-6'}>
 			<div className={'bg-table flex flex-col justify-between rounded-2xl p-10'}>
-				<div className={'leading-4xl md:leading-7xl text-4xl font-black text-white md:text-7xl'}>
+				<div className={'leading-4xl md:leading-7xl text-regularText text-4xl font-black md:text-7xl'}>
 					{'YEARN PARTNER VAULTS'}
 				</div>
 				<p>{description}</p>

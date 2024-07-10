@@ -45,7 +45,7 @@ export const Button = forwardRef((props: TButton, ref: ForwardedRef<HTMLButtonEl
 			{children}
 			{isBusy ? (
 				<div className={'absolute inset-0 flex items-center justify-center'}>
-					<IconSpinner className={'size-6 animate-spin text-black'} />
+					<IconSpinner className={'text-accentText size-6 animate-spin'} />
 				</div>
 			) : null}
 		</button>

@@ -133,12 +133,12 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				hasBalanceForVault={balance > 0}
 			/>
 			{/* Desctop screen Item */}
-			<div className={'bg-white/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>
+			<div className={'bg-regularText/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>
 				<Link
 					href={yearnfiLink}
 					target={'_blank'}
 					className={
-						'col-span-2 flex cursor-alias items-center justify-start overflow-hidden rounded-xl border border-white/15 bg-white/5 p-3'
+						'border-regularText/15 bg-regularText/5 col-span-2 flex cursor-alias items-center justify-start overflow-hidden rounded-xl border p-3'
 					}>
 					<ImageWithFallback
 						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
@@ -147,12 +147,12 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						height={28}
 					/>
 					<div className={'ml-2 flex flex-col justify-start'}>
-						<div className={'flex max-w-[250px] items-center gap-x-2 overflow-hidden '}>
+						<div className={'flex max-w-56 items-center gap-x-2 overflow-hidden '}>
 							<p className={'w-full truncate'}>{vault.name}</p>
 							<IconExternalLink className={'size-4'} />
 						</div>
 
-						<p className={'w-full text-white/50'}>{getNetwork(vault.chainID).name}</p>
+						<p className={'text-regularText/50 w-full'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
 				<div className={'flex items-center justify-center  font-mono font-semibold'}>
@@ -162,7 +162,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				<div className={'font-number flex items-center justify-end text-right'}>
 					<div className={'text-right'}>
 						{`$${formatAmount(balance * price.normalized, 2, 2)}`}
-						<div className={'text-neutral-0 text-right text-xs text-opacity-40'}>
+						<div className={'text-regularText text-right text-xs text-opacity-40'}>
 							{`${formatAmount(balance * toNormalizedBN(vault.pricePerShare, vault.decimals).normalized)} ${vault.token.symbol}`}
 						</div>
 					</div>
@@ -172,7 +172,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						<button
 							onClick={onWithdrawClick}
 							className={
-								'!h-12 w-full rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15 '
+								'border-regularText/5 bg-regularText/5 text-regularText hover:bg-regularText/15 !h-12 w-full rounded-xl border p-3 transition-colors '
 							}>
 							{'Withdraw'}
 						</button>
@@ -192,7 +192,9 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				<Link
 					href={yearnfiLink}
 					target={'_blank'}
-					className={'flex w-full items-center rounded-xl border border-white/15 bg-white/5 px-2.5 py-2'}>
+					className={
+						'border-regularText/15 bg-regularText/5 flex w-full items-center rounded-xl border px-2.5 py-2'
+					}>
 					<ImageWithFallback
 						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
 						alt={vault.token.symbol}
@@ -205,14 +207,14 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 							<IconExternalLink className={'size-4'} />
 						</div>
 
-						<p className={'w-full text-white/50'}>{getNetwork(vault.chainID).name}</p>
+						<p className={'text-regularText/50 w-full'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
 
 				<div className={'flex w-full justify-between'}>
 					<div className={'flex items-center gap-x-2 text-sm'}>
 						<p>{'APR'}</p>
-						<IconCircleQuestion className={'size-4 text-white'} />
+						<IconCircleQuestion className={'text-regularText size-4'} />
 					</div>
 					<div>{formatPercent(vault.apr.netAPR)}</div>
 				</div>
@@ -236,7 +238,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						<button
 							onClick={onWithdrawClick}
 							className={
-								'!h-12 w-full rounded-xl border border-white/5 bg-white/5 p-3 text-white transition-colors hover:bg-white/15 '
+								'border-regularText/5 bg-regularText/5 text-regularText hover:bg-regularText/15 !h-12 w-full rounded-xl border p-3 transition-colors '
 							}>
 							{'Withdraw'}
 						</button>

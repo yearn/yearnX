@@ -54,7 +54,7 @@ export function GridViewItem(props: {
 	return (
 		<div className={'poolGradient grid rounded-xl p-6 pt-4'}>
 			<div className={'-ml-2 pb-2'}>
-				<div className={'flex w-fit items-center gap-2 rounded-md bg-white/20 p-2 backdrop-blur-md'}>
+				<div className={'bg-background/20 flex w-fit items-center gap-2 rounded-md p-2 backdrop-blur-md'}>
 					<ImageWithFallback
 						src={`https://assets.smold.app/tokens/10/${props.vaultData.assetAddress}/logo-32.png`}
 						alt={props.vaultData.assetSymbol}
@@ -146,14 +146,14 @@ export function GridViewItem(props: {
 				<button
 					onClick={() => props.onOpenWithdrawPopup()}
 					className={cl(
-						'mt-6 h-10 w-full rounded-lg bg-white font-medium text-purple',
+						'mt-6 h-10 w-full rounded-lg bg-background font-medium text-purple',
 						toBigInt(props.vaultData.balanceOf?.raw) === 0n ? 'invisible cursor-default' : ''
 					)}>
 					{'Withdraw'}
 				</button>
 				<button
 					onClick={() => props.onOpenDepositPopup()}
-					className={'text-purple mt-6 h-10 w-full rounded-lg bg-white font-medium'}>
+					className={'text-purple bg-background mt-6 h-10 w-full rounded-lg font-medium'}>
 					{'Deposit'}
 				</button>
 			</div>
@@ -189,7 +189,7 @@ export function ListViewItem(props: {
 				<Link href={`/vault/${props.vaultData.address}`}>
 					<div
 						className={
-							'flex w-full cursor-pointer items-center gap-2 rounded-lg bg-white/20 p-2 backdrop-blur-md'
+							'bg-background/20 flex w-full cursor-pointer items-center gap-2 rounded-lg p-2 backdrop-blur-md'
 						}>
 						<ImageWithFallback
 							src={`https://assets.smold.app/tokens/10/${props.vaultData.assetAddress}/logo-32.png`}
@@ -253,14 +253,14 @@ export function ListViewItem(props: {
 				<button
 					onClick={() => props.onOpenWithdrawPopup()}
 					className={cl(
-						'h-8 w-full px-2 text-sm rounded-lg bg-white font-medium text-purple transition-opacity',
+						'h-8 w-full px-2 text-sm rounded-lg bg-background font-medium text-purple transition-opacity',
 						toBigInt(props.vaultData.balanceOf?.raw) === 0n ? 'opacity-0 cursor-default' : 'opacity-100'
 					)}>
 					{'Withdraw'}
 				</button>
 				<button
 					onClick={() => props.onOpenDepositPopup()}
-					className={'text-purple h-8 w-full rounded-lg bg-white px-2 text-sm font-medium'}>
+					className={'text-purple bg-background h-8 w-full rounded-lg px-2 text-sm font-medium'}>
 					{'Deposit'}
 				</button>
 			</div>

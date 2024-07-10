@@ -51,9 +51,9 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 									onClick={prevPage}
 									disabled={currentPage === 1}
 									className={cl(
-										'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-white/15',
-										'hover:bg-white/5 hover:outline',
-										currentPage === 1 ? 'text-white/15' : 'text-white'
+										'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-regularText/15',
+										'hover:bg-regularText/5 hover:outline',
+										currentPage === 1 ? 'text-regularText/15' : 'text-regularText'
 									)}>
 									<IconArrowLeft className={'size-5'} />
 								</button>
@@ -63,9 +63,9 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 									onClick={nextPage}
 									disabled={currentPage === amountOfPages}
 									className={cl(
-										'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-white/15',
-										'hover:outline hover:bg-white/5',
-										currentPage === amountOfPages ? 'text-white/15' : 'text-white'
+										'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-regularText/15',
+										'hover:outline hover:bg-regularText/5',
+										currentPage === amountOfPages ? 'text-regularText/15' : 'text-regularText'
 									)}>
 									<IconArrowLeft className={'size-5 rotate-180'} />
 								</button>
@@ -74,15 +74,15 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 							pageLabelBuilder={page => (
 								<button
 									className={cl(
-										'rounded-lg px-3 md:px-4 py-1 md:py-2 outline-1 outline-white/15',
-										'hover:text-white hover:outline hover:bg-white/5'
+										'rounded-lg px-3 md:px-4 py-1 md:py-2 outline-1 outline-regularText/15',
+										'hover:text-regularText hover:outline hover:bg-regularText/5'
 									)}>
 									{page}
 								</button>
 							)}
-							activeClassName={'!text-white'}
-							pageClassName={'text-white/15'}
-							breakClassName={'text-white/15'}
+							activeClassName={'!text-regularText'}
+							pageClassName={'text-regularText/15'}
+							breakClassName={'text-regularText/15'}
 							nextClassName={'mt-2'}
 							previousClassName={'mt-2'}
 							forcePage={currentPage - 1 > 0 ? currentPage - 1 : 0}

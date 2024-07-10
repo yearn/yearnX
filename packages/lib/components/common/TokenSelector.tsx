@@ -91,7 +91,7 @@ export function TokenSelector({
 				disabled={!address}
 				onClick={toggleOpen}
 				className={
-					'relative flex !h-16 items-center gap-x-1 rounded-lg border border-white/15 bg-white/5 px-4 py-3 disabled:cursor-not-allowed'
+					'border-regularText/15 bg-regularText/5 relative flex !h-16 items-center gap-x-1 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
 				}>
 				<ImageWithFallback
 					src={`https://assets.smold.app/tokens/${vault.chainID}/${assetToUse.token?.address}/logo-128.png`}
@@ -99,26 +99,26 @@ export function TokenSelector({
 					width={32}
 					height={32}
 				/>
-				<IconChevron className={'size-4 text-white'} />
+				<IconChevron className={'text-regularText size-4'} />
 			</button>
 			{isOpen && (
 				<div
 					ref={selectorRef}
 					className={
-						'bg-table no-scrollbar absolute z-[1003] mt-2 rounded-lg border border-white/15 py-5 md:min-w-[507px]'
+						'bg-table no-scrollbar border-regularText/15 absolute z-[1003] mt-2 rounded-lg border py-5 md:min-w-[507px]'
 					}>
 					<label
 						className={cl(
-							'z-20 !h-16 relative transition-all border border-white/15',
+							'z-20 !h-16 relative transition-all border border-regularText/15',
 							'flex flex-row items-center cursor-text',
-							'focus:placeholder:text-neutral-300 placeholder:transition-colors',
-							'py-2 mb-3 mx-6 pl-0 pr-4 group border-white/15 bg-white/5 rounded-lg'
+							'focus:placeholder:text-regularText/40 placeholder:transition-colors',
+							'py-2 mb-3 mx-6 pl-0 pr-4 group border-regularText/15 bg-regularText/5 rounded-lg'
 						)}>
 						<input
 							className={cl(
 								'w-full relative rounded-lg py-3 px-4 bg-transparent border-none text-base',
-								'text-white placeholder:text-neutral-600 caret-neutral-700',
-								'focus:placeholder:text-neutral-300 placeholder:transition-colors',
+								'text-regularText placeholder:text-regularText/40 caret-regularText/60',
+								'focus:placeholder:text-regularText/40 placeholder:transition-colors',
 								'disabled:cursor-not-allowed disabled:opacity-40'
 							)}
 							type={'text'}
@@ -143,7 +143,9 @@ export function TokenSelector({
 										amount: getBalance({address: item.address, chainID: item.chainID})
 									});
 								}}
-								className={'flex w-full items-center justify-between px-6  py-3.5 hover:bg-white/5'}>
+								className={
+									'hover:bg-regularText/5 flex w-full items-center justify-between  px-6 py-3.5'
+								}>
 								<div className={'flex gap-x-4'}>
 									<div className={'flex items-center'}>
 										<ImageWithFallback
@@ -155,13 +157,15 @@ export function TokenSelector({
 									</div>
 									<div className={'flex flex-col items-start'}>
 										<div>{item.symbol}</div>
-										<div className={'text-sm text-white/50'}>{truncateHex(item.address, 5)}</div>
+										<div className={'text-regularText/50 text-sm'}>
+											{truncateHex(item.address, 5)}
+										</div>
 									</div>
 								</div>
 
 								<div className={'flex flex-col items-end'}>
 									<div>{tokenBalance(item)}</div>
-									<div className={'text-sm text-white/50'}>{balanceValue(item)}</div>
+									<div className={'text-regularText/50 text-sm'}>{balanceValue(item)}</div>
 								</div>
 							</button>
 						))}

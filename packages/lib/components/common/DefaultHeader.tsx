@@ -22,13 +22,13 @@ export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactE
 	return (
 		<div className={'bg-table flex items-center justify-between rounded-3xl px-6 py-5'}>
 			<div className={'flex items-center gap-10'}>
-				<div className={'bg-background bg-opacity/90 flex h-12 items-center gap-x-2 rounded-xl p-2 text-white'}>
+				<div className={'bg-headerTag/90 text-regularText flex h-12 items-center gap-x-2 rounded-xl p-2'}>
 					<LogoYearn
 						className={'size-8'}
 						front={'text-[#FFFFFF]'}
 						back={'text-[#0657F9]'}
 					/>
-					<IconColloboration className={'size-4 text-white'} />
+					<IconColloboration className={'text-regularText size-4'} />
 					{secondLogoURL ? (
 						<Image
 							src={secondLogoURL}
@@ -48,12 +48,12 @@ export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactE
 				<div className={'hidden md:block'}>
 					<Link
 						href={docsLink || ''}
-						className={'mr-6 text-white'}>
+						className={'text-regularText mr-6'}>
 						{'Docs'}
 					</Link>
 					<Link
 						href={''}
-						className={'font-[Aeonik] font-bold leading-3 text-white'}>
+						className={'text-regularText font-[Aeonik] font-bold leading-3'}>
 						{'X'}
 					</Link>
 				</div>

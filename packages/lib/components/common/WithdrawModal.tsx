@@ -128,7 +128,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 							<button
 								onClick={() => props.onClose()}
 								className={
-									'absolute right-5 top-5 -m-2 rounded-full p-2 transition-colors hover:bg-white/15'
+									'hover:bg-regularText/15 absolute right-5 top-5 -m-2 rounded-full p-2 transition-colors'
 								}>
 								<IconCross className={'size-4'} />
 							</button>
@@ -137,7 +137,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 								href={props.yearnfiLink}
 								target={'_blank'}
 								className={
-									'mb-8 flex w-min cursor-alias items-center rounded-xl border border-white/15 bg-white/5 px-2.5 py-2'
+									'border-regularText/15 bg-regularText/5 mb-8 flex w-min cursor-alias items-center rounded-xl border px-2.5 py-2'
 								}>
 								<ImageWithFallback
 									src={`https://assets.smold.app/tokens/${props.vault.chainID}/${props.vault.token.address}/logo-32.png`}
@@ -147,11 +147,13 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 								/>
 								<div className={'ml-2 flex w-48 flex-col md:w-80'}>
 									<div className={'flex items-center gap-x-2'}>
-										<p className={'w-full text-left md:whitespace-nowrap'}>{props.vault.name}</p>
+										<p className={'md:regularTextspace-nowrap w-full text-left'}>
+											{props.vault.name}
+										</p>
 										<IconExternalLink className={'size-4'} />
 									</div>
 
-									<p className={'flex w-full justify-start text-white/50'}>
+									<p className={'text-regularText/50 flex w-full justify-start'}>
 										{getNetwork(props.vault.chainID).name}
 									</p>
 								</div>

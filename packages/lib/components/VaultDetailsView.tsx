@@ -109,7 +109,7 @@ function DetailViewItem(props: {
 				<div className={'-mt-2 flex w-full items-center justify-center'}>
 					<div
 						className={
-							'flex w-fit cursor-pointer items-center gap-2 rounded-lg bg-white/20 p-2 backdrop-blur-md'
+							'bg-background/20 flex w-fit cursor-pointer items-center gap-2 rounded-lg p-2 backdrop-blur-md'
 						}>
 						<ImageWithFallback
 							src={'https://assets.smold.app/chain/10/logo-32.png'}
@@ -121,7 +121,7 @@ function DetailViewItem(props: {
 					</div>
 				</div>
 			</div>
-			<dl className={'mt-10 grid grid-cols-3 gap-y-2 border-t border-white/40 pt-6'}>
+			<dl className={'border-background/40 mt-10 grid grid-cols-3 gap-y-2 border-t pt-6'}>
 				<dt className={'text-sm opacity-80'}>{'Your balance'}</dt>
 				<dd className={'col-span-2 text-right'}>
 					<Counter
@@ -204,14 +204,14 @@ function DetailViewItem(props: {
 				<button
 					onClick={() => props.onOpenWithdrawPopup()}
 					className={cl(
-						'mt-6 h-10 w-full rounded-lg bg-white font-medium text-purple',
+						'mt-6 h-10 w-full rounded-lg bg-background font-medium text-purple',
 						toBigInt(props.vaultData.balanceOf?.raw) === 0n ? 'invisible cursor-default' : ''
 					)}>
 					{'Withdraw'}
 				</button>
 				<button
 					onClick={() => props.onOpenDepositPopup()}
-					className={'text-purple mt-6 h-10 w-full rounded-lg bg-white font-medium'}>
+					className={'text-purple bg-background mt-6 h-10 w-full rounded-lg font-medium'}>
 					{'Deposit'}
 				</button>
 			</div>
@@ -248,7 +248,7 @@ export function VaultDetailsView(props: {vault: TVaultData; refetch: () => void}
 		<>
 			<div className={'pl-10'}>
 				<Link href={'/'}>
-					<small className={'text-white/40 transition-colors hover:text-white'}>{'← Back'}</small>
+					<small className={'hover:text-background text-background/40 transition-colors'}>{'← Back'}</small>
 				</Link>
 			</div>
 

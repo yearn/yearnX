@@ -152,20 +152,20 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 				<div className={'absolute right-5 top-3'}>
 					<button
 						onClick={props.onClose}
-						className={'text-white hover:text-white'}>
+						className={'text-regularText'}>
 						{'⛌'}
 					</button>
 				</div>
 				<Dialog.Title
 					as={'h3'}
-					className={'font-sans text-lg font-bold leading-6 text-white'}>
+					className={'text-regularText font-sans text-lg font-bold leading-6'}>
 					{`Withdraw from ${props.vaultData.name}`}
 				</Dialog.Title>
 
 				<div className={'py-4'}>
 					<div
 						className={
-							'mx-auto flex w-fit items-center justify-center gap-2 rounded-lg bg-white/20 px-2 py-1 text-center text-sm'
+							'bg-regularText/20 mx-auto flex w-fit items-center justify-center gap-2 rounded-lg px-2 py-1 text-center text-sm'
 						}>
 						<ImageWithFallback
 							src={'https://assets.smold.app/chains/10/logo-128.png'}
@@ -182,14 +182,14 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 						className={cl(
 							'h-20 z-20 relative transition-all',
 							'flex flex-row items-center cursor-text',
-							'focus:placeholder:text-neutral-300 placeholder:transition-colors',
-							'p-2 px-4 group bg-white/10 rounded-lg'
+							'focus:placeholder:text-regularText/40 placeholder:transition-colors',
+							'p-2 px-4 group bg-regularText/10 rounded-lg'
 						)}>
 						<div className={'relative w-full pr-2'}>
 							<InputNumber
 								prefixCls={cl(
 									'w-full border-none bg-transparent p-0 text-xl transition-colors',
-									'text-white placeholder:text-white/20 focus:placeholder:text-white/30',
+									'text-regularText placeholder:text-regularText/20 focus:placeholder:text-regularText/30',
 									'placeholder:transition-colors overflow-hidden'
 								)}
 								min={0}
@@ -218,8 +218,8 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 									<ImageWithFallback
 										className={cl(
 											'absolute -bottom-0.5 -right-0.5 size-4 rounded-full bg-purple',
-											'text-xxs text-white',
-											'border border-white',
+											'text-xxs text-regularText',
+											'border border-regularText',
 											'flex items-center justify-center'
 										)}
 										style={{width: 14, height: 14, minWidth: 14, minHeight: 14}}
@@ -229,11 +229,11 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 										height={128}
 									/>
 								</div>
-								<b className={'whitespace-nowrap text-lg'}>{shareData?.symbol}</b>
+								<b className={'regularTextspace-nowrap text-lg'}>{shareData?.symbol}</b>
 							</div>
 							<button
 								onClick={() => set_value(data?.vaultBalanceOf?.normalized || 0)}
-								className={'mt-1 whitespace-nowrap text-xs text-white/60'}>
+								className={'regularTextspace-nowrap text-regularText/60 mt-1 text-xs'}>
 								{`Balance: ${formatAmount(data?.vaultBalanceOf?.normalized || 0, 4)}`}
 							</button>
 						</div>
@@ -243,15 +243,15 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 						className={cl(
 							'h-20 z-20 relative transition-all',
 							'flex flex-row items-center cursor-text',
-							'focus:placeholder:text-neutral-300 placeholder:transition-colors',
-							'p-2 px-4 group bg-white/10 rounded-lg'
+							'focus:placeholder:text-regularText/40 placeholder:transition-colors',
+							'p-2 px-4 group bg-regularText/10 rounded-lg'
 						)}>
 						<div className={'w-full pr-2'}>
 							<div
 								className={cl(
 									'w-full border-none bg-transparent p-0 text-xl',
 									'overflow-hidden text-left',
-									!value ? 'text-white/20' : 'text-white'
+									!value ? 'text-regularText/20' : 'text-regularText'
 								)}>
 								{shareForValue}
 							</div>
@@ -264,9 +264,9 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 									width={32}
 									height={32}
 								/>
-								<b className={'whitespace-nowrap text-lg'}>{props.vaultData.assetSymbol}</b>
+								<b className={'regularTextspace-nowrap text-lg'}>{props.vaultData.assetSymbol}</b>
 							</div>
-							<p className={'mt-1 whitespace-nowrap text-xs text-white/60'}>
+							<p className={'regularTextspace-nowrap text-regularText/60 mt-1 text-xs'}>
 								{`Balance: ${formatAmount(data?.underlyingBalanceOf?.normalized || 0, 4)}`}
 							</p>
 						</div>
@@ -281,7 +281,7 @@ function WithdrawPopup(props: TWithdrawPopupProps): ReactElement {
 						}
 						onClick={onWithdraw}
 						isBusy={depositStatus.pending}
-						className={'text-purple h-10 w-full rounded-lg bg-white font-medium'}>
+						className={'text-purple bg-regularText h-10 w-full rounded-lg font-medium'}>
 						{'Withdraw'}
 					</Button>
 				</div>

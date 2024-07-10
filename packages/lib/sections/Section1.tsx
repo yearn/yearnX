@@ -12,7 +12,7 @@ export const Section1 = ({bgImage, description}: TSectionProps): ReactElement =>
 					'col-span-12 md:col-span-5',
 					'bg-table flex h-full flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'
 				)}>
-				<div className={'leading-4xl md:leading-7xl text-4xl font-black text-white md:text-7xl'}>
+				<div className={'leading-4xl md:leading-7xl text-regularText text-4xl font-black md:text-7xl'}>
 					{'YEARN PARTNER VAULTS'}
 				</div>
 				<div className={'w-full rounded-2xl'}>

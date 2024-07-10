@@ -19,7 +19,7 @@
 }
 
 body {
-	@apply text-white;
+	@apply text-regularText;
 }
 h1 {
 	@apply text-xl font-bold text-regularText;
@@ -41,10 +41,10 @@ h4 {
 	@apply scroll-smooth font-sans;
 }
 input::placeholder {
-	@apply text-neutral-400 not-italic;
+	@apply text-regularText/40 not-italic;
 }
 textarea::placeholder {
-	@apply text-neutral-400 not-italic;
+	@apply text-regularText/40 not-italic;
 }
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -67,7 +67,7 @@ input[type='number'] {
 	-moz-appearance: textfield;
 }
 label[aria-invalid='true'] {
-	@apply text-neutral-500 transition-colors;
+	@apply text-regularText/50 transition-colors;
 	& > form > div {
 		@apply border-[#FE0000] focus-within:border-[#FE0000] text-[#FE0000] focus-within:text-[#FE0000];
 	}

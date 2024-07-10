@@ -62,7 +62,7 @@ function Header(): ReactElement {
 								suppressHydrationWarning
 								onClick={address ? onDesactivate : onConnect}
 								className={
-									'text-purple h-10 rounded-lg border-0 border-neutral-900 bg-white px-5 text-base font-bold'
+									'text-purple border-regularText h-10 rounded-lg border-0 bg-white px-5 text-base font-bold'
 								}>
 								{address && ens ? ens : address ? truncateHex(address, 6) : 'Connect Wallet'}
 							</button>

@@ -49,16 +49,16 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 			</div>
 			<label
 				className={cl(
-					'z-20 !h-16 relative transition-all border border-white/15',
+					'z-20 !h-16 relative transition-all border border-regularText/15',
 					'flex flex-row items-center cursor-text',
-					'focus:placeholder:text-neutral-300 placeholder:transition-colors',
-					'py-2 pl-0 pr-4 group border-white/15 bg-white/5 rounded-lg'
+					'focus:placeholder:text-regularText/40 placeholder:transition-colors',
+					'py-2 pl-0 pr-4 group border-regularText/15 bg-regularText/5 rounded-lg'
 				)}>
 				<div className={'relative w-full pr-2'}>
 					<InputNumber
 						prefixCls={cl(
 							'w-full h-full focus:border-none rounded-lg border-none bg-transparent text-xl transition-colors',
-							'placeholder:text-white/20 focus:placeholder:text-white/30',
+							'placeholder:text-regularText/20 focus:placeholder:text-regularText/30',
 							'placeholder:transition-colors !h-16 !ring-0 !ring-offset-0'
 						)}
 						min={0}
@@ -79,7 +79,7 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 					onClick={props.onMaxClick}
 					disabled={!address}
 					className={
-						'rounded-lg border border-white/15 bg-white/5 p-2 text-white disabled:cursor-not-allowed'
+						'border-regularText/15 bg-regularText/5 text-regularText rounded-lg border p-2 disabled:cursor-not-allowed'
 					}>
 					{'Max'}
 				</button>
@@ -91,8 +91,8 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 					isBusy={props.isPerformingAction}
 					isDisabled={props.isButtonDisabled}
 					className={cl(
-						'text-background flex w-full justify-center whitespace-nowrap rounded-lg bg-white px-[34.5px] py-5 font-bold',
-						'disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed',
+						'text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText px-[34.5px] py-5 font-bold',
+						'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed',
 						!address ? '!w-32 !h-full' : '!h-full'
 					)}>
 					{label}
@@ -225,7 +225,7 @@ export function TokenAmountWrapper({
 			</div>
 			<button
 				onClick={() => onChangeValue(balanceToUse)}
-				className={'text-neutral-0 text-right text-xs text-opacity-40'}>
+				className={'text-regularText text-right text-xs text-opacity-40'}>
 				{`Available: ${formatAmount(balanceToUse.normalized)} ${assetName}`}
 			</button>
 			<Button
@@ -233,8 +233,8 @@ export function TokenAmountWrapper({
 				isBusy={isPerformingAction}
 				isDisabled={isButtonDisabled}
 				className={cl(
-					'md:hidden text-background flex w-full justify-center whitespace-nowrap rounded-lg bg-white py-5 font-bold',
-					'disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed',
+					'md:hidden text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText py-5 font-bold',
+					'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed',
 					!address ? '!w-32 !h-full' : '!h-full'
 				)}>
 				{label}
