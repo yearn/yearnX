@@ -56,7 +56,9 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 						}
 						className={cl(
 							'flex w-full items-center gap-x-2',
-							item.value === 'deposits' || item.value === 'balance' ? 'justify-end' : 'justify-center'
+							item.value === 'deposits' || item.value === 'balance' || item.value === 'apr'
+								? 'justify-end'
+								: 'justify-center'
 						)}
 						key={item.label}>
 						<IconSort className={'size-3'} />

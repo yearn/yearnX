@@ -151,17 +151,17 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						width={28}
 						height={28}
 					/>
-					<div className={'ml-2 flex flex-col justify-start'}>
-						<div className={'flex max-w-56 items-center gap-x-2 overflow-hidden '}>
+					<div className={'ml-2 flex w-full flex-col justify-start overflow-hidden'}>
+						<div className={'flex max-w-56 items-center justify-between gap-x-2'}>
 							<p className={'w-full truncate'}>{vault.name}</p>
-							<IconExternalLink className={'size-4'} />
+							<IconExternalLink className={'ml-auto size-3 min-w-3'} />
 						</div>
 
 						<p className={'text-regularText/50 w-full'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
-				<div className={'flex items-center justify-center  font-mono font-semibold'}>
-					{toPercent(vault.apr.extra.stakingRewardsAPR)}
+				<div className={'flex items-center justify-end font-mono font-semibold'}>
+					{toPercent(vault.apr.netAPR)}
 				</div>
 				<div className={'font-number flex items-center justify-end'}>{`$${totalDeposits}`}</div>
 				<div className={'font-number flex items-center justify-end text-right'}>
