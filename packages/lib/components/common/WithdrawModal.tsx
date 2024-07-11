@@ -1,12 +1,16 @@
 import {Fragment, type ReactElement, useMemo, useRef, useState} from 'react';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
+import {serialize} from 'wagmi';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
 // import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, formatLocalAmount, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, formatAmount, fromNormalized, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import {useSolver} from '@lib/contexts/useSolver';
 import {useTokensWithBalance} from '@lib/hooks/useTokensWithBalance';
+import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconChevron} from '../icons/IconChevron';
 import {IconCross} from '../icons/IconCross';
@@ -104,20 +108,35 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 	// 	dispatchConfiguration
 	// ]);
 
+	const {onExecuteWithdraw} = useSolver();
+
 	// const {getBalance} = useWallet();
+	const {balances, getBalance} = useWallet();
 
 	/**********************************************************************************************
-	 ** The totalDeposits is the total value locked in the vault. We will use the tvl property
-	 ** from the vault object and format it using the formatAmount function.
+	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
+	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
+	 ** We will use classic hash function to create a hash from the balances object.
 	 *********************************************************************************************/
-	const totalDeposits = useMemo(() => {
-		return formatLocalAmount(configuration?.vault?.tvl?.tvl || 0, 4, '$', {
-			displayDigits: 2,
-			maximumFractionDigits: 2,
-			minimumFractionDigits: 2,
-			shouldCompactValue: true
-		});
-	}, [configuration?.vault?.tvl?.tvl]);
+	const currentBalanceIdentifier = useMemo(() => {
+		const hash = createUniqueID(serialize(balances));
+		return hash;
+	}, [balances]);
+
+	/**********************************************************************************************
+	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
+	 ** from the useWallet hook to retrieve the balance. We are using currentBalanceIdentifier as a
+	 ** dependency to trigger the useEffect hook when the balances object changes.
+	 *********************************************************************************************/
+	const balance = useMemo(() => {
+		currentBalanceIdentifier;
+		const value =
+			getBalance({
+				address: toAddress(configuration?.vault?.address),
+				chainID: Number(configuration?.vault?.chainID)
+			}).normalized || 0;
+		return value;
+	}, [getBalance, configuration?.vault?.address, configuration?.vault?.chainID, currentBalanceIdentifier]);
 
 	const buttonTitle = address ? 'Withdraw' : 'Connect Wallet';
 
@@ -185,12 +204,20 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 												'placeholder:text-regularText/20 focus:placeholder:text-regularText/30',
 												'placeholder:transition-colors !h-16 !ring-0 !ring-offset-0'
 											)}
-											min={0}
+											min={'0'}
 											step={0.1}
 											decimalSeparator={'.'}
 											placeholder={'0.00'}
 											controls={false}
-											value={configuration?.tokenToSpend.amount?.normalized}
+											value={formatAmount(
+												toNormalizedBN(
+													fromNormalized(
+														balance,
+														configuration?.tokenToReceive?.token?.decimals
+													),
+													configuration?.tokenToReceive?.token?.decimals ?? 18
+												).normalized
+											)}
 											onChange={() => {}}
 										/>
 									</div>
@@ -210,14 +237,14 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 										type: 'SET_TOKEN_TO_RECEIVE',
 										payload: {
 											amount: toNormalizedBN(
-												Number(configuration?.vault?.tvl.tvl),
-												Number(configuration?.vault?.decimals)
+												fromNormalized(balance, configuration?.tokenToReceive?.token?.decimals),
+												configuration?.tokenToReceive?.token?.decimals ?? 18
 											)
 										}
 									})
 								}
 								className={'text-regularText text-right text-xs text-opacity-40'}>
-								{`Available: ${totalDeposits} ${configuration?.vault?.name}`}
+								{`Available: ${balance} ${configuration?.vault?.token.symbol}`}
 							</button>
 
 							<div className={'mb-4 flex w-full justify-start'}>
@@ -264,7 +291,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 							</div>
 
 							<Button
-								onClick={() => {}}
+								onClick={async () => onExecuteWithdraw(() => console.log('success'))}
 								isBusy={false}
 								isDisabled={false}
 								className={cl(

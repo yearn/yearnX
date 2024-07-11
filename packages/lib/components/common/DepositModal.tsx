@@ -6,7 +6,7 @@ import {cl, ETH_TOKEN_ADDRESS, toAddress} from '@builtbymom/web3/utils';
 import {getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {useSolvers} from '@lib/contexts/useSolver';
+import {useSolver} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 
 import {IconCross} from '../icons/IconCross';
@@ -88,7 +88,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		depositStatus,
 		isFetchingQuote,
 		quote
-	} = useSolvers();
+	} = useSolver();
 
 	const isZapNeeded = useIsZapNeeded();
 

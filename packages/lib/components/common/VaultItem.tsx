@@ -2,7 +2,14 @@ import {type ReactElement, useCallback, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {cl, formatAmount, formatLocalAmount, formatPercent, toNormalizedBN} from '@builtbymom/web3/utils';
+import {
+	cl,
+	formatAmount,
+	formatLocalAmount,
+	formatPercent,
+	toNormalizedBN,
+	zeroNormalizedBN
+} from '@builtbymom/web3/utils';
 import {getNetwork, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {toPercent} from '@lib/utils/tools';
@@ -28,52 +35,6 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const [isDepositModalOpen, set_isDepositModalOpen] = useState(false);
 
 	const [isWithdrawModalOpen, set_isWithdrawModalOpen] = useState(false);
-
-	const {dispatchConfiguration} = useManageVaults();
-
-	const onDepositClick = useCallback(async (): Promise<void> => {
-		set_isDepositModalOpen(true);
-		await switchChain(retrieveConfig(), {chainId: vault.chainID});
-
-		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
-		dispatchConfiguration({
-			type: 'SET_TOKEN_TO_SPEND',
-			payload: {
-				token: {
-					address: vault.token.address,
-					name: vault.token.name,
-					symbol: vault.token.symbol,
-					decimals: vault.token.decimals,
-					chainID: vault.chainID,
-					value: 0,
-					balance: getBalance({address: vault.token.address, chainID: vault.chainID})
-				},
-				amount: getBalance({address: vault.token.address, chainID: vault.chainID})
-			}
-		});
-	}, [dispatchConfiguration, getBalance, vault]);
-
-	const onWithdrawClick = useCallback(async (): Promise<void> => {
-		set_isWithdrawModalOpen(true);
-		await switchChain(retrieveConfig(), {chainId: vault.chainID});
-		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
-		dispatchConfiguration({
-			type: 'SET_TOKEN_TO_SPEND',
-			payload: {
-				token: {
-					address: vault.token.address,
-					name: vault.token.name,
-					symbol: vault.token.symbol,
-					decimals: vault.token.decimals,
-					chainID: vault.chainID,
-					value: 0,
-					balance: getBalance({address: vault.token.address, chainID: vault.chainID})
-				},
-
-				amount: getBalance({address: vault.token.address, chainID: vault.chainID})
-			}
-		});
-	}, [dispatchConfiguration, getBalance, vault]);
 
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
@@ -108,6 +69,67 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 			shouldCompactValue: true
 		});
 	}, [vault.tvl.tvl]);
+
+	const {dispatchConfiguration} = useManageVaults();
+
+	const onDepositClick = useCallback(async (): Promise<void> => {
+		set_isDepositModalOpen(true);
+		await switchChain(retrieveConfig(), {chainId: vault.chainID});
+
+		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
+		dispatchConfiguration({
+			type: 'SET_TOKEN_TO_SPEND',
+			payload: {
+				token: {
+					address: vault.token.address,
+					name: vault.token.name,
+					symbol: vault.token.symbol,
+					decimals: vault.token.decimals,
+					chainID: vault.chainID,
+					value: 0,
+					balance: getBalance({address: vault.token.address, chainID: vault.chainID})
+				},
+				amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+			}
+		});
+	}, [dispatchConfiguration, getBalance, vault]);
+
+	const onWithdrawClick = useCallback(async (): Promise<void> => {
+		dispatchConfiguration({
+			type: 'SET_TOKEN_TO_RECEIVE',
+			payload: {
+				token: {
+					address: vault.token.address,
+					symbol: vault.token.symbol,
+					name: vault.token.name,
+					decimals: vault.token.decimals,
+					chainID: vault.chainID,
+					balance: zeroNormalizedBN,
+					value: 0
+				},
+				amount: getBalance({address: vault.address, chainID: vault.chainID})
+			}
+		});
+		set_isWithdrawModalOpen(true);
+		await switchChain(retrieveConfig(), {chainId: vault.chainID});
+		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
+		dispatchConfiguration({
+			type: 'SET_TOKEN_TO_SPEND',
+			payload: {
+				token: {
+					address: vault.token.address,
+					name: vault.token.name,
+					symbol: vault.token.symbol,
+					decimals: vault.token.decimals,
+					chainID: vault.chainID,
+					value: 0,
+					balance: getBalance({address: vault.token.address, chainID: vault.chainID})
+				},
+
+				amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+			}
+		});
+	}, [dispatchConfiguration, getBalance, vault]);
 
 	/**********************************************************************************************
 	 ** Create the link to the Yearn.fi website. The link will be different depending on the

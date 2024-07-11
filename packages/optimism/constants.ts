@@ -1,7 +1,7 @@
 export const PROJECT_TITLE = 'Yearn x Optimism';
 export const PROJECT_DESCRIPTION = 'Feeling lucky OPT Anon?';
 export const VARIANT_TO_USE = 2;
-export const VAULT_FILTER = 'v2';
+export const VAULT_FILTER = 'v3';
 export const VAULTS_PER_PAGE = 20;
 
 export const HEADER_TABS = [
