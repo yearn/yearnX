@@ -1,55 +1,49 @@
-import React from 'react';
 import {Toaster} from 'react-hot-toast';
-import {base, mainnet, optimism, polygon} from 'viem/chains';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
-import {localhost} from '@builtbymom/web3/utils/wagmi';
-import {Confettis} from '@icons/Confettis';
-import {IconCheck} from '@icons/IconCheck';
-import {IconCircleCross} from '@icons/IconCircleCross';
 import {Meta} from '@lib/components/common/Meta';
 import {WithFonts} from '@lib/components/common/WithFonts';
-import {Header} from '@common/Header';
+import {IconCheck} from '@lib/components/icons/IconCheck';
+import {IconCircleCross} from '@lib/components/icons/IconCircleCross';
+import {VaultsContextApp} from '@lib/contexts/useManageVaults';
+import {WithPrices} from '@lib/contexts/usePrices';
+import {SolverContextApp} from '@lib/contexts/useSolver';
+import {supportedNetworks} from '@lib/utils/tools.chains';
+
+import {COLORS, PROJECT_DESCRIPTION, PROJECT_TITLE} from '../constants';
 
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
 
 import '@lib/style.css';
 
-function MyApp({Component, ...props}: AppProps): ReactElement {
+export default function MyApp(props: AppProps): ReactElement {
+	const {Component} = props;
 	return (
 		<WithFonts>
 			<Meta
-				title={'Yearn x PoolTogether'}
-				description={'Feeling lucky Anon?'}
-				titleColor={'#FFFFFF'}
-				themeColor={'#4C249F'}
-				og={'https://prizes.yearn.fi/og.png'}
-				uri={'https://prizes.yearn.fi'}
+				title={PROJECT_TITLE}
+				description={PROJECT_DESCRIPTION}
+				titleColor={COLORS.background}
+				themeColor={COLORS.primary}
+				og={''}
+				uri={''}
 			/>
 			<WithMom
-				supportedChains={[mainnet, polygon, optimism, base, localhost]}
-				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/tokenlistooor.json']}>
+				supportedChains={supportedNetworks}
+				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn-min.json']}>
 				<WalletContextApp>
-					<div className={'relative'}>
-						<div className={'absolute inset-x-0 top-0 pt-0 opacity-60'}>
-							<Confettis />
-						</div>
-						<Header />
-						<main className={'relative mx-auto mb-0 flex min-h-screen w-full flex-col'}>
-							<div className={'mx-auto -mt-6 w-fit rounded-[40px] bg-[#6303FF] px-7 py-4 text-center'}>
-								<p className={'text-2xl font-bold uppercase text-white'}>{'Feeling Lucky Anon?'}</p>
-							</div>
-
-							<div className={'my-6 text-center drop-shadow-2xl'}>
-								<h1 className={'py-4 text-9xl uppercase text-white'}>{'Prize Vaults'}</h1>
-								<p className={'text-lg uppercase text-white/95'}>
-									{'Earn yield with the chance to win the GRAND PRIZE!'}
-								</p>
-							</div>
-							<Component {...props} />
-						</main>
-					</div>
+					<WithPrices supportedNetworks={supportedNetworks}>
+						<VaultsContextApp>
+							<SolverContextApp>
+								<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
+									<main className={'relative flex  w-full justify-center'}>
+										<Component />
+									</main>
+								</div>
+							</SolverContextApp>
+						</VaultsContextApp>
+					</WithPrices>
 				</WalletContextApp>
 			</WithMom>
 			<Toaster
@@ -76,4 +70,3 @@ function MyApp({Component, ...props}: AppProps): ReactElement {
 		</WithFonts>
 	);
 }
-export default MyApp;

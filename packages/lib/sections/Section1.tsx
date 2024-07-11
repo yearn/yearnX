@@ -4,7 +4,7 @@ import {cl} from '@builtbymom/web3/utils';
 import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
-export const Section1 = ({bgImage, description}: TSectionProps): ReactElement => {
+export const Section1 = ({title, bgImage, description}: TSectionProps): ReactElement => {
 	return (
 		<div className={'h-section min-h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
 			<div
@@ -13,7 +13,7 @@ export const Section1 = ({bgImage, description}: TSectionProps): ReactElement =>
 					'bg-table flex h-full flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'
 				)}>
 				<div className={'leading-4xl md:leading-7xl text-regularText text-4xl font-black md:text-7xl'}>
-					{'YEARN PARTNER VAULTS'}
+					{title}
 				</div>
 				<div className={'w-full rounded-2xl'}>
 					<p className={'text-lg'}>{description}</p>

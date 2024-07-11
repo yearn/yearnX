@@ -3,12 +3,12 @@ import Image from 'next/image';
 import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
-export const Section4 = ({bgImage, description}: TSectionProps): ReactElement => {
+export const Section4 = ({bgImage, title, description}: TSectionProps): ReactElement => {
 	return (
 		<div className={'h-section min-h-section grid grid-cols-1 md:grid-cols-3 md:gap-6'}>
 			<div className={'bg-table flex flex-col justify-between rounded-2xl p-10'}>
 				<div className={'leading-4xl md:leading-7xl text-regularText text-4xl font-black md:text-7xl'}>
-					{'YEARN PARTNER VAULTS'}
+					{title}
 				</div>
 				<p>{description}</p>
 			</div>

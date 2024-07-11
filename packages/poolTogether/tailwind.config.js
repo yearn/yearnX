@@ -1,3 +1,5 @@
+const {COLORS} = require('./constants');
+
 /** @type {import('tailwindcss').Config} */
 const config = require('../lib/tailwind.config');
 
@@ -10,5 +12,15 @@ module.exports = {
 		'./hooks/**/*.{js,ts,jsx,tsx}',
 		'./pages/**/*.{js,ts,jsx,tsx}'
 	],
-	plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography'), require('tailwindcss-animate')]
+	plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography'), require('tailwindcss-animate')],
+	theme: {
+		...config.theme,
+		extend: {
+			...config.theme.extend,
+			colors: {
+				...config.theme.extend.colors,
+				...COLORS
+			}
+		}
+	}
 };
