@@ -5,6 +5,7 @@ import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {cl, formatAmount, formatLocalAmount, formatPercent, toNormalizedBN} from '@builtbymom/web3/utils';
 import {getNetwork, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import {toPercent} from '@lib/utils/tools';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 import {switchChain} from '@wagmi/core';
 
@@ -21,10 +22,6 @@ type TVaultItem = {
 	vault: TYDaemonVault;
 	price: TNormalizedBN;
 };
-
-function toPercent(value: number): string {
-	return `${(value * 100).toFixed(2)}%`;
-}
 
 export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance} = useWallet();

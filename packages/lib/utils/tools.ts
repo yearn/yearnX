@@ -16,3 +16,7 @@ export function getChain(chainId: number): string {
 export function allowanceKey(chainID: number, token: TAddress, spender: TAddress, owner: TAddress): string {
 	return `${chainID}_${token}_${spender}_${owner}`;
 }
+
+export function toPercent(value: number): string {
+	return `${(value * 100).toFixed(2)}%`;
+}

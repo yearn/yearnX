@@ -40,6 +40,7 @@ export const useVanilaSolver = (): TSolverContextBase => {
 		async (shouldForceRefetch?: boolean): Promise<TNormalizedBN> => {
 			if (
 				!configuration?.tokenToSpend.token ||
+				configuration?.tokenToSpend.amount === zeroNormalizedBN ||
 				!configuration?.vault ||
 				!provider ||
 				configuration?.tokenToSpend.token.address === ETH_TOKEN_ADDRESS
@@ -73,7 +74,13 @@ export const useVanilaSolver = (): TSolverContextBase => {
 
 			return existingAllowances.current[key];
 		},
-		[address, configuration?.tokenToSpend.token, configuration?.vault, provider]
+		[
+			address,
+			configuration?.tokenToSpend.amount?.normalized,
+			configuration?.tokenToSpend.token,
+			configuration?.vault,
+			provider
+		]
 	);
 
 	/**********************************************************************************************

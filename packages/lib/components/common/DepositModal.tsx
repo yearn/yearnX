@@ -1,5 +1,4 @@
 import {Fragment, type ReactElement, useCallback, useMemo} from 'react';
-import Link from 'next/link';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
@@ -11,9 +10,8 @@ import {useSolvers} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 
 import {IconCross} from '../icons/IconCross';
-import {IconExternalLink} from '../icons/IconExternalLink';
-import {ImageWithFallback} from './ImageWithFallback';
 import {TokenAmountWrapper} from './TokenAmountInput';
+import {VaultLink} from './VaultLink';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
@@ -29,7 +27,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	const {address} = useWeb3();
 	const {onRefresh} = useWallet();
 	const {safeChainID} = useChainID();
-	const {configuration} = useManageVaults();
+	const {configuration, dispatchConfiguration} = useManageVaults();
 
 	const getButtonTitle = (): string => {
 		if (!address) {
@@ -165,35 +163,17 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 								<IconCross className={'text-regularText size-4'} />
 							</button>
 
-							<Link
-								href={props.yearnfiLink}
-								target={'_blank'}
-								className={
-									'border-regularText/15 bg-regularText/5 mb-8 flex w-min cursor-alias items-center rounded-xl border px-2.5 py-2'
-								}>
-								<ImageWithFallback
-									src={`https://assets.smold.app/tokens/${props.vault.chainID}/${props.vault.token.address}/logo-32.png`}
-									alt={props.vault.token.symbol}
-									width={28}
-									height={28}
-								/>
-								<div className={'ml-2 flex w-48 flex-col md:w-80'}>
-									<div className={'flex items-center gap-x-2'}>
-										<p className={'md:regularTextspace-nowrap w-full truncate text-left'}>
-											{props.vault.name}
-										</p>
-										<IconExternalLink className={'size-4'} />
-									</div>
+							<div className={'mb-4 flex w-full justify-start'}>
+								<p className={'text-lg font-bold'}>{'Receive'}</p>
+							</div>
 
-									<p className={'text-regularText/50 flex w-full justify-start'}>
-										{getNetwork(props.vault.chainID).name}
-									</p>
-								</div>
-							</Link>
-							<div className={'mb-8 flex w-full flex-col items-start gap-y-1'}>
+							<VaultLink
+								vault={props.vault}
+								yearnfiLink={props.yearnfiLink}
+							/>
+							<div className={'flex w-full flex-col items-start gap-y-1'}>
 								<TokenAmountWrapper
 									vault={props.vault}
-									label={'Deposit'}
 									buttonTitle={getButtonTitle()}
 									isPerformingAction={
 										isFetchingAllowance ||
@@ -203,6 +183,12 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 									}
 									onActionClick={onAction}
 									isDisabled={!isValid}
+									set_tokenToUse={(token, amount) =>
+										dispatchConfiguration({
+											type: 'SET_TOKEN_TO_SPEND',
+											payload: {token: token, amount: amount}
+										})
+									}
 								/>
 							</div>
 						</div>

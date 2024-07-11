@@ -7,6 +7,7 @@ import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, fromNormalized, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import {toPercent} from '@lib/utils/tools';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 import {VAULT_ABI} from '@lib/utils/vault.abi';
 
@@ -17,18 +18,18 @@ import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
 type TTokenAmountInputProps = {
-	buttonTitle: string;
 	chainID: number;
 	isPerformingAction: boolean;
 	onChangeValue: (value: TNormalizedBN | undefined, token?: TToken) => void;
 	onMaxClick: () => void;
 	onActionClick: () => void;
 	isButtonDisabled: boolean;
+	set_tokenToUse: (token: TToken, amount: TNormalizedBN) => void;
 };
 
-function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
-	const {buttonTitle, chainID} = props;
-	const {address, onConnect} = useWeb3();
+export function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
+	const {chainID} = props;
+	const {address} = useWeb3();
 	const [isChainSelectorOpen, set_isChainSelectorOpen] = useState<boolean>(false);
 	const {configuration} = useManageVaults();
 	const selectorRef = useRef<HTMLDivElement>(null);
@@ -50,11 +51,12 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 					toggleOpen={() => set_isChainSelectorOpen(prev => !prev)}
 					selectorRef={selectorRef}
 					selectorButtonRef={selectorButtonRef}
+					set_tokenToUse={props.set_tokenToUse}
 				/>
 			</div>
 			<label
 				className={cl(
-					'z-20 !h-16 relative transition-all border border-regularText/15',
+					'z-20 !h-16 w-full relative transition-all border border-regularText/15',
 					'flex flex-row items-center cursor-text',
 					'focus:placeholder:text-regularText/40 placeholder:transition-colors',
 					'py-2 pl-0 pr-4 group border-regularText/15 bg-regularText/5 rounded-lg'
@@ -90,39 +92,25 @@ function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 					{'Max'}
 				</button>
 			</label>
-
-			<div className={'hidden w-[120px] md:flex'}>
-				<Button
-					onClick={address ? props.onActionClick : onConnect}
-					isBusy={props.isPerformingAction}
-					isDisabled={props.isButtonDisabled}
-					className={cl(
-						'text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText px-[34.5px] py-5 font-bold',
-						'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed',
-						!address ? '!w-32 !h-full' : '!h-full'
-					)}>
-					{buttonTitle}
-				</Button>
-			</div>
 		</div>
 	);
 }
 
 type TTokenAmountWrapperProps = {
-	label: string;
 	vault: TYDaemonVault;
 	isPerformingAction: boolean;
 	onActionClick: () => void;
 	isDisabled: boolean;
 	buttonTitle: string;
+	set_tokenToUse: (token: TToken, amount: TNormalizedBN) => void;
 };
 export function TokenAmountWrapper({
-	label,
 	vault,
 	isPerformingAction,
 	onActionClick,
 	isDisabled,
-	buttonTitle
+	buttonTitle,
+	set_tokenToUse
 }: TTokenAmountWrapperProps): ReactElement {
 	const {balances, getBalance} = useWallet();
 	const {address, onConnect} = useWeb3();
@@ -226,11 +214,9 @@ export function TokenAmountWrapper({
 
 	return (
 		<div className={'flex w-full flex-col items-start gap-y-2'}>
-			<div className={'flex flex-col gap-y-1'}>
-				<p className={'w-min'}>{label}</p>
+			<div className={'flex w-full flex-col gap-y-1'}>
 				<TokenAmountInput
 					chainID={vault.chainID}
-					buttonTitle={buttonTitle}
 					isPerformingAction={isPerformingAction}
 					onChangeValue={(val?: TNormalizedBN) => {
 						dispatchConfiguration({
@@ -243,6 +229,7 @@ export function TokenAmountWrapper({
 					}
 					onActionClick={onActionClick}
 					isButtonDisabled={isButtonDisabled}
+					set_tokenToUse={set_tokenToUse}
 				/>
 			</div>
 			<button
@@ -250,14 +237,18 @@ export function TokenAmountWrapper({
 				className={'text-regularText text-right text-xs text-opacity-40'}>
 				{`Available: ${formatAmount(balanceToUse.normalized)} ${assetName}`}
 			</button>
+
+			<div className={'my-10 flex'}>
+				<span className={'mr-1'}>{'APY:'}</span>
+				<span className={'font-bold'}>{toPercent(vault.apr.netAPR)}</span>
+			</div>
 			<Button
 				onClick={address ? onActionClick : onConnect}
 				isBusy={isPerformingAction}
 				isDisabled={isButtonDisabled}
 				className={cl(
-					'md:hidden text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText py-5 font-bold',
-					'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed',
-					!address ? '!w-32 !h-full' : '!h-full'
+					'!h-12 text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText py-5 font-bold',
+					'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed'
 				)}>
 				{buttonTitle}
 			</Button>

@@ -20,7 +20,7 @@ export default function Index(): ReactElement {
 			/>
 			<Section
 				variant={VARIANT_TO_USE}
-				bgImage={'/bg.webp'}
+				bgImage={'/bg.jpg'}
 				title={'YEARN PARTNER VAULTS'}
 				description={
 					'Several lines description. Several lines description. Several lines description. Several lines description. '
