@@ -36,7 +36,8 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 			const lowercaseValue = debouncedValue.toLowerCase();
 			return (
 				vault.name.toLowerCase().includes(lowercaseValue) ||
-				vault.address.toLowerCase().includes(lowercaseValue)
+				vault.address.toLowerCase().includes(lowercaseValue) ||
+				vault.symbol.toLowerCase().includes(lowercaseValue)
 			);
 		});
 
