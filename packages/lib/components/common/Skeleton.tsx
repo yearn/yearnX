@@ -15,7 +15,7 @@ function SkeletonRow(): ReactElement {
 					<div className={'bg-regularText/5 col-span-4 h-4 w-full rounded-xl'}></div>
 					<div className={'bg-regularText/5 col-span-2 h-4 w-full rounded-xl'}></div>
 				</div>
-				<div className={'flex size-full items-center justify-center'}>
+				<div className={'flex size-full items-center justify-end'}>
 					<div className={'bg-regularText/10 col-span-1 h-6 w-1/2 justify-self-center rounded-xl'}></div>
 				</div>
 				<div className={'flex size-full items-center justify-end'}>

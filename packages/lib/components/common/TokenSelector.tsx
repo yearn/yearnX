@@ -133,6 +133,7 @@ export function TokenSelector({
 					<div className={'no-scrollbar max-h-[200px] overflow-auto '}>
 						{searchFilteredTokens.map(item => (
 							<button
+								key={item.address}
 								onClick={() => {
 									toggleOpen();
 									dispatchConfiguration({

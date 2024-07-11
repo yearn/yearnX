@@ -1,7 +1,7 @@
 import {type ReactElement} from 'react';
 import {DefaultHeader} from '@lib/components/common/DefaultHeader';
 import {Footer} from '@lib/components/common/Footer';
-import {ListOfVaults} from '@lib/components/common/ListOfVaults';
+import {VaultList} from '@lib/components/common/VaultList';
 import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
 import {useDeepCompareMemo} from '@react-hookz/web';
@@ -25,7 +25,7 @@ export default function Index(): ReactElement {
 					'Several lines description. Several lines description. Several lines description. Several lines description. '
 				}
 			/>
-			<ListOfVaults
+			<VaultList
 				vaults={vaultsValues}
 				isLoading={isLoading}
 				headerTabs={HEADER_TABS}
