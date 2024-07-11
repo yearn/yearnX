@@ -14,7 +14,18 @@ export type TVaultData = {
 
 export type TVaultsSortBy = 'vault' | 'apr' | 'deposits' | 'balance';
 
-export type TSectionProps = {bgImage?: string; description?: string};
+export type TSectionProps = {
+	bgImage?: string;
+	description?: string;
+	title: string;
+	cards?: {
+		title: string;
+		currency: string;
+		value: number;
+		decimals: number;
+		isReady: boolean;
+	}[];
+};
 
 export type TTokenAmountInputElement = {
 	amount: string;

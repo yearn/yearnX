@@ -13,7 +13,7 @@ export default function Index(): ReactElement {
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
 
 	return (
-		<div className={'flex w-full max-w-[1200px] flex-col gap-y-6 pb-6'}>
+		<section className={'flex w-full max-w-[1200px] flex-col gap-y-6 pb-6'}>
 			<DefaultHeader
 				docsLink={''}
 				secondLogoURL={'/partnerLogo.png'}
@@ -21,6 +21,7 @@ export default function Index(): ReactElement {
 			<Section
 				variant={VARIANT_TO_USE}
 				bgImage={'/bg.webp'}
+				title={'YEARN PARTNER VAULTS'}
 				description={
 					'Several lines description. Several lines description. Several lines description. Several lines description. '
 				}
@@ -35,6 +36,6 @@ export default function Index(): ReactElement {
 				docsLink={''}
 				secondLogoURL={''}
 			/>
-		</div>
+		</section>
 	);
 }

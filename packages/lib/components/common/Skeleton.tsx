@@ -11,18 +11,18 @@ function SkeletonRow(): ReactElement {
 					className={
 						'border-regularText/15 bg-regularText/5 col-span-2 grid h-[76px] grid-cols-7 items-center gap-x-4 rounded-xl border px-3 py-2'
 					}>
-					<div className={'bg-regularText/5 col-span-1 size-8 rounded-full'}></div>
-					<div className={'bg-regularText/5 col-span-4 h-4 w-full rounded-xl'}></div>
-					<div className={'bg-regularText/5 col-span-2 h-4 w-full rounded-xl'}></div>
+					<div className={'bg-regularText/5 col-span-1 size-8 rounded-full'} />
+					<div className={'bg-regularText/5 col-span-4 h-4 w-full rounded-xl'} />
+					<div className={'bg-regularText/5 col-span-2 h-4 w-full rounded-xl'} />
 				</div>
 				<div className={'flex size-full items-center justify-center'}>
-					<div className={'bg-regularText/10 col-span-1 h-6 w-1/2 justify-self-center rounded-xl'}></div>
+					<div className={'bg-regularText/10 col-span-1 h-6 w-1/2 justify-self-center rounded-xl'} />
 				</div>
 				<div className={'flex size-full items-center justify-end'}>
-					<div className={'bg-regularText/10 col-span-1 h-6 w-1/2 justify-self-center rounded-xl'}></div>
+					<div className={'bg-regularText/10 col-span-1 h-6 w-1/2 justify-self-center rounded-xl'} />
 				</div>
 				<div className={'flex size-full items-center justify-end'}>
-					<div className={'bg-regularText/10 col-span-1 h-6 w-1/2 justify-self-center rounded-xl'}></div>
+					<div className={'bg-regularText/10 col-span-1 h-6 w-1/2 justify-self-center rounded-xl'} />
 				</div>
 				<div className={'col-span-2 flex size-full items-center justify-center'}>
 					<div
@@ -35,9 +35,9 @@ function SkeletonRow(): ReactElement {
 					className={
 						'border-regularText/15 bg-regularText/5 col-span-2 grid w-3/4 grid-cols-8 items-center gap-x-4 rounded-xl border px-3 py-2'
 					}>
-					<div className={'bg-regularText/5 col-span-2 size-8 rounded-full'}></div>
-					<div className={'bg-regularText/5 col-span-4 h-4 w-full rounded-xl'}></div>
-					<div className={'bg-regularText/5 col-span-2 h-4 w-full rounded-xl'}></div>
+					<div className={'bg-regularText/5 col-span-2 size-8 rounded-full'} />
+					<div className={'bg-regularText/5 col-span-4 h-4 w-full rounded-xl'} />
+					<div className={'bg-regularText/5 col-span-2 h-4 w-full rounded-xl'} />
 				</div>
 
 				<div className={'flex flex-col gap-y-4'}>

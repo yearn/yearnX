@@ -56,7 +56,7 @@
 		"**/*.d.tsx",
 		"**/next.config.js",
 		"**/postcss.config.js",
-		"**/tailwind.config.ts",
+		"**/tailwind.config.js",
 		"public",
 		"public/manifest.json",
 		"theme.config.js",
