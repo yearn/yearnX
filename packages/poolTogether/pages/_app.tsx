@@ -1,4 +1,5 @@
 import {Toaster} from 'react-hot-toast';
+import {optimism} from 'viem/chains';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
 import {Meta} from '@lib/components/common/Meta';
@@ -31,6 +32,7 @@ export default function MyApp(props: AppProps): ReactElement {
 			/>
 			<WithMom
 				supportedChains={supportedNetworks}
+				defaultNetwork={optimism}
 				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn-min.json']}>
 				<WalletContextApp>
 					<WithPrices supportedNetworks={supportedNetworks}>

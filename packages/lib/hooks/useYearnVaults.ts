@@ -18,7 +18,6 @@ function useFetchYearnVaults(vaultFilter: TPossibleVaultFilter, chainIDs?: numbe
 			orderBy: 'featuringScore',
 			orderDirection: 'desc',
 			strategiesDetails: 'withDetails',
-			strategiesRisk: 'withRisk',
 			strategiesCondition: 'inQueue',
 			chainIDs: chainIDs ? chainIDs.join(',') : [1, 10, 137, 250, 8453, 42161].join(','),
 			limit: '2500'

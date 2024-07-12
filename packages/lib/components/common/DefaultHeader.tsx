@@ -47,6 +47,7 @@ export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactE
 				<div className={'hidden md:block'}>
 					<Link
 						href={docsLink || ''}
+						target={'_blank'}
 						className={'text-regularText mr-6'}>
 						{'Docs'}
 					</Link>

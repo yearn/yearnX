@@ -212,4 +212,13 @@ export type TUseFetchYearnVaults = {
 	isLoading: boolean;
 	mutate: KeyedMutator<TYDaemonVaults>;
 };
-export type TPossibleVaultFilter = 'all' | 'v3' | 'v2' | 'juiced' | 'gimme' | 'retired' | 'pendle' | 'optimism';
+export type TPossibleVaultFilter =
+	| 'all'
+	| 'v3'
+	| 'v2'
+	| 'juiced'
+	| 'gimme'
+	| 'retired'
+	| 'pendle'
+	| 'optimism'
+	| 'pooltogether';

@@ -2,11 +2,13 @@ import {type ReactElement, useCallback, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
+import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
 	cl,
 	formatAmount,
 	formatLocalAmount,
 	formatPercent,
+	isZeroAddress,
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
@@ -31,9 +33,8 @@ type TVaultItem = {
 };
 
 export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
-	const {balances, getBalance} = useWallet();
+	const {balances, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const [isDepositModalOpen, set_isDepositModalOpen] = useState(false);
-
 	const [isWithdrawModalOpen, set_isWithdrawModalOpen] = useState(false);
 
 	/**********************************************************************************************
@@ -45,6 +46,20 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		const hash = createUniqueID(serialize(balances));
 		return hash;
 	}, [balances]);
+
+	/**********************************************************************************************
+	 ** In some situations, the token is not in the list and we need to fetch/get it. This
+	 ** hooks will trigger the onRefresh function to fetch the token once we are sure that we are
+	 ** missing it.
+	 *********************************************************************************************/
+	useAsyncTrigger(async () => {
+		if (!isLoadingOnChain(vault.chainID)) {
+			const token = getToken({address: vault.address, chainID: vault.chainID});
+			if (isZeroAddress(token.address)) {
+				onRefresh([{chainID: vault.chainID, address: vault.address}]);
+			}
+		}
+	}, [getToken, isLoadingOnChain, onRefresh, vault.address, vault.chainID]);
 
 	/**********************************************************************************************
 	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
@@ -62,12 +77,18 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	 ** from the vault object and format it using the formatAmount function.
 	 *********************************************************************************************/
 	const totalDeposits = useMemo(() => {
-		return formatLocalAmount(vault.tvl.tvl, 4, '$', {
+		if (vault.tvl.tvl === 0) {
+			return '$0.00';
+		}
+		if (vault.tvl.tvl < 0.01) {
+			return '$0.00';
+		}
+		return `$${formatLocalAmount(vault.tvl.tvl, 4, '$', {
 			displayDigits: 2,
 			maximumFractionDigits: 2,
 			minimumFractionDigits: 2,
 			shouldCompactValue: true
-		});
+		})}`;
 	}, [vault.tvl.tvl]);
 
 	const {dispatchConfiguration} = useManageVaults();
@@ -179,14 +200,28 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 						<p className={'text-regularText/50 w-full'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
-				<div className={'flex items-center justify-end font-mono font-semibold'}>
-					{toPercent(vault.apr.netAPR)}
+				<div className={'font-number flex items-center justify-end'}>
+					<div className={'text-right font-mono font-semibold'}>
+						{toPercent(vault.apr.netAPR)}
+						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+					</div>
 				</div>
-				<div className={'font-number flex items-center justify-end'}>{`$${totalDeposits}`}</div>
-				<div className={'font-number flex items-center justify-end text-right'}>
-					<div className={'text-right'}>
+
+				<div className={'font-number flex items-center justify-end'}>
+					<div className={'text-right font-mono'}>
+						{totalDeposits}
+						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+					</div>
+				</div>
+
+				<div className={'font-number flex items-center justify-end'}>
+					<div className={'w-2/3 overflow-hidden text-right font-mono'}>
 						{`$${formatAmount(balance * price.normalized, 2, 2)}`}
-						<div className={'text-regularText text-right text-xs text-opacity-40'}>
+						<div
+							title={`${formatAmount(balance * toNormalizedBN(vault.pricePerShare, vault.decimals).normalized)} ${
+								vault.token.symbol
+							}`}
+							className={'text-regularText truncate text-right text-xs text-opacity-40'}>
 							{`${formatAmount(balance * toNormalizedBN(vault.pricePerShare, vault.decimals).normalized)} ${vault.token.symbol}`}
 						</div>
 					</div>
@@ -247,7 +282,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 					<div className={'flex items-center'}>
 						<p>{'Total Deposits'}</p>
 					</div>
-					<div>{`$${totalDeposits}`}</div>
+					<div>{totalDeposits}</div>
 				</div>
 
 				<div className={'flex w-full justify-between'}>

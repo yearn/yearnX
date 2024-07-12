@@ -1,7 +1,7 @@
 export const PROJECT_TITLE = 'Yearn x PoolTogether';
 export const PROJECT_DESCRIPTION = 'Feeling lucky Anon?';
 export const VARIANT_TO_USE = 2;
-export const VAULT_FILTER = 'v3';
+export const VAULT_FILTER = 'pooltogether';
 export const VAULTS_PER_PAGE = 20;
 
 export const HEADER_TABS = [
