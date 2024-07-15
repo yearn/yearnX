@@ -53,7 +53,11 @@ export const usePortalsSolver = (): TSolverContextBase => {
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
 
 	const onRetrieveQuote = useCallback(async () => {
-		if (!configuration?.tokenToSpend.token || !configuration?.vault) {
+		if (
+			!configuration?.tokenToSpend.token ||
+			!configuration?.vault ||
+			configuration?.tokenToSpend.amount === zeroNormalizedBN
+		) {
 			return;
 		}
 
@@ -81,7 +85,7 @@ export const usePortalsSolver = (): TSolverContextBase => {
 		set_isFetchingQuote(false);
 
 		return result;
-	}, [address, configuration?.tokenToSpend.amount?.raw, configuration?.tokenToSpend.token, configuration?.vault]);
+	}, [address, configuration?.tokenToSpend.amount, configuration?.tokenToSpend.token, configuration?.vault]);
 
 	useAsyncTrigger(async (): Promise<void> => {
 		/******************************************************************************************
@@ -261,10 +265,9 @@ export const usePortalsSolver = (): TSolverContextBase => {
 					inputToken: `${network}:${toAddress(inputToken)}`,
 					outputToken: `${network}:${toAddress(outputToken)}`,
 					inputAmount: toBigInt(configuration?.tokenToSpend.amount?.raw).toString(),
-					slippageTolerancePercentage: String(1),
-					// feePercentage: '0',
-					// partner: ?,
-					validate: 'true'
+					slippageTolerancePercentage: String(0.1),
+					// TODO figure out what slippage do we need
+					validate: 'false'
 				}
 			});
 

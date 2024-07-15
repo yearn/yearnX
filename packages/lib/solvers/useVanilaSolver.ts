@@ -74,13 +74,7 @@ export const useVanilaSolver = (): TSolverContextBase => {
 
 			return existingAllowances.current[key];
 		},
-		[
-			address,
-			configuration?.tokenToSpend.amount?.normalized,
-			configuration?.tokenToSpend.token,
-			configuration?.vault,
-			provider
-		]
+		[address, configuration?.tokenToSpend.amount, configuration?.tokenToSpend.token, configuration?.vault, provider]
 	);
 
 	/**********************************************************************************************

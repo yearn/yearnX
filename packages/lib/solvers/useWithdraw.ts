@@ -39,9 +39,9 @@ export const useWithdraw = (): TWithdrawSolverHelper => {
 	const onExecuteWithdraw = useCallback(
 		async (onSuccess: () => void): Promise<void> => {
 			assert(configuration?.tokenToReceive?.token, 'Output token is not set');
-			assert(configuration?.tokenToReceive?.amount, 'Input amount is not set');
+			assert(configuration?.tokenToReceive?.amount?.display, 'Input amount is not set');
 			const vault = vaultsArray.find(vault =>
-				isAddressEqual(vault.address, toAddress(configuration?.tokenToReceive?.token?.address))
+				isAddressEqual(vault.token.address, toAddress(configuration?.tokenToReceive?.token?.address))
 			);
 			if (!vault) {
 				throw new Error('Vault not found');
@@ -55,14 +55,14 @@ export const useWithdraw = (): TWithdrawSolverHelper => {
 				result = await redeemV3Shares({
 					connector: provider,
 					chainID: vault.chainID,
-					contractAddress: configuration?.tokenToReceive?.token.address,
+					contractAddress: configuration?.vault?.address,
 					amount: configuration.tokenToReceive?.amount?.raw
 				});
 			} else {
 				result = await withdrawShares({
 					connector: provider,
 					chainID: vault.chainID,
-					contractAddress: configuration?.tokenToReceive?.token.address,
+					contractAddress: configuration?.vault?.token.address,
 					amount: configuration?.tokenToReceive?.amount?.raw
 				});
 			}
@@ -75,9 +75,11 @@ export const useWithdraw = (): TWithdrawSolverHelper => {
 			set_withdrawStatus({...defaultTxStatus, error: true});
 		},
 		[
-			configuration?.tokenToReceive?.amount,
-			configuration?.tokenToReceive?.amount?.raw,
+			configuration.tokenToReceive?.amount?.display,
+			configuration.tokenToReceive?.amount?.raw,
 			configuration.tokenToReceive?.token,
+			configuration?.vault?.address,
+			configuration?.vault?.token.address,
 			provider,
 			vaultsArray
 		]

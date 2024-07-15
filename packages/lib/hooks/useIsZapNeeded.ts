@@ -7,6 +7,7 @@ export const useIsZapNeeded = (): boolean => {
 	return (
 		isAddress(configuration?.tokenToSpend.token?.address) &&
 		isAddress(configuration.vault?.token.address) &&
-		configuration?.tokenToSpend?.token?.address !== configuration.vault?.token.address
+		(configuration?.tokenToSpend?.token?.address !== configuration.vault?.token.address ||
+			configuration?.tokenToReceive?.token?.address !== configuration?.vault.token?.address)
 	);
 };

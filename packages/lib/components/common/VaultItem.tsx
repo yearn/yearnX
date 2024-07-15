@@ -22,6 +22,7 @@ import {IconCircleQuestion} from '../icons/IconCircleQuestion';
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {DepositModal} from './DepositModal';
 import {ImageWithFallback} from './ImageWithFallback';
+import {SuccessModal} from './SuccessModal';
 import {WithdrawModal} from './WithdrawModal';
 
 import type {TNormalizedBN} from '@builtbymom/web3/types';
@@ -36,6 +37,8 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const [isDepositModalOpen, set_isDepositModalOpen] = useState(false);
 	const [isWithdrawModalOpen, set_isWithdrawModalOpen] = useState(false);
+	const [isSuccessModalOpen, set_isSuccsessModalOpen] = useState(false);
+	const [successModalDescription, set_successModalDescription] = useState<ReactElement | null>(null);
 
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
@@ -169,6 +172,13 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				vault={vault}
 				yearnfiLink={yearnfiLink}
 				hasBalanceForVault={balance > 0}
+				set_isSuccessModalOpen={set_isSuccsessModalOpen}
+				set_successModalDescription={set_successModalDescription}
+			/>
+			<SuccessModal
+				isOpen={isSuccessModalOpen}
+				onClose={() => set_isSuccsessModalOpen(false)}
+				description={successModalDescription}
 			/>
 			<WithdrawModal
 				isOpen={isWithdrawModalOpen}

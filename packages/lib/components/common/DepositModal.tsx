@@ -1,8 +1,8 @@
-import {Fragment, type ReactElement, useCallback, useMemo} from 'react';
+import {Fragment, memo, type ReactElement, useCallback, useMemo} from 'react';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {cl, ETH_TOKEN_ADDRESS, toAddress} from '@builtbymom/web3/utils';
+import {cl, ETH_TOKEN_ADDRESS, formatAmount, toAddress} from '@builtbymom/web3/utils';
 import {getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
@@ -21,9 +21,11 @@ type TDepositModalProps = {
 	vault: TYDaemonVault;
 	yearnfiLink: string;
 	hasBalanceForVault: boolean;
+	set_isSuccessModalOpen: (isOpen: boolean) => void;
+	set_successModalDescription: (value: ReactElement) => void;
 };
 
-export function DepositModal(props: TDepositModalProps): ReactElement {
+export const DepositModal = memo(function DepositModal(props: TDepositModalProps): ReactElement {
 	const {address} = useWeb3();
 	const {onRefresh} = useWallet();
 	const {safeChainID} = useChainID();
@@ -97,10 +99,34 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 			return onExecuteDeposit(() => {
 				onRefreshTokens();
 				props.onClose();
+				props.set_isSuccessModalOpen(true);
+				props.set_successModalDescription(
+					<div>
+						<p className={'text-regularText/50'}>{'Successfully deposited'}</p>
+						{formatAmount(
+							Number(configuration?.tokenToSpend?.amount?.normalized),
+							configuration?.tokenToSpend?.token?.decimals,
+							3
+						)}{' '}
+						<p className={'ml-1'}>{configuration?.tokenToSpend?.token?.symbol}</p>
+						<p className={'text-regularText/50'}>{'to'}</p>
+						<p className={'text-regularText/50'}>{configuration?.vault?.name}</p>
+					</div>
+				);
 			});
 		}
 		return onApprove(() => onRefreshTokens());
-	}, [isApproved, onApprove, onExecuteDeposit, onRefreshTokens, props]);
+	}, [
+		configuration?.tokenToSpend?.amount?.normalized,
+		configuration?.tokenToSpend?.token?.decimals,
+		configuration?.tokenToSpend?.token?.symbol,
+		configuration?.vault?.name,
+		isApproved,
+		onApprove,
+		onExecuteDeposit,
+		onRefreshTokens,
+		props
+	]);
 
 	const isValid = useMemo((): boolean => {
 		if (isZapNeeded && !quote) {
@@ -197,4 +223,4 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 			</Dialog>
 		</Transition>
 	);
-}
+});
