@@ -1,9 +1,6 @@
 import {Fragment, memo, type ReactElement, useCallback, useMemo} from 'react';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {useChainID} from '@builtbymom/web3/hooks/useChainID';
-import {cl, ETH_TOKEN_ADDRESS, formatAmount, toAddress} from '@builtbymom/web3/utils';
-import {getNetwork} from '@builtbymom/web3/utils/wagmi';
+import {cl, formatAmount} from '@builtbymom/web3/utils';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
@@ -27,9 +24,8 @@ type TDepositModalProps = {
 
 export const DepositModal = memo(function DepositModal(props: TDepositModalProps): ReactElement {
 	const {address} = useWeb3();
-	const {onRefresh} = useWallet();
-	const {safeChainID} = useChainID();
 	const {configuration, dispatchConfiguration} = useManageVaults();
+	const {isZapNeededForDeposit} = useIsZapNeeded(configuration);
 
 	const getButtonTitle = (): string => {
 		if (!address) {
@@ -42,45 +38,6 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 		return 'Approve';
 	};
 
-	const onRefreshTokens = useCallback(() => {
-		const tokensToRefresh = [];
-		if (configuration?.tokenToSpend.token) {
-			tokensToRefresh.push({
-				decimals: configuration?.tokenToSpend.token.decimals,
-				name: configuration?.tokenToSpend.token.name,
-				symbol: configuration?.tokenToSpend.token.symbol,
-				address: toAddress(configuration?.tokenToSpend.token.address),
-				chainID: Number(configuration?.tokenToSpend.token.chainID)
-			});
-		}
-		if (configuration?.vault) {
-			tokensToRefresh.push({
-				decimals: configuration?.vault.decimals,
-				name: configuration?.tokenToSpend.token?.name,
-				symbol: configuration?.tokenToSpend.token?.symbol,
-				address: toAddress(configuration?.tokenToSpend.token?.address),
-				chainID: Number(configuration?.tokenToSpend.token?.chainID),
-				balance: configuration?.vault.tvl.tvl
-			});
-		}
-
-		const currentChainID =
-			configuration?.vault?.chainID || configuration?.tokenToSpend.token?.chainID || safeChainID;
-
-		const {nativeCurrency} = getNetwork(Number(currentChainID));
-		if (nativeCurrency) {
-			tokensToRefresh.push({
-				decimals: 18,
-				name: nativeCurrency.name,
-				symbol: nativeCurrency.symbol,
-				address: ETH_TOKEN_ADDRESS,
-				chainID: Number(currentChainID)
-			});
-		}
-
-		onRefresh(tokensToRefresh, false, true);
-	}, [configuration?.tokenToSpend.token, configuration?.vault, onRefresh, safeChainID]);
-
 	const {
 		onApprove,
 		isApproved,
@@ -92,12 +49,9 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 		quote
 	} = useSolver();
 
-	const isZapNeeded = useIsZapNeeded();
-
 	const onAction = useCallback(async () => {
 		if (isApproved) {
 			return onExecuteDeposit(() => {
-				onRefreshTokens();
 				props.onClose();
 				props.set_isSuccessModalOpen(true);
 				props.set_successModalDescription(
@@ -115,7 +69,7 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 				);
 			});
 		}
-		return onApprove(() => onRefreshTokens());
+		return onApprove();
 	}, [
 		configuration?.tokenToSpend?.amount?.normalized,
 		configuration?.tokenToSpend?.token?.decimals,
@@ -124,12 +78,11 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 		isApproved,
 		onApprove,
 		onExecuteDeposit,
-		onRefreshTokens,
 		props
 	]);
 
 	const isValid = useMemo((): boolean => {
-		if (isZapNeeded && !quote) {
+		if (isZapNeededForDeposit && !quote) {
 			return false;
 		}
 		if (!configuration?.tokenToSpend.amount || !configuration?.tokenToSpend.token) {
@@ -145,7 +98,7 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 		configuration?.tokenToSpend.amount,
 		configuration?.tokenToSpend.token,
 		configuration?.vault?.address,
-		isZapNeeded,
+		isZapNeededForDeposit,
 		quote
 	]);
 
@@ -210,10 +163,7 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 									onActionClick={onAction}
 									isDisabled={!isValid}
 									set_tokenToUse={(token, amount) =>
-										dispatchConfiguration({
-											type: 'SET_TOKEN_TO_SPEND',
-											payload: {token: token, amount: amount}
-										})
+										dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {token, amount}})
 									}
 								/>
 							</div>

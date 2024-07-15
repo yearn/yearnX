@@ -121,7 +121,7 @@ select:focus {
 .button {
 	@apply cursor-pointer px-5 flex justify-center items-center h-10 text-base transition-all relative rounded-lg;
 	&[aria-busy='true'] {
-		@apply cursor-wait;
+		@apply cursor-wait hover:!text-transparent disabled:!text-transparent transition-none;
 		color: transparent !important;
 	}
 	&:disabled {

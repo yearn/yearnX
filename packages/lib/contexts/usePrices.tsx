@@ -62,14 +62,24 @@ export const WithPrices = (props: {children: ReactElement; supportedNetworks?: C
 				_tokensToUse.push(token as TToken);
 			}
 		}
-		return _tokensToUse;
+
+		//If we already have the price in pricesFromList, we don't need to fetch it again
+		const _newTokensToUse = [];
+		for (const token of _tokensToUse) {
+			if (!pricesFromList[token.chainID]?.[toAddress(token.address)]) {
+				_newTokensToUse.push(token);
+			}
+		}
+
+		return _newTokensToUse;
 	}, [
 		listAllTokensWithBalance,
 		listTokensWithBalance,
 		isLoadingOnCurrentChain,
 		isLoading,
 		props.supportedNetworks,
-		fetchingQueue
+		fetchingQueue,
+		pricesFromList
 	]);
 
 	/**********************************************************************************************

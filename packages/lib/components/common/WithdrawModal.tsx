@@ -1,17 +1,14 @@
-import {Fragment, type ReactElement, useCallback, useMemo, useRef, useState} from 'react';
-import {VAULT_FILTER} from 'packages/optimism/constants';
+import {Fragment, type ReactElement, useMemo, useRef, useState} from 'react';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
-// import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, fromNormalized, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
 import {useTokensWithBalance} from '@lib/hooks/useTokensWithBalance';
-import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconChevron} from '../icons/IconChevron';
@@ -21,7 +18,6 @@ import {ImageWithFallback} from './ImageWithFallback';
 import {TokenSelectorDropdown} from './TokenSelectorDropdown';
 import {VaultLink} from './VaultLink';
 
-import type {TUseBalancesTokens} from '@builtbymom/web3/hooks/useBalances.multichains';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
 type TWithdrawModalProps = {
@@ -34,22 +30,15 @@ type TWithdrawModalProps = {
 
 export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 	const {address} = useWeb3();
-	const {onRefresh} = useWallet();
 	const {configuration, dispatchConfiguration} = useManageVaults();
-	// const [actionStatus, set_actionStatus] = useState(defaultTxStatus);
+	const [isSelectorOpen, set_isSelectorOpen] = useState(false);
+	const [searchValue, set_searchValue] = useState('');
+	const {listTokens} = useTokensWithBalance();
 	const selectorRef = useRef(null);
-
-	const {vaults} = useFetchYearnVaults(VAULT_FILTER);
-
 	const toggleButtonRef = useRef(null);
 
 	useOnClickOutside([selectorRef, toggleButtonRef], () => set_isSelectorOpen(false));
 
-	const [isSelectorOpen, set_isSelectorOpen] = useState(false);
-
-	const [searchValue, set_searchValue] = useState('');
-
-	const {listTokens} = useTokensWithBalance();
 	const tokensOnCurrentChain = listTokens(configuration?.vault?.chainID);
 
 	const searchFilteredTokens = tokensOnCurrentChain.filter(token => {
@@ -112,21 +101,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 	// 	onRefresh,
 	// 	dispatchConfiguration
 	// ]);
-
-	const onRefreshTokens = useCallback(() => {
-		const tokensToRefresh: TUseBalancesTokens[] = [];
-
-		const vaultToken = vaults[toAddress(configuration?.tokenToReceive?.token?.address)]?.token ?? null;
-		tokensToRefresh.push({
-			...vaultToken,
-			chainID: vaults[toAddress(configuration?.tokenToReceive?.token?.address)]?.chainID
-		});
-		onRefresh(tokensToRefresh, false, true);
-	}, [configuration?.tokenToReceive?.token?.address, onRefresh, vaults]);
-
 	const {onExecuteWithdraw} = useSolver();
-
-	// const {getBalance} = useWallet();
 	const {balances, getBalance} = useWallet();
 
 	/**********************************************************************************************
@@ -307,12 +282,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 							</div>
 
 							<Button
-								onClick={async () =>
-									onExecuteWithdraw(() => {
-										onRefreshTokens();
-										props.onClose();
-									})
-								}
+								onClick={async () => onExecuteWithdraw(() => props.onClose())}
 								isBusy={false}
 								isDisabled={false}
 								className={cl(

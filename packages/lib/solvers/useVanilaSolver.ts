@@ -4,33 +4,29 @@ import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {assert, ETH_TOKEN_ADDRESS, toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
-import {approveERC20, defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
+import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
-import {deposit} from '@lib/utils/actions';
+import {approveERC20, deposit} from '@lib/utils/actions';
 import {allowanceKey} from '@lib/utils/tools';
 import {readContract} from '@wagmi/core';
 
 import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
 
-export const useVanilaSolver = (): TSolverContextBase => {
-	const {configuration, dispatchConfiguration} = useManageVaults();
+export const useVanilaSolver = (
+	isZapNeededForDeposit: boolean,
+	isZapNeededForWithdraw: boolean
+): TSolverContextBase => {
+	const {configuration} = useManageVaults();
 	const {provider, address} = useWeb3();
-	const isZapNeeded = useIsZapNeeded();
 	const {onRefresh} = useWallet();
-
+	const [isFetchingAllowance, set_isFetchingAllowance] = useState(false);
 	const [approvalStatus, set_approvalStatus] = useState(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
-
 	const [allowance, set_allowance] = useState<TNormalizedBN>(zeroNormalizedBN);
-
+	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
 	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
 	const isAboveAllowance = allowance.raw >= spendAmount;
-
-	const [isFetchingAllowance, set_isFetchingAllowance] = useState(false);
-
-	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
 
 	/**********************************************************************************************
 	 ** Retrieve the allowance for the token to be used by the solver. This will
@@ -59,7 +55,6 @@ export const useVanilaSolver = (): TSolverContextBase => {
 			}
 
 			set_isFetchingAllowance(true);
-
 			const allowance = await readContract(retrieveConfig(), {
 				chainId: Number(configuration?.vault.chainID),
 				abi: erc20Abi,
@@ -71,7 +66,6 @@ export const useVanilaSolver = (): TSolverContextBase => {
 			set_isFetchingAllowance(false);
 
 			existingAllowances.current[key] = toNormalizedBN(allowance, configuration?.tokenToSpend?.token.decimals);
-
 			return existingAllowances.current[key];
 		},
 		[address, configuration?.tokenToSpend.amount, configuration?.tokenToSpend.token, configuration?.vault, provider]
@@ -81,15 +75,18 @@ export const useVanilaSolver = (): TSolverContextBase => {
 	 ** SWR hook to get the expected out for a given in/out pair with a specific amount. This hook
 	 ** is called when amount/in or out changes. Calls the allowanceFetcher callback.
 	 *********************************************************************************************/
-	const triggerRetreiveAllowance = useAsyncTrigger(async (): Promise<void> => {
-		/******************************************************************************************
-		 * Skip allowance fetching if form is not populated fully or zap needed
-		 *****************************************************************************************/
-		if (isZapNeeded) {
+	useAsyncTrigger(async (): Promise<void> => {
+		if (!configuration?.action) {
 			return;
 		}
-		set_allowance(await onRetrieveAllowance(true));
-	}, [isZapNeeded, onRetrieveAllowance]);
+		if (configuration.action === 'DEPOSIT' && isZapNeededForDeposit) {
+			return;
+		}
+		if (configuration.action === 'WITHDRAW' && isZapNeededForWithdraw) {
+			return;
+		}
+		set_allowance(await onRetrieveAllowance(false));
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveAllowance]);
 
 	/**********************************************************************************************
 	 ** Trigger an approve web3 action, simply trying to approve `amount` tokens
@@ -98,7 +95,7 @@ export const useVanilaSolver = (): TSolverContextBase => {
 	 ** (not connected) or if the tx is still pending.
 	 *********************************************************************************************/
 	const onApprove = useCallback(
-		async (onSuccess: () => void): Promise<void> => {
+		async (onSuccess?: () => void): Promise<void> => {
 			assert(configuration?.tokenToSpend.token, 'Input token is not set');
 			assert(configuration?.vault, 'Output token is not set');
 
@@ -110,9 +107,9 @@ export const useVanilaSolver = (): TSolverContextBase => {
 				amount: configuration?.tokenToSpend.amount?.raw || 0n,
 				statusHandler: set_approvalStatus
 			});
+			set_allowance(await onRetrieveAllowance(true));
 			if (result.isSuccessful) {
-				onSuccess();
-				triggerRetreiveAllowance();
+				onSuccess?.();
 			}
 		},
 		[
@@ -120,7 +117,7 @@ export const useVanilaSolver = (): TSolverContextBase => {
 			configuration?.tokenToSpend.token,
 			configuration?.vault,
 			provider,
-			triggerRetreiveAllowance
+			onRetrieveAllowance
 		]
 	);
 
@@ -132,7 +129,6 @@ export const useVanilaSolver = (): TSolverContextBase => {
 		async (onSuccess: () => void): Promise<void> => {
 			assert(configuration?.vault?.address, 'Output token is not set');
 			assert(configuration?.tokenToSpend?.token?.address, 'Input amount is not set');
-
 			set_depositStatus({...defaultTxStatus, pending: true});
 
 			const result = await deposit({
@@ -142,14 +138,16 @@ export const useVanilaSolver = (): TSolverContextBase => {
 				amount: toBigInt(configuration?.tokenToSpend?.amount?.raw),
 				statusHandler: set_depositStatus
 			});
-			if (result.isSuccessful) {
-				await onRefresh([
+			await onRefresh(
+				[
 					{chainID: configuration?.vault?.chainID, address: configuration?.vault?.address},
-					{chainID: configuration?.vault?.chainID, address: configuration?.vault?.token?.address}
-				]);
-				dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {amount: undefined}});
-				// onClose();
-			}
+					{chainID: configuration?.vault?.chainID, address: configuration?.vault?.token?.address},
+					{chainID: configuration?.vault?.chainID, address: ETH_TOKEN_ADDRESS}
+				],
+				false,
+				true
+			);
+			onRetrieveAllowance(true);
 			if (result.isSuccessful) {
 				onSuccess();
 				set_depositStatus({...defaultTxStatus, success: true});
@@ -158,13 +156,13 @@ export const useVanilaSolver = (): TSolverContextBase => {
 			set_depositStatus({...defaultTxStatus, error: true});
 		},
 		[
-			configuration?.tokenToSpend.amount?.raw,
+			configuration?.tokenToSpend?.amount?.raw,
 			configuration?.tokenToSpend?.token?.address,
 			configuration?.vault?.address,
 			configuration?.vault?.chainID,
-			configuration?.vault?.token.address,
-			dispatchConfiguration,
+			configuration?.vault?.token?.address,
 			onRefresh,
+			onRetrieveAllowance,
 			provider
 		]
 	);

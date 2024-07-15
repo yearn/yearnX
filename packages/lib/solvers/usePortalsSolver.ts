@@ -12,9 +12,9 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {approveERC20, defaultTxStatus, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
+import {defaultTxStatus, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
+import {approveERC20} from '@lib/utils/actions';
 import {
 	getPortalsApproval,
 	getPortalsTx,
@@ -31,25 +31,20 @@ import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
 import type {TInitSolverArgs} from '@lib/utils/solvers';
 
-export const usePortalsSolver = (): TSolverContextBase => {
+export const usePortalsSolver = (
+	isZapNeededForDeposit: boolean,
+	isZapNeededForWithdraw: boolean
+): TSolverContextBase => {
 	const {configuration} = useManageVaults();
 	const {address, provider} = useWeb3();
-
-	const isZapNeeded = useIsZapNeeded();
-
 	const [approvalStatus, set_approvalStatus] = useState(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
-
 	const [allowance, set_allowance] = useState<TNormalizedBN>(zeroNormalizedBN);
-
-	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
-	const isAboveAllowance = allowance.raw >= spendAmount;
-
 	const [isFetchingAllowance, set_isFetchingAllowance] = useState(false);
-
 	const [latestQuote, set_latestQuote] = useState<TPortalsEstimate>();
 	const [isFetchingQuote, set_isFetchingQuote] = useState(false);
-
+	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
+	const isAboveAllowance = allowance.raw >= spendAmount;
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
 
 	const onRetrieveQuote = useCallback(async () => {
@@ -88,14 +83,17 @@ export const usePortalsSolver = (): TSolverContextBase => {
 	}, [address, configuration?.tokenToSpend.amount, configuration?.tokenToSpend.token, configuration?.vault]);
 
 	useAsyncTrigger(async (): Promise<void> => {
-		/******************************************************************************************
-		 * Skip quote fetching if form is not populated fully or zap is not needed
-		 *****************************************************************************************/
-		if (!isZapNeeded) {
+		if (!configuration?.action) {
+			return;
+		}
+		if (configuration.action === 'DEPOSIT' && !isZapNeededForDeposit) {
+			return;
+		}
+		if (configuration.action === 'WITHDRAW' && !isZapNeededForWithdraw) {
 			return;
 		}
 		onRetrieveQuote();
-	}, [isZapNeeded, onRetrieveQuote]);
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote]);
 
 	/**********************************************************************************************
 	 * Retrieve the allowance for the token to be used by the solver. This will be used to
@@ -104,6 +102,9 @@ export const usePortalsSolver = (): TSolverContextBase => {
 	const onRetrieveAllowance = useCallback(
 		async (shouldForceRefetch?: boolean): Promise<TNormalizedBN> => {
 			if (!latestQuote || !configuration?.tokenToSpend.token || !configuration?.vault) {
+				return zeroNormalizedBN;
+			}
+			if (configuration.tokenToSpend.amount === zeroNormalizedBN) {
 				return zeroNormalizedBN;
 			}
 
@@ -155,8 +156,8 @@ export const usePortalsSolver = (): TSolverContextBase => {
 		},
 		[
 			address,
-			configuration?.tokenToSpend.amount?.raw,
-			configuration?.tokenToSpend.token,
+			configuration.tokenToSpend.amount,
+			configuration.tokenToSpend.token,
 			configuration?.vault,
 			latestQuote
 		]
@@ -167,14 +168,17 @@ export const usePortalsSolver = (): TSolverContextBase => {
 	 * is called when amount/in or out changes. Calls the allowanceFetcher callback.
 	 *********************************************************************************************/
 	const triggerRetreiveAllowance = useAsyncTrigger(async (): Promise<void> => {
-		/******************************************************************************************
-		 * Skip allowance fetching if form is not populated fully or zap is not needed
-		 *****************************************************************************************/
-		if (!isZapNeeded) {
+		if (!configuration?.action) {
+			return;
+		}
+		if (configuration.action === 'DEPOSIT' && !isZapNeededForDeposit) {
+			return;
+		}
+		if (configuration.action === 'WITHDRAW' && !isZapNeededForWithdraw) {
 			return;
 		}
 		set_allowance(await onRetrieveAllowance(true));
-	}, [isZapNeeded, onRetrieveAllowance]);
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveAllowance]);
 
 	/**********************************************************************************************
 	 * Trigger an signature to approve the token to be used by the Portals
@@ -182,7 +186,7 @@ export const usePortalsSolver = (): TSolverContextBase => {
 	 * of the token by the Portals solver.
 	 *********************************************************************************************/
 	const onApprove = useCallback(
-		async (onSuccess: () => void): Promise<void> => {
+		async (onSuccess?: () => void): Promise<void> => {
 			if (!provider) {
 				return;
 			}
@@ -225,12 +229,12 @@ export const usePortalsSolver = (): TSolverContextBase => {
 						statusHandler: set_approvalStatus
 					});
 					if (result.isSuccessful) {
-						onSuccess();
+						onSuccess?.();
 					}
 					triggerRetreiveAllowance();
 					return;
 				}
-				onSuccess();
+				onSuccess?.();
 				triggerRetreiveAllowance();
 				return;
 			} catch (error) {

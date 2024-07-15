@@ -9,15 +9,17 @@ import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TOptionalRenderProps} from '@lib/utils/optionalRenderProps';
 import type {TTokenToUse} from '@lib/utils/types';
 
+type TPartialToken = Partial<{token: TToken; amount: TNormalizedBN}>;
 type TVaultsActions =
-	| {
-			type: 'SET_TOKEN_TO_SPEND';
-			payload: Partial<{token: TToken; amount: TNormalizedBN}>;
-	  }
-	| {type: 'SET_TOKEN_TO_RECEIVE'; payload: Partial<{token: TToken; amount: TNormalizedBN}>}
-	| {type: 'SET_VAULT'; payload: TYDaemonVault};
+	| {type: 'SET_TOKEN_TO_SPEND'; payload: TPartialToken}
+	| {type: 'SET_TOKEN_TO_RECEIVE'; payload: TPartialToken}
+	| {type: 'SET_VAULT'; payload: TYDaemonVault}
+	| {type: 'SET_DEPOSIT'; payload: {toSpend: TPartialToken; vault: TYDaemonVault}}
+	| {type: 'SET_WITHDRAW'; payload: {toSpend: TPartialToken; toReceive: TPartialToken; vault: TYDaemonVault}}
+	| {type: 'RESET'};
 
-type TVaultsConfiguration = {
+export type TVaultsConfiguration = {
+	action: 'DEPOSIT' | 'WITHDRAW' | undefined;
 	tokenToSpend: TTokenToUse;
 	tokenToReceive: TTokenToUse;
 	vault: TYDaemonVault | undefined;
@@ -30,6 +32,7 @@ export type TVaults = {
 
 const defaultProps: TVaults = {
 	configuration: {
+		action: undefined,
 		tokenToSpend: {
 			token: {
 				chainID: 1,
@@ -76,12 +79,31 @@ export const VaultsContextApp = ({children}: {children: TOptionalRenderProps<TVa
 					tokenToReceive: {...state?.tokenToReceive, ...action.payload}
 				};
 			}
-
 			case 'SET_VAULT': {
 				return {
 					...state,
 					vault: {...state?.vault, ...action.payload}
 				};
+			}
+			case 'SET_DEPOSIT': {
+				return {
+					...state,
+					action: 'DEPOSIT',
+					tokenToSpend: {...state?.tokenToSpend, ...action.payload.toSpend},
+					vault: {...state?.vault, ...action.payload.vault}
+				};
+			}
+			case 'SET_WITHDRAW': {
+				return {
+					...state,
+					action: 'WITHDRAW',
+					tokenToSpend: {...state?.tokenToSpend, ...action.payload.toSpend},
+					tokenToReceive: {...state?.tokenToReceive, ...action.payload.toReceive},
+					vault: {...state?.vault, ...action.payload.vault}
+				};
+			}
+			case 'RESET': {
+				return defaultProps.configuration;
 			}
 		}
 	};

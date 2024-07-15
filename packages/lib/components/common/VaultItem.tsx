@@ -12,11 +12,10 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {getNetwork, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
+import {getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {toPercent} from '@lib/utils/tools';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
-import {switchChain} from '@wagmi/core';
 
 import {IconCircleQuestion} from '../icons/IconCircleQuestion';
 import {IconExternalLink} from '../icons/IconExternalLink';
@@ -35,10 +34,11 @@ type TVaultItem = {
 
 export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
-	const [isDepositModalOpen, set_isDepositModalOpen] = useState(false);
-	const [isWithdrawModalOpen, set_isWithdrawModalOpen] = useState(false);
+	const {configuration} = useManageVaults();
 	const [isSuccessModalOpen, set_isSuccsessModalOpen] = useState(false);
 	const [successModalDescription, set_successModalDescription] = useState<ReactElement | null>(null);
+	const isDepositModalOpen = configuration.action === 'DEPOSIT' && configuration.vault?.address === vault.address;
+	const isWithdrawModalOpen = configuration.action === 'WITHDRAW' && configuration.vault?.address === vault.address;
 
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
@@ -97,60 +97,55 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {dispatchConfiguration} = useManageVaults();
 
 	const onDepositClick = useCallback(async (): Promise<void> => {
-		set_isDepositModalOpen(true);
-		await switchChain(retrieveConfig(), {chainId: vault.chainID});
-
-		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
 		dispatchConfiguration({
-			type: 'SET_TOKEN_TO_SPEND',
+			type: 'SET_DEPOSIT',
 			payload: {
-				token: {
-					address: vault.token.address,
-					name: vault.token.name,
-					symbol: vault.token.symbol,
-					decimals: vault.token.decimals,
-					chainID: vault.chainID,
-					value: 0,
-					balance: getBalance({address: vault.token.address, chainID: vault.chainID})
-				},
-				amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+				vault,
+				toSpend: {
+					token: {
+						address: vault.token.address,
+						name: vault.token.name,
+						symbol: vault.token.symbol,
+						decimals: vault.token.decimals,
+						chainID: vault.chainID,
+						value: 0,
+						balance: getBalance({address: vault.token.address, chainID: vault.chainID})
+					},
+					amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+				}
 			}
 		});
 	}, [dispatchConfiguration, getBalance, vault]);
 
 	const onWithdrawClick = useCallback(async (): Promise<void> => {
 		dispatchConfiguration({
-			type: 'SET_TOKEN_TO_RECEIVE',
+			type: 'SET_WITHDRAW',
 			payload: {
-				token: {
-					address: vault.token.address,
-					symbol: vault.token.symbol,
-					name: vault.token.name,
-					decimals: vault.token.decimals,
-					chainID: vault.chainID,
-					balance: zeroNormalizedBN,
-					value: 0
+				vault,
+				toReceive: {
+					token: {
+						address: vault.token.address,
+						symbol: vault.token.symbol,
+						name: vault.token.name,
+						decimals: vault.token.decimals,
+						chainID: vault.chainID,
+						balance: zeroNormalizedBN,
+						value: 0
+					},
+					amount: getBalance({address: vault.address, chainID: vault.chainID})
 				},
-				amount: getBalance({address: vault.address, chainID: vault.chainID})
-			}
-		});
-		set_isWithdrawModalOpen(true);
-		await switchChain(retrieveConfig(), {chainId: vault.chainID});
-		dispatchConfiguration({type: 'SET_VAULT', payload: vault});
-		dispatchConfiguration({
-			type: 'SET_TOKEN_TO_SPEND',
-			payload: {
-				token: {
-					address: vault.token.address,
-					name: vault.token.name,
-					symbol: vault.token.symbol,
-					decimals: vault.token.decimals,
-					chainID: vault.chainID,
-					value: 0,
-					balance: getBalance({address: vault.token.address, chainID: vault.chainID})
-				},
-
-				amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+				toSpend: {
+					token: {
+						address: vault.token.address,
+						name: vault.token.name,
+						symbol: vault.token.symbol,
+						decimals: vault.token.decimals,
+						chainID: vault.chainID,
+						value: 0,
+						balance: getBalance({address: vault.token.address, chainID: vault.chainID})
+					},
+					amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+				}
 			}
 		});
 	}, [dispatchConfiguration, getBalance, vault]);
@@ -168,24 +163,24 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		<div>
 			<DepositModal
 				isOpen={isDepositModalOpen}
-				onClose={() => set_isDepositModalOpen(false)}
+				onClose={() => dispatchConfiguration({type: 'RESET'})}
 				vault={vault}
 				yearnfiLink={yearnfiLink}
 				hasBalanceForVault={balance > 0}
 				set_isSuccessModalOpen={set_isSuccsessModalOpen}
 				set_successModalDescription={set_successModalDescription}
 			/>
+			<WithdrawModal
+				isOpen={isWithdrawModalOpen}
+				onClose={() => dispatchConfiguration({type: 'RESET'})}
+				vault={vault}
+				yearnfiLink={yearnfiLink}
+				hasBalanceForVault={balance > 0}
+			/>
 			<SuccessModal
 				isOpen={isSuccessModalOpen}
 				onClose={() => set_isSuccsessModalOpen(false)}
 				description={successModalDescription}
-			/>
-			<WithdrawModal
-				isOpen={isWithdrawModalOpen}
-				onClose={() => set_isWithdrawModalOpen(false)}
-				vault={vault}
-				yearnfiLink={yearnfiLink}
-				hasBalanceForVault={balance > 0}
 			/>
 			{/* Desctop screen Item */}
 			<div className={'bg-regularText/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>

@@ -19,7 +19,7 @@ import type {TPortalsEstimate} from '@lib/utils/api.portals';
 export type TSolverContextBase = {
 	/** Approval part */
 	approvalStatus: TTxStatus;
-	onApprove: (onSuccess: () => void) => Promise<void>;
+	onApprove: (onSuccess?: () => void) => Promise<void>;
 	allowance: TNormalizedBN;
 	isDisabled: boolean;
 	isApproved: boolean;
@@ -62,25 +62,21 @@ const SolverContext = createContext<TSolverContext>({
 });
 
 export function SolverContextApp({children}: {children: ReactElement}): ReactElement {
-	const vanila = useVanilaSolver();
-	const portals = usePortalsSolver();
-
 	const {configuration} = useManageVaults();
-
-	const isZapNeeded = useIsZapNeeded();
-
+	const {isZapNeededForDeposit, isZapNeededForWithdraw} = useIsZapNeeded(configuration);
+	const vanila = useVanilaSolver(isZapNeededForDeposit, isZapNeededForWithdraw);
+	const portals = usePortalsSolver(isZapNeededForDeposit, isZapNeededForWithdraw);
 	const withdrawHelper = useWithdraw();
 
 	const currentSolver = useMemo(() => {
-		if (!isZapNeeded) {
-			return vanila;
-		}
-		if (configuration?.tokenToSpend.token?.chainID === configuration?.vault?.chainID) {
+		if (isZapNeededForDeposit && configuration.action === 'DEPOSIT') {
 			return portals;
 		}
-
+		if (isZapNeededForWithdraw && configuration.action === 'WITHDRAW') {
+			return portals;
+		}
 		return vanila;
-	}, [configuration?.tokenToSpend.token?.chainID, configuration?.vault?.chainID, isZapNeeded, portals, vanila]);
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, portals, vanila]);
 
 	return <SolverContext.Provider value={{...currentSolver, ...withdrawHelper}}>{children}</SolverContext.Provider>;
 }
