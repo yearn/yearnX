@@ -1,4 +1,3 @@
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl} from '@builtbymom/web3/utils';
 
 import {IconSearch} from '../icons/IconSearch';
@@ -11,7 +10,6 @@ type TVaultSearchProps = {
 };
 
 export const VaultSearch = ({searchValue, set_searchValue}: TVaultSearchProps): ReactElement => {
-	const {address} = useWeb3();
 	return (
 		<div className={'mb-10 flex items-center justify-between'}>
 			<span className={'text-regularText pl-2 text-2xl font-bold'}>{'Vaults'}</span>
@@ -36,7 +34,6 @@ export const VaultSearch = ({searchValue, set_searchValue}: TVaultSearchProps): 
 					autoCorrect={'off'}
 					spellCheck={'false'}
 					value={searchValue}
-					disabled={!address}
 					onChange={e => set_searchValue(e.target.value)}
 				/>
 

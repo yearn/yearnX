@@ -1,6 +1,7 @@
 import {Fragment, memo, type ReactElement, useCallback, useMemo} from 'react';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, formatAmount} from '@builtbymom/web3/utils';
+import {cl} from '@builtbymom/web3/utils';
+import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
@@ -51,31 +52,40 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 
 	const onAction = useCallback(async () => {
 		if (isApproved) {
-			return onExecuteDeposit(() => {
+			return onExecuteDeposit?.(() => {
 				props.onClose();
 				props.set_isSuccessModalOpen(true);
 				props.set_successModalDescription(
-					<div>
-						<p className={'text-regularText/50'}>{'Successfully deposited'}</p>
-						{formatAmount(
-							Number(configuration?.tokenToSpend?.amount?.normalized),
-							configuration?.tokenToSpend?.token?.decimals,
-							3
-						)}{' '}
-						<p className={'ml-1'}>{configuration?.tokenToSpend?.token?.symbol}</p>
-						<p className={'text-regularText/50'}>{'to'}</p>
-						<p className={'text-regularText/50'}>{configuration?.vault?.name}</p>
+					<div className={'flex flex-col items-center'}>
+						<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully deposited'}</p>
+
+						<div className={'flex'}>
+							{!isZapNeededForDeposit
+								? configuration?.tokenToSpend.amount?.display.slice(0, 7)
+								: formatBigIntForDisplay(
+										configuration?.tokenToSpend.amount?.raw ?? 0n,
+										configuration?.tokenToSpend.token?.decimals ?? 18,
+										{maximumFractionDigits: 6}
+									)}
+							<p className={'ml-1'}>{configuration?.tokenToSpend?.token?.symbol}</p>
+							<span className={'text-regularText/50'}>
+								<span className={'mx-1'}>{'to'}</span>
+								{configuration?.vault?.name}
+							</span>
+						</div>
 					</div>
 				);
 			});
 		}
-		return onApprove();
+		return onApprove?.();
 	}, [
-		configuration?.tokenToSpend?.amount?.normalized,
-		configuration?.tokenToSpend?.token?.decimals,
-		configuration?.tokenToSpend?.token?.symbol,
+		configuration?.tokenToSpend.amount?.display,
+		configuration?.tokenToSpend.amount?.raw,
+		configuration?.tokenToSpend.token?.decimals,
+		configuration?.tokenToSpend.token?.symbol,
 		configuration?.vault?.name,
 		isApproved,
+		isZapNeededForDeposit,
 		onApprove,
 		onExecuteDeposit,
 		props
@@ -154,12 +164,12 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 								<TokenAmountWrapper
 									vault={props.vault}
 									buttonTitle={getButtonTitle()}
-									isPerformingAction={
+									isPerformingAction={Boolean(
 										isFetchingAllowance ||
-										approvalStatus.pending ||
-										depositStatus.pending ||
-										isFetchingQuote
-									}
+											approvalStatus?.pending ||
+											depositStatus?.pending ||
+											isFetchingQuote
+									)}
 									onActionClick={onAction}
 									isDisabled={!isValid}
 									set_tokenToUse={(token, amount) =>

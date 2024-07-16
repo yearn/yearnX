@@ -16,7 +16,7 @@ import type {TSolverContextBase} from '@lib/contexts/useSolver';
 export const useVanilaSolver = (
 	isZapNeededForDeposit: boolean,
 	isZapNeededForWithdraw: boolean
-): TSolverContextBase => {
+): Omit<TSolverContextBase, 'set_withdrawStatus' | 'withdrawStatus' | 'onExecuteWithdraw'> => {
 	const {configuration} = useManageVaults();
 	const {provider, address} = useWeb3();
 	const {onRefresh} = useWallet();

@@ -176,6 +176,8 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				vault={vault}
 				yearnfiLink={yearnfiLink}
 				hasBalanceForVault={balance > 0}
+				set_isSuccessModalOpen={set_isSuccsessModalOpen}
+				set_successModalDescription={set_successModalDescription}
 			/>
 			<SuccessModal
 				isOpen={isSuccessModalOpen}

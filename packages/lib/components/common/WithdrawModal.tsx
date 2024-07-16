@@ -1,18 +1,21 @@
-import {Fragment, type ReactElement, useMemo, useRef, useState} from 'react';
+import {Fragment, type ReactElement, useCallback, useMemo, useRef, useState} from 'react';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, formatAmount, fromNormalized, toAddress, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, fromNormalized, toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
+import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
+import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {useTokensWithBalance} from '@lib/hooks/useTokensWithBalance';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconChevron} from '../icons/IconChevron';
 import {IconCross} from '../icons/IconCross';
+import {IconSpinner} from '../icons/IconSpinner';
 import {Button} from './Button';
 import {ImageWithFallback} from './ImageWithFallback';
 import {TokenSelectorDropdown} from './TokenSelectorDropdown';
@@ -26,6 +29,8 @@ type TWithdrawModalProps = {
 	vault: TYDaemonVault;
 	yearnfiLink: string;
 	hasBalanceForVault: boolean;
+	set_isSuccessModalOpen: (value: boolean) => void;
+	set_successModalDescription: (value: ReactElement) => void;
 };
 
 export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
@@ -46,64 +51,44 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 		return token.name.toLowerCase().includes(lowercaseValue) || token.symbol.toLowerCase().includes(lowercaseValue);
 	});
 
-	// const onWithdraw = useCallback(async () => {
-	// 	if (configuration.tokenToSpend.token?.address === props.vault.address) {
-	// 		const pricePerShare = await readContract(retrieveConfig(), {
-	// 			abi: VAULT_ABI,
-	// 			address: props.vault.address,
-	// 			functionName: 'pricePerShare',
-	// 			chainId: props.vault.chainID
-	// 		});
-	// 		const shareValue = toBigInt(configuration.tokenToSpend.amount?.raw) / toBigInt(pricePerShare);
-	// 		if (props.vault.version.startsWith('3')) {
-	// 			const result = await redeemV3Shares({
-	// 				connector: provider,
-	// 				chainID: props.vault.chainID,
-	// 				contractAddress: toAddress(props.vault.address),
-	// 				amount: shareValue,
-	// 				statusHandler: set_actionStatus
-	// 			});
-	// 			if (result.isSuccessful) {
-	// 				await onRefresh([
-	// 					{chainID: props.vault.chainID, address: props.vault.address},
-	// 					{chainID: props.vault.chainID, address: props.vault.token.address}
-	// 				]);
-	// 				dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {amount: undefined}});
-	// 				props.onClose();
-	// 			}
-	// 		} else {
-	// 			const result = await withdrawShares({
-	// 				connector: provider,
-	// 				chainID: props.vault.chainID,
-	// 				contractAddress: toAddress(props.vault.address),
-	// 				amount: shareValue,
-	// 				statusHandler: set_actionStatus
-	// 			});
-	// 			if (result.isSuccessful) {
-	// 				await onRefresh([
-	// 					{chainID: props.vault.chainID, address: props.vault.address},
-	// 					{chainID: props.vault.chainID, address: props.vault.token.address}
-	// 				]);
-	// 				dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {amount: undefined}});
-	// 				props.onClose();
-	// 			}
-	// 		}
-	// 	} else if (configuration.tokenToSpend.token?.address === props.vault.token.address) {
-	// 		throw new Error('CANNOT WITHDRAW THE TOKEN ITSELF');
-	// 	} else {
-	// 		throw new Error('PORTALS SUPPORT TODO');
-	// 	}
-	// }, [
-	// 	configuration?.tokenToSpend.token?.address,
-	// 	configuration?.tokenToSpend.amount?.raw,
-	// 	props,
-	// 	provider,
-	// 	onRefresh,
-	// 	dispatchConfiguration
-	// ]);
-	const {onExecuteWithdraw} = useSolver();
+	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
+
+	const {onExecuteWithdraw, quote, isFetchingQuote} = useSolver();
 	const {balances, getBalance} = useWallet();
 
+	const onAction = useCallback(async () => {
+		return onExecuteWithdraw?.(() => {
+			props.onClose();
+			props.set_isSuccessModalOpen(true);
+			props.set_successModalDescription(
+				<div className={'flex flex-col items-center'}>
+					<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully withdrawn'}</p>
+
+					<div className={'flex flex-col items-center'}>
+						{!isZapNeededForWithdraw
+							? configuration?.tokenToSpend.amount?.display.slice(0, 7)
+							: formatBigIntForDisplay(
+									BigInt(quote?.minOutputAmount ?? ''),
+									quote?.outputTokenDecimals ?? 18,
+									{maximumFractionDigits: 6}
+								)}
+						<p className={'ml-1'}>{configuration?.tokenToReceive?.token?.symbol}</p>
+						<span className={'text-regularText/50'}>
+							<span className={'mx-1'}>{'to your wallet'}</span>
+						</span>
+					</div>
+				</div>
+			);
+		});
+	}, [
+		configuration?.tokenToReceive?.token?.symbol,
+		configuration?.tokenToSpend.amount?.display,
+		isZapNeededForWithdraw,
+		onExecuteWithdraw,
+		props,
+		quote?.minOutputAmount,
+		quote?.outputTokenDecimals
+	]);
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
 	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
@@ -195,25 +180,42 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 												'placeholder:text-regularText/20 focus:placeholder:text-regularText/30',
 												'placeholder:transition-colors !h-16 !ring-0 !ring-offset-0'
 											)}
-											min={'0'}
+											min={0}
 											step={0.1}
 											decimalSeparator={'.'}
 											placeholder={'0.00'}
 											controls={false}
-											value={formatAmount(
-												toNormalizedBN(
-													fromNormalized(
-														balance,
-														configuration?.tokenToReceive?.token?.decimals
-													),
-													configuration?.tokenToReceive?.token?.decimals ?? 18
-												).normalized
-											)}
-											onChange={() => {}}
+											value={configuration?.tokenToSpend?.amount?.normalized}
+											onChange={value => {
+												const decimals = configuration?.tokenToSpend.token?.decimals;
+
+												dispatchConfiguration({
+													type: 'SET_TOKEN_TO_SPEND',
+													payload: {
+														amount: toNormalizedBN(
+															fromNormalized(value ?? '', decimals),
+															decimals ?? 18
+														)
+													}
+												});
+											}}
 										/>
 									</div>
 									<button
-										onClick={() => {}}
+										onClick={() =>
+											dispatchConfiguration({
+												type: 'SET_TOKEN_TO_SPEND',
+												payload: {
+													amount: toNormalizedBN(
+														fromNormalized(
+															balance,
+															configuration?.tokenToSpend?.token?.decimals
+														),
+														configuration?.tokenToSpend?.token?.decimals ?? 18
+													)
+												}
+											})
+										}
 										disabled={false}
 										className={
 											'border-regularText/15 bg-regularText/5 text-regularText rounded-lg border p-2 disabled:cursor-not-allowed'
@@ -222,23 +224,27 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 									</button>
 								</label>
 							</div>
-							<button
-								onClick={() =>
-									dispatchConfiguration({
-										type: 'SET_TOKEN_TO_RECEIVE',
-										payload: {
-											amount: toNormalizedBN(
-												fromNormalized(balance, configuration?.tokenToReceive?.token?.decimals),
-												configuration?.tokenToReceive?.token?.decimals ?? 18
-											)
-										}
-									})
-								}
-								className={'text-regularText text-right text-xs text-opacity-40'}>
-								{`Available: ${balance} ${configuration?.vault?.token.symbol}`}
-							</button>
-
-							<div className={'mb-4 flex w-full justify-start'}>
+							<div className={'mt-1 flex w-full justify-start'}>
+								<button
+									onClick={() =>
+										dispatchConfiguration({
+											type: 'SET_TOKEN_TO_SPEND',
+											payload: {
+												amount: toNormalizedBN(
+													fromNormalized(
+														balance,
+														configuration?.tokenToSpend?.token?.decimals
+													),
+													configuration?.tokenToSpend?.token?.decimals ?? 18
+												)
+											}
+										})
+									}
+									className={'text-regularText text-right text-xs text-opacity-40'}>
+									{`Available: ${balance} ${configuration?.vault?.token.symbol}`}
+								</button>
+							</div>
+							<div className={'mb-4 mt-10 flex w-full justify-start'}>
 								<p className={'text-lg font-bold'}>{'Receive'}</p>
 							</div>
 
@@ -258,8 +264,22 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 											height={32}
 										/>
 										<div className={'flex gap-x-1'}>
-											<span>{configuration?.tokenToReceive.amount?.display}</span>
-											<span>{configuration?.tokenToReceive.token?.symbol}</span>
+											{isFetchingQuote ? (
+												<IconSpinner />
+											) : (
+												<>
+													<span>
+														{!isZapNeededForWithdraw
+															? configuration?.tokenToSpend.amount?.normalized
+															: formatBigIntForDisplay(
+																	BigInt(quote?.minOutputAmount ?? ''),
+																	quote?.outputTokenDecimals ?? 18,
+																	{maximumFractionDigits: 10}
+																)}
+													</span>
+													<span>{configuration?.tokenToReceive.token?.symbol}</span>
+												</>
+											)}
 										</div>
 									</div>
 									<IconChevron className={'text-regularText size-6'} />
@@ -268,10 +288,16 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 								<TokenSelectorDropdown
 									isOpen={isSelectorOpen}
 									set_isOpen={set_isSelectorOpen}
-									set_tokenToUse={value =>
+									set_tokenToUse={token =>
 										dispatchConfiguration({
 											type: 'SET_TOKEN_TO_RECEIVE',
-											payload: {token: value, amount: zeroNormalizedBN}
+											payload: {
+												token,
+												amount: toNormalizedBN(
+													BigInt(quote?.minOutputAmount ?? ''),
+													quote?.outputTokenDecimals ?? 18
+												)
+											}
 										})
 									}
 									searchValue={searchValue}
@@ -282,7 +308,7 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 							</div>
 
 							<Button
-								onClick={async () => onExecuteWithdraw(() => props.onClose())}
+								onClick={onAction}
 								isBusy={false}
 								isDisabled={false}
 								className={cl(

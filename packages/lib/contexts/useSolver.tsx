@@ -30,6 +30,11 @@ export type TSolverContextBase = {
 	onExecuteDeposit: (onSuccess: () => void) => Promise<void>;
 	set_depositStatus: (value: TTxStatus) => void;
 
+	/** Withdraw part */
+	withdrawStatus: TTxStatus;
+	set_withdrawStatus: (value: TTxStatus) => void;
+	onExecuteWithdraw: (onSuccess: () => void) => Promise<void>;
+
 	isFetchingQuote: boolean;
 	quote: TPortalsEstimate | null;
 };
@@ -39,7 +44,7 @@ export type TSolverContextBase = {
  * 1. Current solver actions
  * 2. Current solver withdraw actions (same for every solver)
  */
-type TSolverContext = TSolverContextBase & TWithdrawSolverHelper;
+type TSolverContext = Partial<TSolverContextBase & TWithdrawSolverHelper>;
 
 const SolverContext = createContext<TSolverContext>({
 	approvalStatus: defaultTxStatus,
@@ -50,8 +55,8 @@ const SolverContext = createContext<TSolverContext>({
 	isFetchingAllowance: false,
 
 	withdrawStatus: defaultTxStatus,
-	onExecuteWithdraw: async (): Promise<void> => undefined,
 	set_withdrawStatus: (): void => undefined,
+	onExecuteWithdraw: async (): Promise<void> => undefined,
 
 	depositStatus: defaultTxStatus,
 	set_depositStatus: (): void => undefined,
@@ -78,6 +83,8 @@ export function SolverContextApp({children}: {children: ReactElement}): ReactEle
 		return vanila;
 	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, portals, vanila]);
 
-	return <SolverContext.Provider value={{...currentSolver, ...withdrawHelper}}>{children}</SolverContext.Provider>;
+	const contextValue = isZapNeededForWithdraw ? {...currentSolver} : {...currentSolver, ...withdrawHelper};
+
+	return <SolverContext.Provider value={contextValue}>{children}</SolverContext.Provider>;
 }
 export const useSolver = (): TSolverContext => useContext(SolverContext);
