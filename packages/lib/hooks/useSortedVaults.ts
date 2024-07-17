@@ -54,8 +54,8 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 		return vaults?.length
 			? vaults.toSorted((a, b): number =>
 					numberSort({
-						a: a.apr.extra.stakingRewardsAPR || 0,
-						b: b.apr.extra.stakingRewardsAPR || 0,
+						a: a.apr.netAPR || 0,
+						b: b.apr.netAPR || 0,
 						sortDirection: sortDirection as TSortDirection
 					})
 				)
@@ -63,7 +63,7 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 	}, [sortBy, vaults, sortDirection]);
 
 	/**********************************************************************************************
-	 ** This is memoized sorted by spender allowances.
+	 ** This is memoized sorted by deposit.
 	 *********************************************************************************************/
 	const sortedByDeposits = useMemo((): TYDaemonVaults => {
 		if (sortBy !== 'deposits') {

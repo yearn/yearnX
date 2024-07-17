@@ -1,5 +1,6 @@
 import {type ReactElement, useCallback} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
+import {COLORS} from 'packages/optimism/constants';
 import {cl} from '@builtbymom/web3/utils';
 
 import {IconSort} from './icons/IconSort';
@@ -43,6 +44,41 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 		},
 		[props.sortBy, props.sortDirection]
 	);
+	/**********************************************************************************************
+	 ** This renderSortIcons function returns the correct icon, according to current sort state.
+	 *********************************************************************************************/
+	const renderSortIcons = useCallback(
+		(shouldSortBy: boolean): ReactElement => {
+			if (shouldSortBy && props.sortDirection === 'desc') {
+				return (
+					<IconSort
+						leftIconColor={COLORS.regularText}
+						rightIconColor={COLORS.regularText}
+						rightOpacity={'1'}
+						className={'size-4'}
+					/>
+				);
+			}
+			if (shouldSortBy && props.sortDirection === 'asc') {
+				return (
+					<IconSort
+						leftIconColor={COLORS.regularText}
+						rightIconColor={COLORS.regularText}
+						leftOpacity={'1'}
+						className={'size-4'}
+					/>
+				);
+			}
+			return (
+				<IconSort
+					leftIconColor={COLORS.regularText}
+					rightIconColor={COLORS.regularText}
+					className={'size-4 opacity-50'}
+				/>
+			);
+		},
+		[props.sortDirection]
+	);
 
 	return (
 		<div className={'hidden px-2 md:col-span-7 md:grid md:grid-cols-7'}>
@@ -61,7 +97,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 								: 'justify-center'
 						)}
 						key={item.label}>
-						<IconSort className={'text-regularText/80 size-3'} />
+						{renderSortIcons(props.sortBy === item.value)}
 						<p className={'text-regularText/80 text-right'}>{item.label}</p>
 					</button>
 				) : (
