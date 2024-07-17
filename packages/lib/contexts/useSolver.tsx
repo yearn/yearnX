@@ -4,13 +4,11 @@ import {defaultTxStatus, type TTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {usePortalsSolver} from '@lib/solvers/usePortalsSolver';
 import {useVanilaSolver} from '@lib/solvers/useVanilaSolver';
-import {useWithdraw} from '@lib/solvers/useWithdraw';
 
 import {useManageVaults} from './useManageVaults';
 
 import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
-import type {TWithdrawSolverHelper} from '@lib/solvers/useWithdraw';
 import type {TPortalsEstimate} from '@lib/utils/api.portals';
 
 /**************************************************************************************************
@@ -45,9 +43,9 @@ export type TSolverContextBase = {
  * 1. Current solver actions
  * 2. Current solver withdraw actions (same for every solver)
  */
-type TSolverContext = Partial<TSolverContextBase & TWithdrawSolverHelper>;
+type TSolverContext = Partial<TSolverContextBase>;
 
-const SolverContext = createContext<TSolverContext>({
+const SolverContext = createContext<Partial<TSolverContextBase>>({
 	approvalStatus: defaultTxStatus,
 	onApprove: async (): Promise<void> => undefined,
 	allowance: zeroNormalizedBN,
@@ -72,7 +70,6 @@ export function SolverContextApp({children}: {children: ReactElement}): ReactEle
 	const {isZapNeededForDeposit, isZapNeededForWithdraw} = useIsZapNeeded(configuration);
 	const vanila = useVanilaSolver(isZapNeededForDeposit, isZapNeededForWithdraw);
 	const portals = usePortalsSolver(isZapNeededForDeposit, isZapNeededForWithdraw);
-	const withdrawHelper = useWithdraw();
 
 	const currentSolver = useMemo(() => {
 		if (isZapNeededForDeposit && configuration.action === 'DEPOSIT') {
@@ -84,8 +81,6 @@ export function SolverContextApp({children}: {children: ReactElement}): ReactEle
 		return vanila;
 	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, portals, vanila]);
 
-	const contextValue = isZapNeededForWithdraw ? {...currentSolver} : {...currentSolver, ...withdrawHelper};
-
-	return <SolverContext.Provider value={contextValue}>{children}</SolverContext.Provider>;
+	return <SolverContext.Provider value={{...currentSolver}}>{children}</SolverContext.Provider>;
 }
 export const useSolver = (): TSolverContext => useContext(SolverContext);

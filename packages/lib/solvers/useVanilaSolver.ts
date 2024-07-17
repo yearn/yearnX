@@ -6,7 +6,7 @@ import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {assert, ETH_TOKEN_ADDRESS, toAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {approveERC20, deposit} from '@lib/utils/actions';
+import {approveERC20, deposit, redeemV3Shares, withdrawShares} from '@lib/utils/actions';
 import {allowanceKey} from '@lib/utils/tools';
 import {readContract} from '@wagmi/core';
 
@@ -16,13 +16,14 @@ import type {TSolverContextBase} from '@lib/contexts/useSolver';
 export const useVanilaSolver = (
 	isZapNeededForDeposit: boolean,
 	isZapNeededForWithdraw: boolean
-): Omit<TSolverContextBase, 'set_withdrawStatus' | 'withdrawStatus' | 'onExecuteWithdraw'> => {
+): TSolverContextBase => {
 	const {configuration} = useManageVaults();
 	const {provider, address} = useWeb3();
 	const {onRefresh} = useWallet();
 	const [isFetchingAllowance, set_isFetchingAllowance] = useState(false);
 	const [approvalStatus, set_approvalStatus] = useState(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
+	const [withdrawStatus, set_withdrawStatus] = useState(defaultTxStatus);
 	const [allowance, set_allowance] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
 	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
@@ -167,11 +168,81 @@ export const useVanilaSolver = (
 		]
 	);
 
+	/*********************************************************************************************
+	 ** Trigger a withdraw web3 action using the vault contract to take back some underlying token
+	 ** from this specific vault.
+	 *********************************************************************************************/
+	const onExecuteWithdraw = useCallback(
+		async (onSuccess?: () => void): Promise<void> => {
+			assert(configuration?.tokenToReceive?.token, 'Output token is not set');
+			assert(configuration?.tokenToReceive?.amount?.display, 'Input amount is not set');
+			assert(configuration.vault, 'Vault is not set');
+			const isV3 = configuration.vault.version.split('.')?.[0] === '3';
+
+			set_withdrawStatus({...defaultTxStatus, pending: true});
+
+			let result;
+			if (isV3) {
+				result = await redeemV3Shares({
+					connector: provider,
+					chainID: configuration.vault.chainID,
+					contractAddress: configuration?.vault?.address,
+					amount: configuration.tokenToReceive?.amount?.raw
+				});
+			} else {
+				result = await withdrawShares({
+					connector: provider,
+					chainID: configuration.vault.chainID,
+					contractAddress: configuration?.vault?.token.address,
+					amount: configuration?.tokenToReceive?.amount?.raw
+				});
+			}
+			await onRefresh(
+				[
+					{chainID: configuration?.vault.chainID, address: configuration?.vault.address},
+					{chainID: configuration?.vault.chainID, address: configuration?.vault.token.address},
+					{
+						chainID: Number(configuration?.tokenToSpend.token?.chainID),
+						address: toAddress(configuration?.tokenToSpend.token?.address)
+					},
+					{
+						chainID: configuration?.tokenToReceive.token.chainID,
+						address: configuration?.tokenToReceive.token.address
+					},
+					{chainID: Number(configuration?.tokenToSpend.token?.chainID), address: ETH_TOKEN_ADDRESS}
+				],
+				false,
+				true
+			);
+			if (result.isSuccessful) {
+				onSuccess?.();
+				set_withdrawStatus({...defaultTxStatus, success: true});
+				return;
+			}
+			set_withdrawStatus({...defaultTxStatus, error: true});
+		},
+		[
+			configuration.tokenToReceive?.amount?.display,
+			configuration.tokenToReceive?.amount?.raw,
+			configuration.tokenToReceive.token,
+			configuration?.tokenToSpend.token?.address,
+			configuration?.tokenToSpend.token?.chainID,
+			configuration.vault,
+			onRefresh,
+			provider
+		]
+	);
+
 	return {
 		/** Deposit part */
 		depositStatus,
 		set_depositStatus,
 		onExecuteDeposit,
+
+		/**Withdraw part */
+		withdrawStatus,
+		onExecuteWithdraw,
+		set_withdrawStatus,
 
 		/** Approval part */
 		approvalStatus,

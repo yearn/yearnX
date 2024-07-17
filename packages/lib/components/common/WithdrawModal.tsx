@@ -133,14 +133,16 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 					<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully withdrawn'}</p>
 
 					<div className={'flex flex-col items-center'}>
-						{!isZapNeededForWithdraw
-							? configuration?.tokenToSpend.amount?.display.slice(0, 7)
-							: formatBigIntForDisplay(
-									BigInt(quote?.minOutputAmount ?? ''),
-									quote?.outputTokenDecimals ?? 18,
-									{maximumFractionDigits: 6}
-								)}
-						<p className={'ml-1'}>{configuration?.tokenToReceive?.token?.symbol}</p>
+						<div className={'flex'}>
+							{!isZapNeededForWithdraw
+								? configuration?.tokenToSpend.amount?.display.slice(0, 7)
+								: formatBigIntForDisplay(
+										BigInt(quote?.minOutputAmount ?? ''),
+										quote?.outputTokenDecimals ?? 18,
+										{maximumFractionDigits: 6}
+									)}
+							<p className={'ml-1'}>{configuration?.tokenToReceive?.token?.symbol}</p>
+						</div>
 						<span className={'text-regularText/50'}>
 							<span className={'mx-1'}>{'to your wallet'}</span>
 						</span>
