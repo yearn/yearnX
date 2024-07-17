@@ -56,27 +56,26 @@ const portalsTxSchema = z.object({
 	from: z.string().optional(),
 	data: z.string(),
 	value: z.string().optional(),
-	gasLimit: z.string()
+	gasLimit: z.string().optional()
 });
 
 const portalsTransactionSchema = z.object({
 	context: z.object({
-		orderId: z.string(),
-		minOutputAmount: z.string(),
-		minOutputAmountUsd: z.number(),
-		slippageTolerancePercentage: z.number(),
-		gasLimit: z.string(),
+		feeAmount: z.string(),
+		feeAmountUsd: z.number(),
+		feeToken: z.string(),
 		inputAmount: z.string(),
 		inputAmountUsd: z.number(),
 		inputToken: z.string(),
-		outputToken: z.string(),
+		minOutputAmount: z.string(),
+		minOutputAmountUsd: z.number(),
+		orderId: z.string(),
 		outputAmount: z.string(),
 		outputAmountUsd: z.number(),
-		feeToken: z.string(),
-		feeAmount: z.string(),
-		feeAmountUsd: z.number(),
-		sender: z.string(),
+		outputToken: z.string(),
 		recipient: z.string(),
+		sender: z.string(),
+		slippageTolerancePercentage: z.number(),
 		target: z.string(),
 		value: z.string()
 	}),
