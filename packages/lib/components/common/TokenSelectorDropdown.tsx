@@ -1,4 +1,4 @@
-import {type ReactElement, type RefObject, useCallback} from 'react';
+import {type ReactElement, type RefObject, useCallback, useMemo} from 'react';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, toBigInt, truncateHex} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
@@ -71,6 +71,12 @@ export const TokenSelectorDropdown = ({
 		},
 		[getPrice]
 	);
+
+	/**********************************************************************************************
+	 ** Too many tokens, let's only display 25 of them, for more user needs to search.
+	 *********************************************************************************************/
+	const tokensToDisplay = useMemo(() => tokens.slice(0, 25), [tokens]);
+
 	return (
 		<>
 			{isOpen && (
@@ -108,7 +114,7 @@ export const TokenSelectorDropdown = ({
 					</label>
 
 					<div className={'no-scrollbar max-h-[200px] overflow-auto '}>
-						{tokens.map(item => (
+						{tokensToDisplay.map(item => (
 							<button
 								key={item.address}
 								onClick={() => {
