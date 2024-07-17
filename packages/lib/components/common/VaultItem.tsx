@@ -9,15 +9,16 @@ import {
 	formatLocalAmount,
 	formatPercent,
 	isZeroAddress,
+	toAddress,
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
 import {getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import {usePrices} from '@lib/contexts/usePrices';
 import {toPercent} from '@lib/utils/tools';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
-import {IconCircleQuestion} from '../icons/IconCircleQuestion';
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {DepositModal} from './DepositModal';
 import {ImageWithFallback} from './ImageWithFallback';
@@ -49,6 +50,8 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		const hash = createUniqueID(serialize(balances));
 		return hash;
 	}, [balances]);
+
+	const {getPrice} = usePrices();
 
 	/**********************************************************************************************
 	 ** In some situations, the token is not in the list and we need to fetch/get it. This
@@ -93,6 +96,36 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 			shouldCompactValue: true
 		})}`;
 	}, [vault.tvl.tvl]);
+
+	/**********************************************************************************************
+	 ** totalProfit is the value the user could potentially get after 1 year of stacking money.
+	 ** We are basically multiply amount the users typed with apr and price of the token.
+	 *********************************************************************************************/
+	const totalProfit = useMemo(() => {
+		const price =
+			getPrice({
+				chainID: Number(configuration?.tokenToSpend.token?.chainID),
+				address: toAddress(configuration?.tokenToSpend.token?.address)
+			})?.normalized ?? 0;
+		return `$${formatLocalAmount(
+			Number(configuration?.tokenToSpend.amount?.normalized) * vault.apr.netAPR * price +
+				Number(configuration?.tokenToSpend.amount?.normalized) * price,
+			4,
+			'$',
+			{
+				displayDigits: 2,
+				maximumFractionDigits: 2,
+				minimumFractionDigits: 2,
+				shouldCompactValue: true
+			}
+		)}`;
+	}, [
+		configuration?.tokenToSpend.amount?.normalized,
+		configuration?.tokenToSpend.token?.address,
+		configuration?.tokenToSpend.token?.chainID,
+		getPrice,
+		vault.apr.netAPR
+	]);
 
 	const {dispatchConfiguration} = useManageVaults();
 
@@ -169,6 +202,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				hasBalanceForVault={balance > 0}
 				set_isSuccessModalOpen={set_isSuccsessModalOpen}
 				set_successModalDescription={set_successModalDescription}
+				totalProfit={totalProfit}
 			/>
 			<WithdrawModal
 				isOpen={isWithdrawModalOpen}
@@ -280,7 +314,6 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				<div className={'flex w-full justify-between'}>
 					<div className={'flex items-center gap-x-2 text-sm'}>
 						<p>{'APR'}</p>
-						<IconCircleQuestion className={'text-regularText size-4'} />
 					</div>
 					<div>{formatPercent(vault.apr.netAPR)}</div>
 				</div>

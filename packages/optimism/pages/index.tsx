@@ -12,7 +12,7 @@ export default function Index(): ReactElement {
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
 
 	return (
-		<section className={'flex w-full max-w-[1200px] flex-col gap-y-6 pb-6'}>
+		<section className={'flex w-full max-w-[1200px] flex-col gap-y-6'}>
 			<DefaultHeader
 				docsLink={''}
 				secondLogoURL={'/partnerLogo.svg'}

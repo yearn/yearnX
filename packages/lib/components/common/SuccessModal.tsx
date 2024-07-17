@@ -55,7 +55,7 @@ export function SuccessModal(props: TSuccessModalProps): ReactElement {
 								isBusy={false}
 								isDisabled={false}
 								className={cl(
-									'text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText px-[34.5px] py-5 font-bold',
+									'text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText md:px-[34.5px] py-5 font-bold',
 									'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed !h-12'
 								)}>
 								{'Nice'}

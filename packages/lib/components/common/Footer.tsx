@@ -13,7 +13,7 @@ type TFooterProps = {
 
 export function Footer(props: TFooterProps): ReactElement {
 	return (
-		<div className={'bg-table mb-6 flex items-center justify-between rounded-2xl p-4 md:hidden'}>
+		<div className={'bg-table flex items-center justify-between rounded-2xl p-4 md:hidden'}>
 			<div className={'bg-background flex items-center gap-x-2 rounded-xl p-2'}>
 				<LogoYearn
 					className={'size-8'}

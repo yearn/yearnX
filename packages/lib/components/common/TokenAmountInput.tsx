@@ -103,6 +103,7 @@ type TTokenAmountWrapperProps = {
 	isDisabled: boolean;
 	buttonTitle: string;
 	set_tokenToUse: (token: TToken, amount: TNormalizedBN) => void;
+	totalProfit?: string;
 };
 export function TokenAmountWrapper({
 	vault,
@@ -110,7 +111,8 @@ export function TokenAmountWrapper({
 	onActionClick,
 	isDisabled,
 	buttonTitle,
-	set_tokenToUse
+	set_tokenToUse,
+	totalProfit
 }: TTokenAmountWrapperProps): ReactElement {
 	const {balances, getBalance} = useWallet();
 	const {address, onConnect} = useWeb3();
@@ -210,7 +212,8 @@ export function TokenAmountWrapper({
 		configuration?.tokenToSpend.amount.raw === 0n ||
 		(configuration?.tokenToSpend.amount &&
 			configuration?.tokenToSpend.amount?.normalized > balanceToUse.normalized) ||
-		isDisabled;
+		isDisabled ||
+		balanceToUse.normalized < configuration?.tokenToSpend.amount.normalized;
 
 	return (
 		<div className={'flex w-full flex-col items-start gap-y-2'}>
@@ -238,14 +241,21 @@ export function TokenAmountWrapper({
 				{`Available: ${formatAmount(balanceToUse.normalized)} ${assetName}`}
 			</button>
 
-			<div className={'my-10 flex'}>
-				<span className={'mr-1'}>{'APY:'}</span>
-				<span className={'font-bold'}>{toPercent(vault.apr.netAPR)}</span>
+			<div className={'my-10 flex w-full justify-between'}>
+				<div>
+					<span className={'mr-1'}>{'APY:'}</span>
+					<span className={'font-bold'}>{toPercent(vault.apr.netAPR)}</span>
+				</div>
+				<span className={'text-base'}>
+					{'+ '}
+					{totalProfit}
+					{' over 1y'}
+				</span>
 			</div>
 			<Button
 				onClick={address ? onActionClick : onConnect}
 				isBusy={isPerformingAction}
-				isDisabled={isButtonDisabled}
+				isDisabled={!address ? false : isButtonDisabled}
 				className={cl(
 					'!h-12 text-regularText flex w-full justify-center space-nowrap rounded-lg bg-button hover:bg-buttonHover py-5 font-bold',
 					'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed'

@@ -48,7 +48,7 @@ export default function Home(): ReactElement {
 			/>
 
 			<Footer
-				docsLink={''}
+				docsLink={'https://docs.pooltogether.com/welcome/faq'}
 				secondLogoURL={''}
 			/>
 		</section>

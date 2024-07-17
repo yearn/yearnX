@@ -39,7 +39,7 @@ export default function MyApp(props: AppProps): ReactElement {
 							<VaultsContextApp>
 								<SolverContextApp>
 									<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
-										<main className={'relative flex w-full justify-center'}>
+										<main className={'relative mb-auto flex w-full justify-center'}>
 											<Component />
 										</main>
 									</div>

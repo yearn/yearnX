@@ -1,4 +1,4 @@
-import {Fragment, memo, type ReactElement, useCallback, useMemo} from 'react';
+import {Fragment, type ReactElement, useCallback, useMemo} from 'react';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl} from '@builtbymom/web3/utils';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
@@ -6,6 +6,7 @@ import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
+import {useAccountModal} from '@rainbow-me/rainbowkit';
 
 import {IconCross} from '../icons/IconCross';
 import {TokenAmountWrapper} from './TokenAmountInput';
@@ -21,10 +22,12 @@ type TDepositModalProps = {
 	hasBalanceForVault: boolean;
 	set_isSuccessModalOpen: (isOpen: boolean) => void;
 	set_successModalDescription: (value: ReactElement) => void;
+	totalProfit?: string;
 };
 
-export const DepositModal = memo(function DepositModal(props: TDepositModalProps): ReactElement {
+export function DepositModal(props: TDepositModalProps): ReactElement {
 	const {address} = useWeb3();
+	const {openAccountModal} = useAccountModal();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const {isZapNeededForDeposit} = useIsZapNeeded(configuration);
 
@@ -51,6 +54,9 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 	} = useSolver();
 
 	const onAction = useCallback(async () => {
+		if (!address) {
+			openAccountModal?.();
+		}
 		if (isApproved) {
 			return onExecuteDeposit?.(() => {
 				props.onClose();
@@ -79,6 +85,7 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 		}
 		return onApprove?.();
 	}, [
+		address,
 		configuration?.tokenToSpend.amount?.display,
 		configuration?.tokenToSpend.amount?.raw,
 		configuration?.tokenToSpend.token?.decimals,
@@ -88,6 +95,7 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 		isZapNeededForDeposit,
 		onApprove,
 		onExecuteDeposit,
+		openAccountModal,
 		props
 	]);
 
@@ -171,10 +179,11 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 											isFetchingQuote
 									)}
 									onActionClick={onAction}
-									isDisabled={!isValid}
+									isDisabled={!isValid && Boolean(address)}
 									set_tokenToUse={(token, amount) =>
 										dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {token, amount}})
 									}
+									totalProfit={props.totalProfit}
 								/>
 							</div>
 						</div>
@@ -183,4 +192,4 @@ export const DepositModal = memo(function DepositModal(props: TDepositModalProps
 			</Dialog>
 		</Transition>
 	);
-});
+}
