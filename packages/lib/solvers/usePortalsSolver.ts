@@ -51,7 +51,7 @@ export const usePortalsSolver = (
 	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
 	const isAboveAllowance = allowance.raw >= spendAmount;
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
-	const slippage = 10;
+	const slippage = 0.1;
 
 	/**********************************************************************************************
 	 * TODO: Add comment to explain how it works
@@ -134,7 +134,7 @@ export const usePortalsSolver = (
 	 *********************************************************************************************/
 	const onRetrieveAllowance = useCallback(
 		async (shouldForceRefetch?: boolean): Promise<TNormalizedBN> => {
-			if (!latestQuote || !configuration?.tokenToSpend.token || !configuration?.vault) {
+			if (!latestQuote || !configuration?.tokenToSpend.token || !configuration?.tokenToReceive.token) {
 				return zeroNormalizedBN;
 			}
 			if (configuration.tokenToSpend.amount === zeroNormalizedBN) {
@@ -142,7 +142,7 @@ export const usePortalsSolver = (
 			}
 
 			const inputToken = configuration?.tokenToSpend.token.address;
-			const outputToken = configuration?.vault.address;
+			const outputToken = configuration?.tokenToReceive.token.address;
 
 			if (isEthAddress(inputToken)) {
 				return toNormalizedBN(MAX_UINT_256, 18);
@@ -180,7 +180,6 @@ export const usePortalsSolver = (
 				);
 
 				set_isFetchingAllowance(false);
-
 				return existingAllowances.current[key];
 			} catch (err) {
 				set_isFetchingAllowance(false);
@@ -189,9 +188,9 @@ export const usePortalsSolver = (
 		},
 		[
 			address,
+			configuration?.tokenToReceive.token,
 			configuration.tokenToSpend.amount,
 			configuration.tokenToSpend.token,
-			configuration?.vault,
 			latestQuote
 		]
 	);
@@ -321,7 +320,7 @@ export const usePortalsSolver = (
 						outputToken: `${network}:${toAddress(outputToken)}`,
 						inputAmount: String(amountToSpend?.raw ?? 0n),
 						slippageTolerancePercentage: slippage.toString(),
-						validate: 'false'
+						validate: 'true'
 					}
 				});
 				if (!transaction.result) {
@@ -330,7 +329,6 @@ export const usePortalsSolver = (
 				const {tx} = transaction.result;
 				const {value, to, data, ...rest} = tx;
 
-				console.warn(transaction);
 				/**********************************************************************************
 				 ** If the user tries to deposit or withdraw from a different chain than the one
 				 ** the token is on, we need to switch the chain before performing the transaction.
@@ -366,6 +364,7 @@ export const usePortalsSolver = (
 					to: toAddress(to),
 					data,
 					chainId: tokenToSpend.chainID,
+					// gas: 2000000,
 					...rest
 				});
 				const receipt = await waitForTransactionReceipt(retrieveConfig(), {chainId: wProvider.chainId, hash});

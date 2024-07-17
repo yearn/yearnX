@@ -4,7 +4,7 @@ import {useOnClickOutside} from 'usehooks-ts';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, fromNormalized, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, fromNormalized, isAddress, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
@@ -35,7 +35,7 @@ type TWithdrawModalProps = {
 };
 
 function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
-	const {address} = useWeb3();
+	const {address, onConnect} = useWeb3();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const [isSelectorOpen, set_isSelectorOpen] = useState(false);
 	const [searchValue, set_searchValue] = useState('');
@@ -45,7 +45,8 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	const toggleButtonRef = useRef(null);
 	const tokensOnCurrentChain = listTokens(configuration?.vault?.chainID);
 	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
-	const {onExecuteWithdraw, quote, isFetchingQuote, withdrawStatus, canZap} = useSolver();
+	const {onExecuteWithdraw, quote, isFetchingQuote, withdrawStatus, canZap, onApprove, isApproved, approvalStatus} =
+		useSolver();
 	const {balances, getBalance} = useWallet();
 
 	useOnClickOutside([selectorRef, toggleButtonRef], () => set_isSelectorOpen(false));
@@ -116,6 +117,14 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	 * TODO: Add comment
 	 *********************************************************************************************/
 	const onAction = useCallback(async () => {
+		if (!isAddress(address)) {
+			onConnect();
+			return;
+		}
+		if (!isApproved) {
+			onApprove?.();
+			return;
+		}
 		return onExecuteWithdraw?.(() => {
 			props.onClose();
 			props.set_isSuccessModalOpen(true);
@@ -140,9 +149,13 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 			);
 		});
 	}, [
+		address,
 		configuration?.tokenToReceive?.token?.symbol,
 		configuration?.tokenToSpend.amount?.display,
+		isApproved,
 		isZapNeededForWithdraw,
+		onApprove,
+		onConnect,
 		onExecuteWithdraw,
 		props,
 		quote?.minOutputAmount,
@@ -164,11 +177,18 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 		return value;
 	}, [getBalance, configuration?.vault?.address, configuration?.vault?.chainID, currentBalanceIdentifier]);
 
-	const buttonTitle = address
-		? !canZap && !isFetchingQuote
-			? 'Impossible to zap out'
-			: 'Withdraw'
-		: 'Connect Wallet';
+	const buttonTitle = useMemo(() => {
+		if (!isAddress(address)) {
+			return 'Connect Wallet';
+		}
+		if (!canZap && !isFetchingQuote) {
+			return 'Impossible to zap out';
+		}
+		if (!isApproved) {
+			return 'Approve';
+		}
+		return 'Withdraw';
+	}, [address, canZap, isFetchingQuote, isApproved]);
 
 	return (
 		<Transition
@@ -379,7 +399,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 
 							<Button
 								onClick={onAction}
-								isBusy={isFetchingQuote || withdrawStatus?.pending}
+								isBusy={isFetchingQuote || withdrawStatus?.pending || approvalStatus?.pending}
 								isDisabled={false}
 								spinnerClassName={'text-background size-4 animate-spin'}
 								className={cl(
