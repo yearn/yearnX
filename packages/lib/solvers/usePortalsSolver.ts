@@ -1,10 +1,12 @@
 import {useCallback, useRef, useState} from 'react';
 import {BaseError, erc20Abi, isHex, zeroAddress} from 'viem';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
 	assert,
 	assertAddress,
+	ETH_TOKEN_ADDRESS,
 	isEthAddress,
 	MAX_UINT_256,
 	toAddress,
@@ -36,6 +38,7 @@ export const usePortalsSolver = (
 	isZapNeededForWithdraw: boolean
 ): TSolverContextBase => {
 	const {configuration} = useManageVaults();
+	const {onRefresh} = useWallet();
 	const {address, provider} = useWeb3();
 	const [approvalStatus, set_approvalStatus] = useState(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
@@ -48,20 +51,23 @@ export const usePortalsSolver = (
 	const isAboveAllowance = allowance.raw >= spendAmount;
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
 
+	/**********************************************************************************************
+	 * TODO: Add comment to explain how it works
+	 *********************************************************************************************/
 	const onRetrieveQuote = useCallback(async () => {
 		const {action} = configuration;
 		if (
-			(action === 'WITHDRAW' && !configuration?.tokenToReceive.token) ||
-			(action === 'DEPOSIT' && !configuration?.tokenToSpend.token) ||
 			!configuration?.vault ||
-			(action === 'DEPOSIT' && configuration?.tokenToSpend.amount === zeroNormalizedBN) ||
-			(action === 'WITHDRAW' && configuration?.tokenToSpend.amount === zeroNormalizedBN)
+			(action === 'DEPOSIT' && !configuration.tokenToSpend.token) ||
+			(action === 'DEPOSIT' && configuration.tokenToSpend.amount === zeroNormalizedBN) ||
+			(action === 'WITHDRAW' && !configuration.tokenToReceive.token) ||
+			(action === 'WITHDRAW' && configuration.tokenToSpend.amount === zeroNormalizedBN)
 		) {
 			return null;
 		}
 
 		const outputToken =
-			action === 'DEPOSIT' ? configuration?.vault.address : configuration?.tokenToReceive.token?.address;
+			action === 'DEPOSIT' ? configuration.vault.address : configuration.tokenToReceive.token?.address;
 		const request: TInitSolverArgs = {
 			chainID: Number(configuration?.tokenToSpend.token?.chainID),
 			version: configuration?.vault.version,
@@ -95,6 +101,9 @@ export const usePortalsSolver = (
 		configuration?.tokenToSpend.amount?.normalized
 	]);
 
+	/**********************************************************************************************
+	 * TODO: Add comment to explain how it works
+	 *********************************************************************************************/
 	useAsyncTrigger(async (): Promise<void> => {
 		if (!configuration?.action) {
 			return;
@@ -111,19 +120,12 @@ export const usePortalsSolver = (
 		if (configuration.action === 'DEPOSIT') {
 			onRetrieveQuote();
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		configuration.action,
-		configuration?.tokenToReceive.token?.address,
-		isZapNeededForDeposit,
-		isZapNeededForWithdraw,
-		onRetrieveQuote
-	]);
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote]);
 
 	/**********************************************************************************************
 	 * Retrieve the allowance for the token to be used by the solver. This will be used to
 	 * determine if the user should approve the token or not.
-	 **********************************************************************************************/
+	 *********************************************************************************************/
 	const onRetrieveAllowance = useCallback(
 		async (shouldForceRefetch?: boolean): Promise<TNormalizedBN> => {
 			if (!latestQuote || !configuration?.tokenToSpend.token || !configuration?.vault) {
@@ -279,49 +281,60 @@ export const usePortalsSolver = (
 		async (action: 'WITHDRAW' | 'DEPOSIT'): Promise<TTxResponse> => {
 			assert(provider, 'Provider is not set');
 			assert(latestQuote, 'Quote is not set');
-			assert(configuration?.tokenToSpend.token, 'Input token is not set');
+			assert(configuration?.tokenToSpend.token, 'Token to Spend is not set');
+			assert(configuration?.tokenToReceive.token, 'Token to Receiver is not set');
 			assert(configuration?.vault, 'Output token is not set');
+			const tokenToSpend = configuration?.tokenToSpend.token;
+			const amountToSpend = configuration?.tokenToSpend.amount;
+			const tokenToReceive = configuration?.tokenToReceive.token;
+			const vault = configuration?.vault;
 
 			try {
-				let inputToken = configuration?.tokenToSpend.token?.address;
+				const wProvider = await toWagmiProvider(provider);
 
-				const outputToken =
-					action === 'DEPOSIT' ? configuration?.vault.address : configuration?.tokenToReceive.token?.address;
+				/**********************************************************************************
+				 ** Based on the flow of the transaction, we need to set the input token to the
+				 ** token to spend, and the output token to the vault or the token to receive.
+				 *********************************************************************************/
+				let inputToken = tokenToSpend.address;
+				const outputToken = action === 'DEPOSIT' ? vault.address : tokenToReceive.address;
 				if (isEthAddress(inputToken)) {
 					inputToken = zeroAddress;
 				}
-				const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
+
+				/**********************************************************************************
+				 ** We can ask the Portals solver to prepare the transaction for us. We need to
+				 ** provide the sender, input token, output token, input amount, and slippage
+				 ** tolerance.
+				 *********************************************************************************/
+				const network = PORTALS_NETWORK.get(tokenToSpend.chainID);
 				const transaction = await getPortalsTx({
 					params: {
 						sender: toAddress(address),
 						inputToken: `${network}:${toAddress(inputToken)}`,
 						outputToken: `${network}:${toAddress(outputToken)}`,
-						inputAmount: String(configuration?.tokenToSpend.amount?.raw ?? 0n),
-						slippageTolerancePercentage: '1',
-						// TODO figure out what slippage do we need
+						inputAmount: String(amountToSpend?.raw ?? 0n),
+						slippageTolerancePercentage: '0.1', // TODO figure out what slippage do we need
 						validate: 'false'
 					}
 				});
-
 				if (!transaction.result) {
 					throw new Error('Transaction data was not fetched from Portals!');
 				}
+				const {tx} = transaction.result;
+				const {value, to, data, ...rest} = tx;
 
-				const {
-					tx: {value, to, data, ...rest}
-				} = transaction.result;
-				const wagmiProvider = await toWagmiProvider(provider);
-
+				/**********************************************************************************
+				 ** If the user tries to deposit or withdraw from a different chain than the one
+				 ** the token is on, we need to switch the chain before performing the transaction.
+				 *********************************************************************************/
 				if (
-					(action === 'DEPOSIT' && wagmiProvider.chainId !== configuration?.tokenToSpend.token.chainID) ||
-					(action === 'WITHDRAW' && wagmiProvider.chainId !== configuration?.tokenToReceive.token?.chainID)
+					(action === 'DEPOSIT' && wProvider.chainId !== tokenToSpend.chainID) ||
+					(action === 'WITHDRAW' && wProvider.chainId !== tokenToReceive.chainID)
 				) {
 					try {
 						await switchChain(retrieveConfig(), {
-							chainId:
-								action === 'DEPOSIT'
-									? configuration?.tokenToSpend.token.chainID
-									: Number(configuration?.tokenToReceive.token?.chainID)
+							chainId: action === 'DEPOSIT' ? tokenToSpend.chainID : Number(tokenToReceive.chainID)
 						});
 					} catch (error) {
 						if (!(error instanceof BaseError)) {
@@ -333,19 +346,34 @@ export const usePortalsSolver = (
 					}
 				}
 
+				/**********************************************************************************
+				 ** We assert that the data is in hex format and that the wallet client is set
+				 ** before sending the transaction prepared by the Portals solver.
+				 ** Once it's done and we have the receipt, we need to update the balances of all
+				 ** the tokens involved in the transaction
+				 *********************************************************************************/
 				assert(isHex(data), 'Data is not hex');
-				assert(wagmiProvider.walletClient, 'Wallet client is not set');
+				assert(wProvider.walletClient, 'Wallet client is not set');
 				const hash = await sendTransaction(retrieveConfig(), {
 					value: toBigInt(value ?? 0),
 					to: toAddress(to),
 					data,
-					chainId: configuration?.tokenToSpend.token.chainID,
+					chainId: tokenToSpend.chainID,
 					...rest
 				});
-				const receipt = await waitForTransactionReceipt(retrieveConfig(), {
-					chainId: wagmiProvider.chainId,
-					hash
-				});
+				const receipt = await waitForTransactionReceipt(retrieveConfig(), {chainId: wProvider.chainId, hash});
+				await onRefresh(
+					[
+						{chainID: vault.chainID, address: vault.address},
+						{chainID: vault.chainID, address: vault.token.address},
+						{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
+						{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
+						{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
+					],
+					false,
+					true
+				);
+
 				if (receipt.status === 'success') {
 					return {isSuccessful: true, receipt: receipt};
 				}
@@ -364,20 +392,20 @@ export const usePortalsSolver = (
 		},
 		[
 			address,
-			configuration?.tokenToReceive.token?.address,
-			configuration?.tokenToReceive.token?.chainID,
-			configuration?.tokenToSpend.amount?.raw,
+			configuration?.tokenToReceive.token,
+			configuration?.tokenToSpend.amount,
 			configuration?.tokenToSpend.token,
 			configuration?.vault,
 			latestQuote,
+			onRefresh,
 			provider
 		]
 	);
 
 	/**********************************************************************************************
-	 * This execute function is not an actual deposit/withdraw, but a swap using the Portals
-	 * solver. The deposit will be executed by the Portals solver by simply swapping the input token
-	 * for the output token.
+	 ** This execute function is not an actual deposit/withdraw, but a swap using the Portals
+	 ** solver. The deposit will be executed by the Portals solver by simply swapping the input
+	 ** token for the output token.
 	 *********************************************************************************************/
 	const onExecuteDeposit = useCallback(
 		async (onSuccess: () => void): Promise<void> => {
