@@ -30,7 +30,6 @@ export const TokenSelectorDropdown = ({
 	selectorRef
 }: TTokenSelectorDropdownProps): ReactElement => {
 	const {address} = useWeb3();
-
 	const {getPrice} = usePrices();
 
 	/**********************************************************************************************
@@ -78,7 +77,8 @@ export const TokenSelectorDropdown = ({
 				<div
 					ref={selectorRef}
 					className={cl(
-						'bg-table no-scrollbar border-regularText/15 absolute z-[1003] mt-2 rounded-lg border py-5 md:min-w-[560px]',
+						'w-fit min-w-[341px] md:min-w-[560px]',
+						'bg-table no-scrollbar border-regularText/15 absolute z-[1003] mt-2 rounded-lg border py-5',
 						className
 					)}>
 					<label

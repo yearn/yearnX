@@ -47,9 +47,11 @@ export const usePortalsSolver = (
 	const [isFetchingAllowance, set_isFetchingAllowance] = useState(false);
 	const [latestQuote, set_latestQuote] = useState<TPortalsEstimate>();
 	const [isFetchingQuote, set_isFetchingQuote] = useState(false);
+	const [canZap, set_canZap] = useState(true);
 	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
 	const isAboveAllowance = allowance.raw >= spendAmount;
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
+	const slippage = 10;
 
 	/**********************************************************************************************
 	 * TODO: Add comment to explain how it works
@@ -59,10 +61,11 @@ export const usePortalsSolver = (
 		if (
 			!configuration?.vault ||
 			(action === 'DEPOSIT' && !configuration.tokenToSpend.token) ||
-			(action === 'DEPOSIT' && configuration.tokenToSpend.amount === zeroNormalizedBN) ||
+			(action === 'DEPOSIT' && toBigInt(configuration.tokenToSpend.amount?.raw) === 0n) ||
 			(action === 'WITHDRAW' && !configuration.tokenToReceive.token) ||
-			(action === 'WITHDRAW' && configuration.tokenToSpend.amount === zeroNormalizedBN)
+			(action === 'WITHDRAW' && toBigInt(configuration.tokenToSpend.amount?.raw) === 0n)
 		) {
+			set_latestQuote(undefined);
 			return null;
 		}
 
@@ -80,14 +83,17 @@ export const usePortalsSolver = (
 		};
 
 		set_isFetchingQuote(true);
-
-		const {result, error} = await getQuote(request, 0.01);
+		const {result, error} = await getQuote(request, slippage);
 		if (!result) {
 			if (error) {
 				console.error(error);
 			}
+			set_canZap(false);
+			set_latestQuote(undefined);
+			set_isFetchingQuote(false);
 			return undefined;
 		}
+		set_canZap(true);
 		set_latestQuote(result);
 		set_isFetchingQuote(false);
 
@@ -314,7 +320,7 @@ export const usePortalsSolver = (
 						inputToken: `${network}:${toAddress(inputToken)}`,
 						outputToken: `${network}:${toAddress(outputToken)}`,
 						inputAmount: String(amountToSpend?.raw ?? 0n),
-						slippageTolerancePercentage: '0.1', // TODO figure out what slippage do we need
+						slippageTolerancePercentage: slippage.toString(),
 						validate: 'false'
 					}
 				});
@@ -324,6 +330,7 @@ export const usePortalsSolver = (
 				const {tx} = transaction.result;
 				const {value, to, data, ...rest} = tx;
 
+				console.warn(transaction);
 				/**********************************************************************************
 				 ** If the user tries to deposit or withdraw from a different chain than the one
 				 ** the token is on, we need to switch the chain before performing the transaction.
@@ -382,9 +389,9 @@ export const usePortalsSolver = (
 			} catch (error) {
 				if (isValidPortalsErrorObject(error)) {
 					const errorMessage = error.response.data.message;
-					console.error(errorMessage);
+					console.dir(errorMessage);
 				} else {
-					console.error(error);
+					console.dir(error);
 				}
 
 				return {isSuccessful: false};
@@ -458,6 +465,7 @@ export const usePortalsSolver = (
 		set_withdrawStatus,
 		onExecuteWithdraw,
 
+		canZap,
 		isFetchingQuote,
 		quote: latestQuote || null
 	};

@@ -181,6 +181,7 @@ export const useVanilaSolver = (
 		isDisabled: !approvalStatus.none,
 		onApprove,
 
+		canZap: true, //Not used in vanilla solver
 		isFetchingQuote: false,
 		quote: null
 	};

@@ -1,16 +1,16 @@
-import {Fragment, type ReactElement, useCallback, useMemo, useRef, useState} from 'react';
+import {Fragment, type ReactElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
 import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, fromNormalized, toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, fromNormalized, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import {usePopularTokens} from '@lib/contexts/usePopularTokens';
 import {useSolver} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
-import {useTokensWithBalance} from '@lib/hooks/useTokensWithBalance';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconChevron} from '../icons/IconChevron';
@@ -21,6 +21,7 @@ import {ImageWithFallback} from './ImageWithFallback';
 import {TokenSelectorDropdown} from './TokenSelectorDropdown';
 import {VaultLink} from './VaultLink';
 
+import type {TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
 type TWithdrawModalProps = {
@@ -33,29 +34,87 @@ type TWithdrawModalProps = {
 	set_successModalDescription: (value: ReactElement) => void;
 };
 
-export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
+function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	const {address} = useWeb3();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const [isSelectorOpen, set_isSelectorOpen] = useState(false);
 	const [searchValue, set_searchValue] = useState('');
-	const {listTokens} = useTokensWithBalance();
+	const [allAvailableTokens, set_allAvailableTokens] = useState<TToken[]>([]);
+	const {listTokens} = usePopularTokens();
 	const selectorRef = useRef(null);
 	const toggleButtonRef = useRef(null);
+	const tokensOnCurrentChain = listTokens(configuration?.vault?.chainID);
+	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
+	const {onExecuteWithdraw, quote, isFetchingQuote, withdrawStatus, canZap} = useSolver();
+	const {balances, getBalance} = useWallet();
 
 	useOnClickOutside([selectorRef, toggleButtonRef], () => set_isSelectorOpen(false));
 
-	const tokensOnCurrentChain = listTokens(configuration?.vault?.chainID);
+	/**********************************************************************************************
+	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
+	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
+	 ** We will use classic hash function to create a hash from the balances object.
+	 *********************************************************************************************/
+	const currentBalanceIdentifier = useMemo(() => {
+		const hash = createUniqueID(serialize(balances));
+		return hash;
+	}, [balances]);
 
-	const searchFilteredTokens = tokensOnCurrentChain.filter(token => {
-		const lowercaseValue = searchValue.toLowerCase();
-		return token.name.toLowerCase().includes(lowercaseValue) || token.symbol.toLowerCase().includes(lowercaseValue);
-	});
+	/**********************************************************************************************
+	 * TODO: Add comment
+	 *********************************************************************************************/
+	const vaultToken = useMemo((): TToken | undefined => {
+		if (!configuration?.vault?.token) {
+			return undefined;
+		}
+		return {
+			...configuration.vault.token,
+			chainID: configuration.vault.chainID,
+			value: 0,
+			balance: getBalance({
+				chainID: configuration.vault.chainID,
+				address: toAddress(configuration.vault.token.address)
+			})
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [configuration?.vault?.chainID, configuration?.vault?.token, currentBalanceIdentifier]);
 
-	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
+	/**********************************************************************************************
+	 * TODO: Add comment
+	 *********************************************************************************************/
+	useEffect((): void => {
+		if (!vaultToken) {
+			return;
+		}
+		if (allAvailableTokens.length > 0) {
+			return;
+		}
+		set_allAvailableTokens([vaultToken, ...tokensOnCurrentChain]);
+	}, [tokensOnCurrentChain, vaultToken, allAvailableTokens]);
 
-	const {onExecuteWithdraw, quote, isFetchingQuote} = useSolver();
-	const {balances, getBalance} = useWallet();
+	/**********************************************************************************************
+	 * TODO: Add comment
+	 *********************************************************************************************/
+	const searchFilteredTokens = useMemo((): TToken[] => {
+		const cloned = [...new Set(allAvailableTokens)];
+		const filtered = cloned.filter(token => {
+			const lowercaseValue = searchValue.toLowerCase();
+			return (
+				token.name.toLowerCase().includes(lowercaseValue) || token.symbol.toLowerCase().includes(lowercaseValue)
+			);
+		});
+		const noDuplicates: TToken[] = [];
+		for (const token of filtered) {
+			if (!noDuplicates.some(t => t.address === token.address)) {
+				noDuplicates.push(token);
+			}
+		}
+		return noDuplicates;
+	}, [allAvailableTokens, searchValue]);
 
+	/**********************************************************************************************
+	 * TODO: Add comment
+	 *********************************************************************************************/
 	const onAction = useCallback(async () => {
 		return onExecuteWithdraw?.(() => {
 			props.onClose();
@@ -89,15 +148,6 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 		quote?.minOutputAmount,
 		quote?.outputTokenDecimals
 	]);
-	/**********************************************************************************************
-	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
-	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
-	 ** We will use classic hash function to create a hash from the balances object.
-	 *********************************************************************************************/
-	const currentBalanceIdentifier = useMemo(() => {
-		const hash = createUniqueID(serialize(balances));
-		return hash;
-	}, [balances]);
 
 	/**********************************************************************************************
 	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
@@ -114,7 +164,11 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 		return value;
 	}, [getBalance, configuration?.vault?.address, configuration?.vault?.chainID, currentBalanceIdentifier]);
 
-	const buttonTitle = address ? 'Withdraw' : 'Connect Wallet';
+	const buttonTitle = address
+		? !canZap && !isFetchingQuote
+			? 'Impossible to zap out'
+			: 'Withdraw'
+		: 'Connect Wallet';
 
 	return (
 		<Transition
@@ -249,41 +303,57 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 							</div>
 
 							<div className={'mb-5'}>
-								<button
-									disabled={!address}
-									ref={toggleButtonRef}
-									onClick={() => set_isSelectorOpen(prev => !prev)}
-									className={
-										'border-regularText/15 bg-regularText/5 relative flex !h-16 w-full items-center justify-between gap-x-1 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
-									}>
-									<div className={'flex items-center gap-x-2'}>
-										<ImageWithFallback
-											src={`https://assets.smold.app/tokens/${configuration?.vault?.chainID}/${configuration?.tokenToReceive.token?.address}/logo-128.png`}
-											alt={configuration?.tokenToReceive.token?.address || 'address'}
-											width={32}
-											height={32}
-										/>
-										<div className={'flex gap-x-1'}>
-											{isFetchingQuote ? (
-												<IconSpinner />
-											) : (
-												<>
-													<span>
-														{!isZapNeededForWithdraw
-															? configuration?.tokenToSpend.amount?.normalized
-															: formatBigIntForDisplay(
-																	BigInt(quote?.minOutputAmount ?? ''),
-																	quote?.outputTokenDecimals ?? 18,
-																	{maximumFractionDigits: 10}
-																)}
-													</span>
-													<span>{configuration?.tokenToReceive.token?.symbol}</span>
-												</>
-											)}
+								<div className={'w-full'}>
+									<Button
+										isBusy={false}
+										isDisabled={!address}
+										ref={toggleButtonRef}
+										onClick={() => set_isSelectorOpen(prev => !prev)}
+										className={
+											'border-regularText/15 bg-regularText/5 relative flex !h-16 w-full items-center justify-between gap-x-1 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
+										}>
+										<div className={'flex w-full items-center gap-x-2'}>
+											<ImageWithFallback
+												src={`https://assets.smold.app/tokens/${configuration?.vault?.chainID}/${configuration?.tokenToReceive.token?.address}/logo-128.png`}
+												alt={configuration?.tokenToReceive.token?.address || 'address'}
+												width={32}
+												height={32}
+												className={
+													(!canZap && !isFetchingQuote) ||
+													toBigInt(configuration?.tokenToSpend.amount?.raw) === 0n
+														? 'opacity-40'
+														: ''
+												}
+											/>
+											<div
+												className={cl(
+													'flex gap-x-1',
+													(!canZap && !isFetchingQuote) ||
+														toBigInt(configuration?.tokenToSpend.amount?.raw) === 0n
+														? 'text-regularText/40'
+														: ''
+												)}>
+												{isFetchingQuote ? (
+													<IconSpinner className={'text-accentText size-4 animate-spin'} />
+												) : (
+													<>
+														<span>
+															{!isZapNeededForWithdraw
+																? configuration?.tokenToSpend.amount?.normalized
+																: formatBigIntForDisplay(
+																		BigInt(quote?.minOutputAmount ?? ''),
+																		quote?.outputTokenDecimals ?? 18,
+																		{maximumFractionDigits: 10}
+																	)}
+														</span>
+														<span>{configuration?.tokenToReceive.token?.symbol}</span>
+													</>
+												)}
+											</div>
 										</div>
-									</div>
-									<IconChevron className={'text-regularText size-6'} />
-								</button>
+										<IconChevron className={'text-regularText size-6'} />
+									</Button>
+								</div>
 
 								<TokenSelectorDropdown
 									isOpen={isSelectorOpen}
@@ -309,8 +379,9 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 
 							<Button
 								onClick={onAction}
-								isBusy={false}
+								isBusy={isFetchingQuote || withdrawStatus?.pending}
 								isDisabled={false}
+								spinnerClassName={'text-background size-4 animate-spin'}
 								className={cl(
 									'text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText px-[34.5px] py-5 font-bold',
 									'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed !h-12'
@@ -323,4 +394,11 @@ export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
 			</Dialog>
 		</Transition>
 	);
+}
+
+export function WithdrawModal(props: TWithdrawModalProps): ReactElement {
+	if (!props.isOpen) {
+		return <Fragment />;
+	}
+	return <WithdrawModalContent {...props} />;
 }

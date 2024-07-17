@@ -40,6 +40,7 @@ type TGetEstimateProps = {
 		inputAmount: string;
 		outputToken: string;
 		slippageTolerancePercentage: string;
+		sender?: TAddress;
 	};
 };
 
@@ -204,7 +205,8 @@ export async function getQuote(
 			inputToken: `${network}:${toAddress(inputToken)}`,
 			outputToken: `${network}:${toAddress(request.outputToken)}`,
 			inputAmount: toBigInt(request.inputAmount).toString(),
-			slippageTolerancePercentage: String(zapSlippage)
+			slippageTolerancePercentage: String(zapSlippage),
+			sender: request.from
 		}
 	});
 	return estimate;

@@ -6,6 +6,7 @@ import {WithFonts} from '@lib/components/common/WithFonts';
 import {IconCheck} from '@lib/components/icons/IconCheck';
 import {IconCircleCross} from '@lib/components/icons/IconCircleCross';
 import {VaultsContextApp} from '@lib/contexts/useManageVaults';
+import {WithPopularTokens} from '@lib/contexts/usePopularTokens';
 import {WithPrices} from '@lib/contexts/usePrices';
 import {SolverContextApp} from '@lib/contexts/useSolver';
 import {supportedNetworks} from '@lib/utils/tools.chains';
@@ -33,17 +34,19 @@ export default function MyApp(props: AppProps): ReactElement {
 				supportedChains={supportedNetworks}
 				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn-min.json']}>
 				<WalletContextApp>
-					<WithPrices supportedNetworks={supportedNetworks}>
-						<VaultsContextApp>
-							<SolverContextApp>
-								<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
-									<main className={'relative flex  w-full justify-center'}>
-										<Component />
-									</main>
-								</div>
-							</SolverContextApp>
-						</VaultsContextApp>
-					</WithPrices>
+					<WithPopularTokens>
+						<WithPrices supportedNetworks={supportedNetworks}>
+							<VaultsContextApp>
+								<SolverContextApp>
+									<div className={'bg-background flex h-lvh w-full justify-center overflow-auto p-6'}>
+										<main className={'relative flex  w-full justify-center'}>
+											<Component />
+										</main>
+									</div>
+								</SolverContextApp>
+							</VaultsContextApp>
+						</WithPrices>
+					</WithPopularTokens>
 				</WalletContextApp>
 			</WithMom>
 			<Toaster

@@ -35,6 +35,7 @@ export type TSolverContextBase = {
 	set_withdrawStatus: (value: TTxStatus) => void;
 	onExecuteWithdraw: (onSuccess: () => void) => Promise<void>;
 
+	canZap: boolean;
 	isFetchingQuote: boolean;
 	quote: TPortalsEstimate | null;
 };
