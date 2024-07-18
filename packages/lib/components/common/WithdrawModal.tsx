@@ -62,7 +62,10 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	}, [balances]);
 
 	/**********************************************************************************************
-	 * TODO: Add comment
+	 ** useMemo hook to create a vault token object based on the current configuration.
+	 ** - If the configuration does not contain a vault token, it returns `undefined`.
+	 ** - Otherwise, it returns a new token object with additional properties such as `chainID`,
+	 ** `value`, and `balance`.
 	 *********************************************************************************************/
 	const vaultToken = useMemo((): TToken | undefined => {
 		if (!configuration?.vault?.token) {
@@ -81,7 +84,11 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	}, [configuration?.vault?.chainID, configuration?.vault?.token, currentBalanceIdentifier]);
 
 	/**********************************************************************************************
-	 * TODO: Add comment
+	 ** useEffect hook to set the list of all available tokens when certain conditions are met.
+	 ** - If `vaultToken` is not present, the effect returns early.
+	 ** - If `allAvailableTokens` already has tokens, the effect returns early.
+	 ** - Otherwise, it sets `allAvailableTokens` to a new list containing `vaultToken`
+	 ** followed by `tokensOnCurrentChain`.
 	 *********************************************************************************************/
 	useEffect((): void => {
 		if (!vaultToken) {
@@ -94,7 +101,10 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	}, [tokensOnCurrentChain, vaultToken, allAvailableTokens]);
 
 	/**********************************************************************************************
-	 * TODO: Add comment
+	 ** useMemo hook to filter and deduplicate a list of tokens based on a search value.
+	 ** - Clones the list of all available tokens and removes duplicates.
+	 ** - Filters the tokens based on whether the token's name or symbol includes the search value.
+	 ** - Removes any remaining duplicates based on the token's address
 	 *********************************************************************************************/
 	const searchFilteredTokens = useMemo((): TToken[] => {
 		const cloned = [...new Set(allAvailableTokens)];
@@ -114,7 +124,10 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	}, [allAvailableTokens, searchValue]);
 
 	/**********************************************************************************************
-	 * TODO: Add comment
+	 ** onAction is a callback that decides what to do on button click. If wallet isn't connected,
+	 ** button opens Wallet connect modal. If wallet's connected, but token isn't approved, is
+	 ** calls approve contract. And if everything's ready, it calls onExecuteWithdraw function,
+	 ** and if everything is successfull, we close withdraw modal and open successModal.
 	 *********************************************************************************************/
 	const onAction = useCallback(async () => {
 		if (!isAddress(address)) {
@@ -179,6 +192,12 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 		return value;
 	}, [getBalance, configuration?.vault?.address, configuration?.vault?.chainID, currentBalanceIdentifier]);
 
+	/**********************************************************************************************
+	 ** buttonTitle for withdraw only button depends - on wallet(if wallet isn't connected, button
+	 ** says 'Connect Wallet'), - on possibility of withdraw from portals (if it's not possible,
+	 ** but says it), - on isApproved(if token to withdraw isn't approve, button says 'Approve'),
+	 ** And if everything is ready for withdraw, it says 'Withdraw'.
+	 *********************************************************************************************/
 	const buttonTitle = useMemo(() => {
 		if (!isAddress(address)) {
 			return 'Connect Wallet';
@@ -222,7 +241,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 					leave={'ease-in duration-200'}
 					leaveFrom={'opacity-100'}
 					leaveTo={'opacity-0'}>
-					<div className={cl('fixed -translate-y-1/2 top-1/2 p-4 text-center sm:items-center sm:p-0')}>
+					<div className={cl('fixed -translate-y-1/3 top-1/3 p-4 text-center sm:items-center sm:p-0')}>
 						<div className={'bg-background relative rounded-2xl p-10 md:min-w-[640px]'}>
 							<button
 								onClick={() => props.onClose()}

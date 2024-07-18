@@ -246,11 +246,13 @@ export function TokenAmountWrapper({
 					<span className={'mr-1'}>{'APY:'}</span>
 					<span className={'font-bold'}>{toPercent(vault.apr.netAPR)}</span>
 				</div>
-				<span className={'text-base'}>
-					{'+ '}
-					{totalProfit}
-					{' over 1y'}
-				</span>
+				{Boolean(configuration?.tokenToSpend.amount?.normalized) && (
+					<span className={'text-base'}>
+						{'+ '}
+						{totalProfit}
+						{' over 1y'}
+					</span>
+				)}
 			</div>
 			<Button
 				onClick={address ? onActionClick : onConnect}

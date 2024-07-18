@@ -17,6 +17,11 @@ function getCurrentPageFromUrl(): number {
 	return 1;
 }
 
+/**************************************************************************************************
+ ** Custom hook to manage pagination for a list of vaults. This hook provides the current page,
+ ** the vaults for the current page, functions to navigate to the next and previous pages, and the
+ ** total number of pages. It also saves the current page number in URL.
+ *************************************************************************************************/
 export const useVaultsPagination = (
 	vaultsPerPage: number,
 	vaults: TYDaemonVaults

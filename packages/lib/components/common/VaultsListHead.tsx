@@ -3,7 +3,7 @@ import {useRouter, useSearchParams} from 'next/navigation';
 import {COLORS} from 'packages/optimism/constants';
 import {cl} from '@builtbymom/web3/utils';
 
-import {IconSort} from './icons/IconSort';
+import {IconSort} from '../icons/IconSort';
 
 import type {TSortDirection} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';

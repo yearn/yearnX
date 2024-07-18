@@ -129,6 +129,10 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 
 	const {dispatchConfiguration} = useManageVaults();
 
+	/**********************************************************************************************
+	 ** onDepositClick is a callback that sets "DEPOSIT" (and it opens deposit modal) to reducer
+	 ** as action and sets vault token as default to be deposited.
+	 *********************************************************************************************/
 	const onDepositClick = useCallback(async (): Promise<void> => {
 		dispatchConfiguration({
 			type: 'SET_DEPOSIT',
@@ -150,6 +154,10 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		});
 	}, [dispatchConfiguration, getBalance, vault]);
 
+	/**********************************************************************************************
+	 ** onWithdrawClick is a callback that sets "WITHDRAW" (and it opens withdraw modal) to reducer
+	 ** as action and sets vault token as default to be withdrawn.
+	 *********************************************************************************************/
 	const onWithdrawClick = useCallback(async (): Promise<void> => {
 		dispatchConfiguration({
 			type: 'SET_WITHDRAW',

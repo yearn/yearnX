@@ -31,6 +31,11 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const {isZapNeededForDeposit} = useIsZapNeeded(configuration);
 
+	/**********************************************************************************************
+	 ** buttonTitle for deposit only button depends - on wallet(if wallet isn't connected, button
+	 ** says 'Connect Wallet'), - on isApproved(if token to deposit isn't approve, button says
+	 ** 'Approve'). And if everything is ready for deposit, it says 'Deposit'.
+	 *********************************************************************************************/
 	const getButtonTitle = (): string => {
 		if (!address) {
 			return 'Connect wallet';
@@ -53,6 +58,12 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		quote
 	} = useSolver();
 
+	/**********************************************************************************************
+	 ** onAction is a callback that decides what to do on button click. If wallet isn't connected,
+	 ** button opens Wallet connect modal. If wallet's connected, but token isn't approved, is
+	 ** calls approve contract. And if everything's ready, it calls onExecuteDeposit function,
+	 ** and if everything is successfull, we close deposit modal and open successModal.
+	 *********************************************************************************************/
 	const onAction = useCallback(async () => {
 		if (!address) {
 			openAccountModal?.();
@@ -99,6 +110,13 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		props
 	]);
 
+	/**********************************************************************************************
+	 ** useMemo hook to determine the validity of the current configuration for a deposit action.
+	 ** - Returns `false` if a zap is needed for the deposit and no quote is available.
+	 ** - Returns `false` if the amount or token to spend is not specified in the configuration.
+	 ** - Returns `false` if the token to spend has the same address as the vault.
+	 ** - Returns `true` if none of the above conditions are met, indicating a valid configuration.
+	 *********************************************************************************************/
 	const isValid = useMemo((): boolean => {
 		if (isZapNeededForDeposit && !quote) {
 			return false;

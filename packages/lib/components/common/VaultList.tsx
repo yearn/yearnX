@@ -6,11 +6,11 @@ import {useDebounce} from '@lib/hooks/useDebounce';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
 
-import {VaultsListHead} from '../VaultsListHead';
 import {Pagination} from './Pagination';
 import {Skeleton} from './Skeleton';
 import {VaultItem} from './VaultItem';
 import {VaultSearch} from './VaultSearch';
+import {VaultsListHead} from './VaultsListHead';
 
 import type {TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
@@ -26,11 +26,21 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 	const [searchValue, set_searchValue] = useState('');
 	const {debouncedValue} = useDebounce(searchValue, 400);
 
+	/**********************************************************************************************
+	 ** useMemo hook to retrieve and memoize prices for all tokens associated with the vaults.
+	 ** - Constructs an array of tokens from `props.vaults` containing chain IDs and addresses.
+	 ** - Uses `getPrices` to fetch prices for these tokens.
+	 *********************************************************************************************/
 	const allPrices = useMemo(() => {
 		const allTokens = props.vaults.map(vault => ({chainID: vault.chainID, address: vault.address}));
 		return getPrices(allTokens as TToken[]);
 	}, [props.vaults, getPrices, pricingHash]); // eslint-disable-line react-hooks/exhaustive-deps
 
+	/**********************************************************************************************
+	 ** useMemo hook to filter vaults based on a debounced search value.
+	 ** - Filters the `props.vaults` array based on whether each vault's name, address, or symbol
+	 ** includes the lowercase version of the `debouncedValue`.
+	 *********************************************************************************************/
 	const filteredVaults = useMemo(() => {
 		const filteredVaults = props.vaults?.filter(vault => {
 			const lowercaseValue = debouncedValue.toLowerCase();
@@ -51,6 +61,12 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 
 	const {sortBy, sortDirection, sortedVaults} = useSortedVaults(vaults, allPrices);
 
+	/**********************************************************************************************
+	 ** Generates the layout based on the current props and state.
+	 ** - Returns a loading skeleton if `props.isLoading` is true.
+	 ** - Renders sorted vault items if `sortedVaults` has items.
+	 ** - Displays a message if there are no items to display.
+	 *********************************************************************************************/
 	const getLayout = (): ReactElement => {
 		if (props.isLoading) {
 			return <Skeleton />;

@@ -65,6 +65,11 @@ const defaultProps: TVaults = {
 const VaultsContext = createContext<TVaults>(defaultProps);
 
 export const VaultsContextApp = ({children}: {children: TOptionalRenderProps<TVaults, ReactElement>}): ReactElement => {
+	/**********************************************************************************************
+	 ** Reducer function to manage the state of vaults configuration. Handles various actions to
+	 ** update the state such as setting tokens, setting vaults, and resetting the configuration.
+	 ** Also it sets "WITHDRAW" and "DEPOSIT" actions with all required tokens.
+	 *********************************************************************************************/
 	const configurationReducer = (state: TVaultsConfiguration, action: TVaultsActions): TVaultsConfiguration => {
 		switch (action.type) {
 			case 'SET_TOKEN_TO_SPEND': {

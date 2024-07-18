@@ -32,6 +32,10 @@ export function TokenSelector({
 	const [searchValue, set_searchValue] = useState('');
 	const {configuration} = useManageVaults();
 
+	/**********************************************************************************************
+	 ** Filter tokens on the current chain based on a search value.
+	 ** - Filters tokens by checking if their name or symbol includes the lowercase search value.
+	 *********************************************************************************************/
 	const searchFilteredTokens = tokensOnCurrentChain.filter(token => {
 		const lowercaseValue = searchValue.toLowerCase();
 		return token.name.toLowerCase().includes(lowercaseValue) || token.symbol.toLowerCase().includes(lowercaseValue);
