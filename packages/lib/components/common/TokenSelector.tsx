@@ -1,13 +1,22 @@
-import {type ReactElement, type RefObject, useState} from 'react';
+import {type ReactElement, type RefObject, useEffect, useState} from 'react';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {toAddress} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {useTokensWithBalance} from '@lib/hooks/useTokensWithBalance';
+import {usePopularTokens} from '@lib/contexts/usePopularTokens';
+import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {IconChevron} from '../icons/IconChevron';
 import {ImageWithFallback} from './ImageWithFallback';
 import {TokenSelectorDropdown} from './TokenSelectorDropdown';
 
 import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
+
+function getDifference(item: string, searchTerm: string): number {
+	if (item.startsWith(searchTerm)) {
+		return item.length - searchTerm.length; // Difference is the extra characters beyond the search term
+	}
+	return item.length + searchTerm.length; // Large difference if not starting with searchTerm
+}
 
 type TChainSelectorProps = {
 	chainID: number;
@@ -26,20 +35,52 @@ export function TokenSelector({
 	selectorButtonRef,
 	set_tokenToUse
 }: TChainSelectorProps): ReactElement {
-	const {listTokensWithBalance} = useTokensWithBalance();
-	const tokensOnCurrentChain = listTokensWithBalance(chainID);
+	const {listTokens} = usePopularTokens();
 	const {address} = useWeb3();
 	const [searchValue, set_searchValue] = useState('');
 	const {configuration} = useManageVaults();
+	const [tokensToUse, set_tokensToUse] = useState<TToken[]>([]);
+
+	useEffect((): void => {
+		const allPopularTokens = listTokens(chainID);
+		const allPopularTokensWithBalance = allPopularTokens.filter(e => e.balance.raw > 0n);
+		set_tokensToUse(allPopularTokensWithBalance);
+	}, [chainID, listTokens]);
 
 	/**********************************************************************************************
 	 ** Filter tokens on the current chain based on a search value.
 	 ** - Filters tokens by checking if their name or symbol includes the lowercase search value.
 	 *********************************************************************************************/
-	const searchFilteredTokens = tokensOnCurrentChain.filter(token => {
-		const lowercaseValue = searchValue.toLowerCase();
-		return token.name.toLowerCase().includes(lowercaseValue) || token.symbol.toLowerCase().includes(lowercaseValue);
-	});
+	const filteredTokens = useDeepCompareMemo(() => {
+		const searchFor = searchValue.toLocaleLowerCase();
+		if (searchFor === '') {
+			return tokensToUse;
+		}
+		const filtering = tokensToUse.filter(
+			token =>
+				token.symbol.toLocaleLowerCase().includes(searchFor) ||
+				token.name.toLocaleLowerCase().includes(searchFor) ||
+				toAddress(token.address).toLocaleLowerCase().includes(searchFor)
+		);
+
+		const sorted = filtering
+			.map(item => ({
+				item,
+				exactness:
+					item.name.toLocaleLowerCase() === searchFor || item.symbol.toLocaleLowerCase() === searchFor
+						? 1
+						: 0,
+				diffName: getDifference(item.name.toLocaleLowerCase(), searchFor),
+				diffSymbol: getDifference(item.symbol.toLocaleLowerCase(), searchFor)
+			}))
+			.sort(
+				(a, b) =>
+					b.exactness - a.exactness || Math.min(a.diffName, a.diffSymbol) - Math.min(b.diffName, b.diffSymbol)
+			) // Sort by exactness first, then by the smallest ascending difference of name or symbol
+			.map(sortedItem => sortedItem.item); // Return sorted items
+
+		return sorted.slice(0, 20);
+	}, [tokensToUse, searchValue]);
 
 	return (
 		<>
@@ -63,7 +104,7 @@ export function TokenSelector({
 				set_isOpen={toggleOpen}
 				searchValue={searchValue}
 				set_searchValue={set_searchValue}
-				tokens={searchFilteredTokens}
+				tokens={filteredTokens}
 				selectorRef={selectorRef}
 				set_tokenToUse={set_tokenToUse}
 			/>
