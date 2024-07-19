@@ -1,8 +1,11 @@
-import {type ReactElement, type RefObject, useEffect, useState} from 'react';
+import {type ReactElement, type RefObject, useEffect, useMemo, useState} from 'react';
+import {serialize} from 'wagmi';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {toAddress} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePopularTokens} from '@lib/contexts/usePopularTokens';
+import {createUniqueID} from '@lib/utils/tools.identifiers';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {IconChevron} from '../icons/IconChevron';
@@ -37,15 +40,53 @@ export function TokenSelector({
 }: TChainSelectorProps): ReactElement {
 	const {listTokens} = usePopularTokens();
 	const {address} = useWeb3();
+	const {balances, getBalance} = useWallet();
 	const [searchValue, set_searchValue] = useState('');
 	const {configuration} = useManageVaults();
 	const [tokensToUse, set_tokensToUse] = useState<TToken[]>([]);
 
+	/**********************************************************************************************
+	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
+	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
+	 ** We will use classic hash function to create a hash from the balances object.
+	 *********************************************************************************************/
+	const currentBalanceIdentifier = useMemo(() => {
+		const hash = createUniqueID(serialize(balances));
+		return hash;
+	}, [balances]);
+
+	/**********************************************************************************************
+	 ** Create the list of tokens that might be possible to deposit, prepending the vault token and
+	 ** filtering out duplicates.
+	 *********************************************************************************************/
 	useEffect((): void => {
+		if (!configuration.vault) {
+			return;
+		}
 		const allPopularTokens = listTokens(chainID);
 		const allPopularTokensWithBalance = allPopularTokens.filter(e => e.balance.raw > 0n);
-		set_tokensToUse(allPopularTokensWithBalance);
-	}, [chainID, listTokens]);
+		const vaultToken: TToken = {
+			address: configuration.vault.token.address,
+			symbol: configuration.vault.token.symbol,
+			name: configuration.vault.token.name,
+			decimals: configuration.vault.token.decimals,
+			chainID: configuration.vault.chainID,
+			balance: getBalance({
+				address: configuration.vault.token.address,
+				chainID: configuration.vault.chainID
+			}),
+			value: 0
+		};
+		const allTokens = [vaultToken, ...allPopularTokensWithBalance];
+		const noDuplicates: TToken[] = [];
+		for (const token of allTokens) {
+			if (!noDuplicates.some(t => t.address === token.address)) {
+				noDuplicates.push(token);
+			}
+		}
+		set_tokensToUse(noDuplicates);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [chainID, listTokens, configuration?.vault, currentBalanceIdentifier]);
 
 	/**********************************************************************************************
 	 ** Filter tokens on the current chain based on a search value.
