@@ -30,6 +30,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	const {openAccountModal} = useAccountModal();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const {isZapNeededForDeposit} = useIsZapNeeded(configuration);
+	const {canZap} = useSolver();
 
 	/**********************************************************************************************
 	 ** buttonTitle for deposit only button depends - on wallet(if wallet isn't connected, button
@@ -39,6 +40,9 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	const getButtonTitle = (): string => {
 		if (!address) {
 			return 'Connect wallet';
+		}
+		if (!canZap && !isFetchingQuote) {
+			return 'Impossible to zap in';
 		}
 		if (isApproved) {
 			return 'Deposit';
