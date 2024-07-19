@@ -1,6 +1,5 @@
 import {type ReactElement, useCallback} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
-import {COLORS} from 'packages/optimism/constants';
 import {cl} from '@builtbymom/web3/utils';
 
 import {IconSort} from '../icons/IconSort';
@@ -52,8 +51,8 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 			if (shouldSortBy && props.sortDirection === 'desc') {
 				return (
 					<IconSort
-						leftIconColor={COLORS.regularText}
-						rightIconColor={COLORS.regularText}
+						leftIconColorClassName={'text-regularColor'}
+						rightIconColorClassName={'text-regularColor'}
 						rightOpacity={'1'}
 						className={'size-4'}
 					/>
@@ -62,8 +61,8 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 			if (shouldSortBy && props.sortDirection === 'asc') {
 				return (
 					<IconSort
-						leftIconColor={COLORS.regularText}
-						rightIconColor={COLORS.regularText}
+						leftIconColorClassName={'text-regularColor'}
+						rightIconColorClassName={'text-regularColor'}
 						leftOpacity={'1'}
 						className={'size-4'}
 					/>
@@ -71,8 +70,8 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 			}
 			return (
 				<IconSort
-					leftIconColor={COLORS.regularText}
-					rightIconColor={COLORS.regularText}
+					leftIconColorClassName={'text-regularColor'}
+					rightIconColorClassName={'text-regularColor'}
 					className={'size-4 opacity-50'}
 				/>
 			);
