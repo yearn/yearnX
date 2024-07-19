@@ -58,6 +58,10 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		quote
 	} = useSolver();
 
+	const isBusy = !configuration?.tokenToSpend.amount?.normalized
+		? false
+		: Boolean(isFetchingAllowance || approvalStatus?.pending || depositStatus?.pending || isFetchingQuote);
+
 	/**********************************************************************************************
 	 ** onAction is a callback that decides what to do on button click. If wallet isn't connected,
 	 ** button opens Wallet connect modal. If wallet's connected, but token isn't approved, is
@@ -179,7 +183,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 							</button>
 
 							<div className={'mb-4 flex w-full justify-start'}>
-								<p className={'text-lg font-bold'}>{'Receive'}</p>
+								<p className={'text-lg font-bold'}>{'Deposit'}</p>
 							</div>
 
 							<VaultLink
@@ -190,12 +194,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 								<TokenAmountWrapper
 									vault={props.vault}
 									buttonTitle={getButtonTitle()}
-									isPerformingAction={Boolean(
-										isFetchingAllowance ||
-											approvalStatus?.pending ||
-											depositStatus?.pending ||
-											isFetchingQuote
-									)}
+									isPerformingAction={isBusy}
 									onActionClick={onAction}
 									isDisabled={!isValid && Boolean(address)}
 									set_tokenToUse={(token, amount) =>
