@@ -16,41 +16,16 @@
 	--color-neutral-700: 229 34% 24%;
 	--color-neutral-800: 229 34% 16%;
 	--color-neutral-900: 229 34% 13%;
-
-	--color-yellow-900: 32 100% 45%;
-	--color-yellow-300: 32 100% 95%;
-	--color-yellow-200: 32 100% 90%;
-	--color-error-900: 328 100% 45%;
-	--color-error-300: 328 100% 95%;
-	--color-error-200: 328 100% 90%;
-	--color-red-900: 0 100% 45%;
-	--color-red-300: 0 100% 95%;
-	--color-red-200: 0 100% 90%;
-
-	--default-rounded: 6px;
-}
-
-:root.dark {
-	--color-neutral-900: 229 34% 100%;
-	--color-neutral-800: 229 34% 96%;
-	--color-neutral-600: 229 34% 90%;
-	--color-neutral-500: 229 34% 90%;
-	--color-neutral-400: 229 34% 48%;
-	--color-neutral-300: 229 34% 36%;
-	--color-neutral-200: 229 34% 24%;
-	--color-neutral-100: 229 34% 16%;
-	--color-neutral-50: 229 34% 8%;
-	--color-neutral-0: 229 34% 13%;
 }
 
 body {
-	@apply text-neutral-0;
+	@apply text-regularText;
 }
 h1 {
-	@apply text-xl font-bold text-neutral-900;
+	@apply text-xl font-bold text-regularText;
 }
 h4 {
-	@apply text-lg font-bold text-neutral-700;
+	@apply text-lg font-bold text-regularText/80;
 }
 .max-w-6xl {
 	@apply max-w-[1232px] px-4;
@@ -66,10 +41,10 @@ h4 {
 	@apply scroll-smooth font-sans;
 }
 input::placeholder {
-	@apply text-neutral-400 not-italic;
+	@apply text-regularText/40 not-italic;
 }
 textarea::placeholder {
-	@apply text-neutral-400 not-italic;
+	@apply text-regularText/40 not-italic;
 }
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -92,7 +67,7 @@ input[type='number'] {
 	-moz-appearance: textfield;
 }
 label[aria-invalid='true'] {
-	@apply text-neutral-500 transition-colors;
+	@apply text-regularText/50 transition-colors;
 	& > form > div {
 		@apply border-[#FE0000] focus-within:border-[#FE0000] text-[#FE0000] focus-within:text-[#FE0000];
 	}
@@ -146,15 +121,28 @@ select:focus {
 .button {
 	@apply cursor-pointer px-5 flex justify-center items-center h-10 text-base transition-all relative rounded-lg;
 	&[aria-busy='true'] {
-		@apply cursor-wait;
+		@apply cursor-wait hover:!text-transparent disabled:!text-transparent transition-none;
 		color: transparent !important;
 	}
 	&:disabled {
 		@apply cursor-not-allowed;
 	}
 }
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+}
 
 .poolGradient {
 	background: linear-gradient(71.84deg, #5832f2 -10.22%, #e80766 164.53%),
 		radial-gradient(54.09% 131.33% at 14% 30.17%, rgba(186, 103, 251, 0.3) 0%, rgba(152, 21, 255, 0.06) 100%);
+}
+
+img {
+	max-width: none;
 }

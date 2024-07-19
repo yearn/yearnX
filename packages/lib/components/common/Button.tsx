@@ -12,6 +12,7 @@ export type TButton = {
 	shouldStopPropagation?: boolean;
 	isBusy?: boolean;
 	isDisabled?: boolean;
+	spinnerClassName?: string;
 } & ComponentPropsWithoutRef<'button'>;
 
 export type TMouseEvent = MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>;
@@ -45,7 +46,7 @@ export const Button = forwardRef((props: TButton, ref: ForwardedRef<HTMLButtonEl
 			{children}
 			{isBusy ? (
 				<div className={'absolute inset-0 flex items-center justify-center'}>
-					<IconSpinner className={'size-6 animate-spin text-neutral-900'} />
+					<IconSpinner className={props?.spinnerClassName ?? 'text-accentText size-6 animate-spin'} />
 				</div>
 			) : null}
 		</button>

@@ -21,7 +21,8 @@ module.exports = {
 		'../lib/contexts/**/*.{js,jsx,ts,tsx}',
 		'../lib/primitives/**/*.{js,jsx,ts,tsx}',
 		'../lib/types/**/*.{js,jsx,ts,tsx}',
-		'../lib/utils/**/*.{js,jsx,ts,tsx}'
+		'../lib/utils/**/*.{js,jsx,ts,tsx}',
+		'../lib/sections/**/*.{js,jsx,ts,tsx}'
 	],
 	theme: {
 		colors: {
@@ -30,19 +31,6 @@ module.exports = {
 			transparent: 'transparent',
 			inherit: 'inherit',
 			purple: '#4C249F',
-			primary: {
-				0: '#FFFFFF',
-				50: '#ebf4f3',
-				100: '#d7eae6',
-				200: '#b0d5cd',
-				300: '#88bfb5',
-				400: '#61aa9c',
-				500: '#399583',
-				600: '#2e7769',
-				700: '#22594f',
-				800: '#173c34',
-				900: '#0b1e1a'
-			},
 			neutral: {
 				0: withOpacityValue('--color-neutral-0'),
 				50: withOpacityValue('--color-neutral-50'),
@@ -55,18 +43,13 @@ module.exports = {
 				700: withOpacityValue('--color-neutral-700'),
 				800: withOpacityValue('--color-neutral-800'),
 				900: withOpacityValue('--color-neutral-900')
-			},
-			pink: colors.pink,
-			red: colors.rose,
-			green: colors.emerald,
-			blue: colors.blue,
-			teal: colors.teal
+			}
 		},
 		extend: {
 			fontFamily: {
 				aeonik: ['var(--aeonik-font)', 'Aeonik', ...defaultTheme.fontFamily.sans],
 				sans: ['var(--aeonik-font)', 'Aeonik', ...defaultTheme.fontFamily.sans],
-				mono: ['Aeonik Mono', ...defaultTheme.fontFamily.mono]
+				mono: ['var(--font-aeonik-mono)', 'Aeonik Mono', ...defaultTheme.fontFamily.mono]
 			},
 			width: {
 				inherit: 'inherit'
@@ -81,12 +64,22 @@ module.exports = {
 				xl: ['24px', '32px'],
 				'3xl': ['32px', '40px'],
 				'4xl': ['40px', '56px'],
-				'7xl': ['80px', '96px']
+				'7xl': ['64px', '72px'],
+				'9xl': '128px'
+			},
+			opacity: {
+				3: '.03'
 			},
 			maxWidth: {
 				xl: '552px',
 				'4xl': '904px',
 				'6xl': '1200px'
+			},
+			minHeight: {
+				section: '528px'
+			},
+			height: {
+				section: '528px'
 			},
 			animation: {
 				fadeIn: 'fadeIn 200ms ease-in'
