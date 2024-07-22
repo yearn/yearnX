@@ -20,11 +20,11 @@ export default function Index(): ReactElement {
 		});
 	}, [selectedTab.value]);
 
-	// const searchFilteredValues = useMemo(() => {
-	// 	return [...tabFilteredPartners].filter(partner =>
-	// 		partner.name.toLowerCase().includes(searchValue.toLowerCase())
-	// 	);
-	// }, [searchValue, tabFilteredPartners]);
+	const searchFilteredValues = useMemo(() => {
+		return [...tabFilteredPartners].filter(partner =>
+			partner.name.toLowerCase().includes(searchValue.toLowerCase())
+		);
+	}, [searchValue, tabFilteredPartners]);
 
 	return (
 		<div className={'container flex w-full flex-col gap-y-10'}>
@@ -35,7 +35,7 @@ export default function Index(): ReactElement {
 				set_searchValue={set_searchValue}
 			/>
 			<PartnersList
-				partners={tabFilteredPartners}
+				partners={searchFilteredValues}
 				searchValue={searchValue}
 			/>
 		</div>

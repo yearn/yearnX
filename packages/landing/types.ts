@@ -8,3 +8,4 @@ export type TPartner = {
 	icon: string;
 	vaultType: TVaultType;
 };
+export type TPartners = TPartner[];

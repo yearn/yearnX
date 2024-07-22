@@ -1,14 +1,23 @@
 import {Pagination} from '@lib/components/common/Pagination';
+import {usePartnersPagination} from '@lib/hooks/usePartnersPagintaion';
 
-import {PARTNERS_PER_PAGE} from '../constants';
 import {PartnerCard} from './PartnerCard';
 
 import type {ReactElement} from 'react';
-import type {TPartner} from '../types';
+import type {TPartners} from '../types';
 
-export function PartnersList({partners, searchValue}: {partners: TPartner[]; searchValue: string}): ReactElement {
+export function PartnersList({partners, searchValue}: {partners: TPartners; searchValue: string}): ReactElement {
+	const {
+		currentPage,
+		partners: paginatedPartners,
+		nextPage,
+		prevPage,
+		goToPage,
+		amountOfPages
+	} = usePartnersPagination(4, partners);
+
 	const getLayout = (): ReactElement => {
-		if (partners.length === 0) {
+		if (paginatedPartners.length === 0) {
 			return (
 				<div className={'flex w-full flex-col items-center justify-center'}>
 					<div>{'Nothing to display'}</div>
@@ -19,7 +28,7 @@ export function PartnersList({partners, searchValue}: {partners: TPartner[]; sea
 
 		return (
 			<div className={'grid w-full grid-cols-1 gap-2 md:grid-cols-4'}>
-				{partners.map(partner => (
+				{paginatedPartners.map(partner => (
 					<PartnerCard
 						key={partner.name}
 						partner={partner}
@@ -32,10 +41,11 @@ export function PartnersList({partners, searchValue}: {partners: TPartner[]; sea
 		<div className={'flex w-full flex-col'}>
 			<div className={'w-full'}>{getLayout()}</div>
 			<Pagination
-				currentPage={1}
-				amountOfPages={partners.length / PARTNERS_PER_PAGE}
-				nextPage={() => {}}
-				prevPage={() => {}}
+				currentPage={currentPage}
+				amountOfPages={amountOfPages}
+				nextPage={nextPage}
+				prevPage={prevPage}
+				handlePageClick={(page: number) => goToPage(page)}
 			/>
 		</div>
 	);

@@ -1,4 +1,4 @@
-import type {TPartner, TTab} from './types';
+import type {TPartners, TTab} from './types';
 
 export const COLORS = {
 	regularText: '#FFFFFF',
@@ -10,7 +10,7 @@ export const COLORS = {
 
 export const PARTNERS_PER_PAGE = 16;
 
-export const PARTNERS: TPartner[] = [
+export const PARTNERS: TPartners = [
 	{
 		name: 'PoolTogether',
 		description: 'Pooltogether description lines',
@@ -36,43 +36,43 @@ export const PARTNERS: TPartner[] = [
 		vaultType: 'v2'
 	},
 	{
-		name: 'PoolTogether',
+		name: 'PoolTogether1',
 		description: 'Pooltogether description lines',
 		icon: '',
 		vaultType: 'v2'
 	},
 	{
-		name: 'PoolTogether',
+		name: 'PoolTogether2',
 		description: 'Pooltogether description lines',
 		icon: '',
 		vaultType: 'v3'
 	},
 	{
-		name: 'PoolTogether',
+		name: 'PoolTogether3',
 		description: 'Pooltogether description lines',
 		icon: '',
 		vaultType: 'others'
 	},
 	{
-		name: 'PoolTogether',
+		name: 'PoolTogether4',
 		description: 'Pooltogether description lines',
 		icon: '',
 		vaultType: 'v3'
 	},
 	{
-		name: 'PoolTogether',
+		name: 'PoolTogether5',
 		description: 'Pooltogether description lines',
 		icon: '',
 		vaultType: 'others'
 	},
 	{
-		name: 'PoolTogether',
+		name: 'PoolTogether6',
 		description: 'Pooltogether description lines',
 		icon: '',
 		vaultType: 'v3'
 	},
 	{
-		name: 'PoolTogether',
+		name: 'PoolTogether7',
 		description: 'Pooltogether description lines',
 		icon: '',
 		vaultType: 'v2'
