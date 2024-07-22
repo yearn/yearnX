@@ -3,9 +3,10 @@ import {DefaultHeader} from '@lib/components/common/DefaultHeader';
 import {Footer} from '@lib/components/common/Footer';
 import {VaultList} from '@lib/components/common/VaultList';
 import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
+import {Section} from '@lib/sections';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
-import {HEADER_TABS, VAULT_FILTER} from '../constants';
+import {HEADER_TABS, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
@@ -17,14 +18,19 @@ export default function Index(): ReactElement {
 				docsLink={''}
 				secondLogoURL={'/partnerLogo.svg'}
 			/>
-			{/* <Section
+			<Section
 				variant={VARIANT_TO_USE}
 				bgImage={'/bg.webp'}
 				title={'YEARN PARTNER VAULTS'}
 				description={
 					'Several lines description. Several lines description. Several lines description. Several lines description. '
 				}
-			/> */}
+				cards={[
+					{title: 'Grand prize', currency: 'ETH', value: 192, decimals: 2, isReady: true},
+					{title: 'Grand prize', currency: 'ETH', value: 111, decimals: 2, isReady: true},
+					{title: 'Grand prize', currency: 'ETH', value: 1, decimals: 2, isReady: true}
+				]}
+			/>
 			<VaultList
 				vaults={vaultsValues}
 				isLoading={isLoading}

@@ -1,19 +1,25 @@
 import Image from 'next/image';
 import {cl} from '@builtbymom/web3/utils';
+import {Counter} from '@lib/components/common/Counter';
 
 import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
-export const Section3 = ({title, description, bgImage}: TSectionProps): ReactElement => {
+export const Section3 = ({title, description, bgImage, cards}: TSectionProps): ReactElement => {
+	console.log(cards);
+
 	return (
 		<div className={'grid gap-6'}>
-			<div className={'h-section min-h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
+			<div className={'md:h-section min-h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
 				<div
 					className={cl(
 						'col-span-12 md:col-span-5',
-						'bg-table flex flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'
+						'bg-table flex flex-col justify-between rounded-b-2xl p-6 md:p-10 md:rounded-2xl'
 					)}>
-					<div className={'leading-4xl md:leading-7xl text-regularText text-4xl font-black md:text-7xl'}>
+					<div
+						className={
+							'md:leading-4xl md:leading-7xl text-regularText mb-4 text-4xl font-black leading-[48px] md:mb-0 lg:text-7xl'
+						}>
 						{title}
 					</div>
 					<div className={'w-full rounded-2xl'}>
@@ -23,7 +29,7 @@ export const Section3 = ({title, description, bgImage}: TSectionProps): ReactEle
 				<div
 					className={cl(
 						'col-span-12 md:col-span-7',
-						'w-full overflow-hidden rounded-t-2xl bg-cover bg-center bg-no-repeat md:rounded-2xl'
+						'w-full overflow-hidden rounded-t-2xl bg-cover min-h-64 md:min-h-max bg-center bg-no-repeat md:rounded-2xl'
 					)}>
 					<Image
 						src={bgImage ?? '/bg-placeholder.png'}
@@ -39,20 +45,25 @@ export const Section3 = ({title, description, bgImage}: TSectionProps): ReactEle
 
 			<div
 				className={
-					'bg-primary text-accentText grid w-full grid-cols-1 gap-y-6 rounded-2xl px-10 py-16 md:grid-cols-3 md:gap-x-6'
+					'bg-primary text-accentText grid w-full grid-cols-1 gap-y-12 rounded-2xl p-6 md:grid-cols-3 md:gap-x-6 md:px-10 md:py-16'
 				}>
-				<div className={'flex flex-col'}>
-					<b className={'block md:mb-4'}>{'GRAND PRIZE'}</b>
-					<b className={'font-mono text-3xl md:text-7xl'}>{'123.69'}</b>
-				</div>
-				<div className={'flex flex-col'}>
-					<b className={'block md:mb-4'}>{'GRAND PRIZE'}</b>
-					<b className={'font-mono text-3xl md:text-7xl'}>{'123.69'}</b>
-				</div>
-				<div className={'flex flex-col'}>
-					<b className={'block md:mb-4'}>{'GRAND PRIZE'}</b>
-					<b className={'font-mono text-3xl md:text-7xl'}>{'123.69'}</b>
-				</div>
+				{cards?.map(card => (
+					<div>
+						{card.isReady && (
+							<p className={'mb-4 text-lg font-bold uppercase leading-[22px] md:mb-0'}>{card.title}</p>
+						)}
+						{card.isReady && (
+							<div className={'text-3xl font-bold lg:text-7xl'}>
+								<Counter
+									value={card.value}
+									decimals={card.decimals ?? 0}
+									decimalsToDisplay={[2, 4, 6, 8]}
+									idealDecimals={2}
+								/>
+							</div>
+						)}
+					</div>
+				))}
 			</div>
 		</div>
 	);
