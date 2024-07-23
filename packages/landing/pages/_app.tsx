@@ -12,7 +12,7 @@ function MyApp(props: AppProps): ReactElement {
 	return (
 		<WithFonts>
 			<Meta
-				title={'YearnX Landing'}
+				title={'Yearn Space'}
 				titleColor={'#FFFFFF'}
 				themeColor={'#000000'}
 				description={
