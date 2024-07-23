@@ -9,8 +9,6 @@ export function Hero(): ReactElement {
 		<div
 			style={{
 				backgroundImage: "url('/grid.png')"
-				// backgroundRepeat: 'repeat'
-				// background: 'lightgray 0% 0% / 30.000001192092896px 30.000001192092896px'
 			}}
 			className={
 				'border-regularText z-1 relative m-4 flex h-[600px] justify-center rounded-[40px] bg-blend-color-dodge'
@@ -53,7 +51,7 @@ export function Hero(): ReactElement {
 					</div>
 
 					<Button className={'bg-button w-full !rounded-3xl px-8 py-4 !text-base md:w-40'}>
-						{'Launch App'}
+						{'Button example'}
 					</Button>
 				</div>
 				<div />

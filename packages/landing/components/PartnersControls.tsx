@@ -21,7 +21,7 @@ export function PartersControls({
 }: TPartnersControlsProps): ReactElement {
 	return (
 		<div className={'flex w-full  items-center justify-between'}>
-			<div className={'flex gap-y-6 items-start md:items-center flex-col md:flex-row gap-x-8'}>
+			<div className={'flex flex-col items-start gap-x-8 gap-y-6 md:flex-row md:items-center'}>
 				<span className={'text-regularText text-2xl font-normal'}>{'Partners'}</span>
 				<div className={'md:hidden'}>
 					<SearchBar
