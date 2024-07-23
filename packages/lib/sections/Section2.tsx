@@ -55,6 +55,7 @@ export const Section2 = ({title, bgImage, cards}: TSectionProps): ReactElement =
 				<Image
 					src={bgImage ?? '/bg-placeholder.png'}
 					priority
+					loading={'eager'}
 					alt={''}
 					width={1408} /* Scaled x2 to keep quality OK */
 					height={1056} /* Scaled x2 to keep quality OK */

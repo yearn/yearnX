@@ -30,6 +30,7 @@ export const Section1 = ({title, bgImage, description}: TSectionProps): ReactEle
 				<Image
 					src={bgImage ?? '/bg-placeholder.png'}
 					priority
+					loading={'eager'}
 					alt={''}
 					className={'w-full'}
 					width={1408} /* Scaled x2 to keep quality OK */

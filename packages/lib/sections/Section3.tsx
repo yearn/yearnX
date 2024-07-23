@@ -34,6 +34,7 @@ export const Section3 = ({title, description, bgImage, cards}: TSectionProps): R
 					<Image
 						src={bgImage ?? '/bg-placeholder.png'}
 						priority
+						loading={'eager'}
 						alt={''}
 						className={'w-full'}
 						width={1408} /* Scaled x2 to keep quality OK */
