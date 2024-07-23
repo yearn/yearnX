@@ -9,23 +9,27 @@ module.exports = withPWA({
 		externalDir: true
 	},
 	images: {
-		domains: [
-			'gib.to',
-			'rawcdn.githack.com',
-			'raw.githubusercontent.com',
-			'ipfs.io',
-			's3.amazonaws.com',
-			'1inch.exchange',
-			'hut34.io',
-			'www.coingecko.com',
-			'defiprime.com',
-			'cdn.furucombo.app',
-			'gemini.com',
-			'messari.io',
-			'ethereum-optimism.github.io',
-			'logo.assets.tkn.eth.limo',
-			'cloudflare-ipfs.com',
-			'assets.smold.app'
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 'rawcdn.githack.com'
+			},
+			{
+				protocol: 'https',
+				hostname: 'raw.githubusercontent.com'
+			},
+			{
+				protocol: 'https',
+				hostname: 'assets.smold.app'
+			},
+			{
+				protocol: 'https',
+				hostname: '*.yearn.fi'
+			},
+			{
+				protocol: 'https',
+				hostname: '*.yearn.space'
+			}
 		]
 	},
 	transpilePackages: ['lib'],

@@ -7,5 +7,6 @@ export type TPartner = {
 	description: string;
 	icon: string;
 	vaultType: TVaultType;
+	url: string;
 };
 export type TPartners = TPartner[];

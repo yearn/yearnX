@@ -12,71 +12,82 @@ export const PARTNERS_PER_PAGE = 16;
 
 export const PARTNERS: TPartners = [
 	{
-		name: 'PoolTogether',
-		description: 'Pooltogether description lines',
-		icon: '',
-		vaultType: 'v2'
+		name: 'Yearn X PoolTogether',
+		description: 'Feeling lucky Anon?',
+		icon: 'https://pooltogether.yearn.space/partnerLogo.png',
+		vaultType: 'v2',
+		url: 'https://pooltogether.yearn.space'
 	},
 	{
-		name: 'Optimism',
-		description: 'Optimism description lines',
-		icon: '',
-		vaultType: 'v2'
+		name: 'Yearn X Optimism',
+		description: 'Discover the fanciest yVaults on Optimism',
+		icon: 'https://optimism.yearn.space/partnerLogo.svg',
+		vaultType: 'v2',
+		url: 'https://optimism.yearn.space'
 	},
 	{
-		name: 'Pendle',
-		description: 'Pendle description lines',
-		icon: '',
-		vaultType: 'v2'
+		name: 'Yearn X Pendle',
+		description: 'Hop on the Yield Express with the Yearn X Pendle Vaults',
+		icon: 'https://pendle.yearn.space/partnerLogo.png',
+		vaultType: 'v2',
+		url: 'https://pendle.yearn.space'
 	},
 	{
-		name: 'Ajna',
-		description: 'Ajna description lines',
-		icon: '',
-		vaultType: 'v2'
-	},
-	{
-		name: 'PoolTogether1',
-		description: 'Pooltogether description lines',
-		icon: '',
-		vaultType: 'v2'
-	},
-	{
-		name: 'PoolTogether2',
-		description: 'Pooltogether description lines',
-		icon: '',
-		vaultType: 'v3'
-	},
-	{
-		name: 'PoolTogether3',
-		description: 'Pooltogether description lines',
-		icon: '',
-		vaultType: 'others'
-	},
-	{
-		name: 'PoolTogether4',
-		description: 'Pooltogether description lines',
-		icon: '',
-		vaultType: 'v3'
-	},
-	{
-		name: 'PoolTogether5',
-		description: 'Pooltogether description lines',
-		icon: '',
-		vaultType: 'others'
-	},
-	{
-		name: 'PoolTogether6',
-		description: 'Pooltogether description lines',
-		icon: '',
-		vaultType: 'v3'
-	},
-	{
-		name: 'PoolTogether7',
-		description: 'Pooltogether description lines',
-		icon: '',
-		vaultType: 'v2'
+		name: 'Yearn X Ajna',
+		description: 'Embrace the yield with no Oracles with Yearn X Ajna Vaults',
+		icon: 'https://assets.smold.app/api/token/1/0x9a96ec9B57Fb64FbC60B423d1f4da7691Bd35079/logo-128.png',
+		vaultType: 'v2',
+		url: 'https://juiced.app'
 	}
+	// {
+	// 	name: 'Yearn X ',
+	// 	description: 'Pooltogether description lines',
+	// 	icon: '',
+	// 	vaultType: 'v2',
+	// 	url: ''
+	// },
+	// {
+	// 	name: 'PoolTogether2',
+	// 	description: 'Pooltogether description lines',
+	// 	icon: '',
+	// 	vaultType: 'v3',
+	// 	url: ''
+	// },
+	// {
+	// 	name: 'PoolTogether3',
+	// 	description: 'Pooltogether description lines',
+	// 	icon: '',
+	// 	vaultType: 'others',
+	// 	url: ''
+	// },
+	// {
+	// 	name: 'PoolTogether4',
+	// 	description: 'Pooltogether description lines',
+	// 	icon: '',
+	// 	vaultType: 'v3',
+	// 	url: ''
+	// },
+	// {
+	// 	name: 'PoolTogether5',
+	// 	description: 'Pooltogether description lines',
+	// 	icon: '',
+	// 	vaultType: 'others',
+	// 	url: ''
+	// },
+	// {
+	// 	name: 'PoolTogether6',
+	// 	description: 'Pooltogether description lines',
+	// 	icon: '',
+	// 	vaultType: 'v3',
+	// 	url: ''
+	// },
+	// {
+	// 	name: 'PoolTogether7',
+	// 	description: 'Pooltogether description lines',
+	// 	icon: '',
+	// 	vaultType: 'v2',
+	// 	url: ''
+	// }
 ];
 
 export const TABS: TTab[] = [
