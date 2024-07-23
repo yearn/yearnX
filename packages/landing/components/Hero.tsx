@@ -15,11 +15,11 @@ export function Hero(): ReactElement {
 			}>
 			<div
 				style={{backgroundImage: "url('/header-bg.png')"}}
-				className={'absolute z-0 size-full rounded-[40px] opacity-[0.06]'}
+				className={'absolute z-0 size-full rounded-[40px] opacity-[0.08]'}
 			/>
 			<Image
 				className={
-					'absolute right-0 top-0 z-10 hidden max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge md:block'
+					'absolute right-0 top-0 z-10 hidden h-[600px] max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge lg:block'
 				}
 				src={'/img_hero.png'}
 				alt={''}
@@ -35,6 +35,16 @@ export function Hero(): ReactElement {
 				alt={''}
 				width={'385'}
 				height={'315'}
+				fetchPriority={'high'}
+			/>
+			<Image
+				className={
+					'absolute right-0 top-0 z-10 hidden max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge md:block lg:hidden'
+				}
+				src={'/img_hero_md.png'}
+				alt={''}
+				width={'700'}
+				height={'700'}
 				fetchPriority={'high'}
 			/>
 			<div className={'z-30 flex w-full max-w-6xl justify-between py-20'}>

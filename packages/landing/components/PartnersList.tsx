@@ -37,7 +37,7 @@ export function PartnersList({partners, searchValue}: {partners: TPartners; sear
 		}
 
 		return (
-			<div className={'grid w-full grid-cols-1 gap-2 md:grid-cols-4'}>
+			<div className={'grid size-full grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4'}>
 				{paginatedPartners.map(partner => (
 					<PartnerCard
 						key={partner.name}
