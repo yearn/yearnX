@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import {Button} from '@lib/components/common/Button';
-import {LogoYearn} from '@lib/components/icons/LogoYearn';
+import {IconYearnLogo} from '@lib/components/icons/IconYearnLogo';
 
 import type {ReactElement} from 'react';
 
@@ -9,8 +9,6 @@ export function Hero(): ReactElement {
 		<div
 			style={{
 				backgroundImage: "url('/grid.png')"
-				// backgroundRepeat: 'repeat'
-				// background: 'lightgray 0% 0% / 30.000001192092896px 30.000001192092896px'
 			}}
 			className={
 				'border-regularText z-1 relative m-4 flex h-[600px] justify-center rounded-[40px] bg-blend-color-dodge'
@@ -20,29 +18,41 @@ export function Hero(): ReactElement {
 				className={'absolute z-0 size-full rounded-[40px] opacity-[0.06]'}
 			/>
 			<Image
-				className={'absolute right-0 top-0 z-10 max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge'}
+				className={
+					'absolute right-0 top-0 z-10 hidden max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge md:block'
+				}
 				src={'/img_hero.png'}
 				alt={''}
 				width={'800'}
 				height={'700'}
 				fetchPriority={'high'}
 			/>
+			<Image
+				className={
+					'absolute right-0 top-0 z-10 block max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge md:hidden'
+				}
+				src={'/img_hero_mob.png'}
+				alt={''}
+				width={'385'}
+				height={'315'}
+				fetchPriority={'high'}
+			/>
 			<div className={'z-30 flex w-full max-w-6xl justify-between py-20'}>
-				<div>
-					<LogoYearn
-						className={'mb-20 size-14'}
-						front={'text-[#FFFFFF]'}
-						back={'text-[#0657F9]'}
-					/>
-					<span className={'text-regularText text-[80px] font-bold leading-[80px]'}>
+				<div className={'mt-60 flex flex-col md:mt-0'}>
+					<div className={'mb-6 size-16 md:mb-20'}>
+						<IconYearnLogo className={'z-20 '} />
+					</div>
+					<span className={'text-regularText text-3xl font-bold  md:text-[80px] md:leading-[80px]'}>
 						{'Yearn X Partners'}
 					</span>
-					<div className={'mb-16 mt-6 max-w-screen-sm text-lg font-normal'}>
+					<div className={'mb-6 mt-2 max-w-screen-sm text-base font-normal md:mb-16 md:mt-6 md:text-lg'}>
 						{'Yearn x Partners headline text description example'}
 						{'headline text description example'}
 					</div>
 
-					<Button className={'bg-button !rounded-3xl px-8 py-4 !text-base'}>{'Launch App'}</Button>
+					<Button className={'bg-button w-full !rounded-3xl px-8 py-4 !text-base md:w-40'}>
+						{'Button example'}
+					</Button>
 				</div>
 				<div />
 			</div>

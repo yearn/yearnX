@@ -12,6 +12,7 @@ type TPaginationProps = {
 	amountOfPages: number;
 	nextPage: () => void;
 	prevPage: () => void;
+	handlePageClick?: (page: number) => void;
 };
 export const Pagination = (props: TPaginationProps): ReactElement => {
 	const {currentPage, nextPage, prevPage, amountOfPages} = props;
@@ -70,7 +71,11 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 									<IconArrowLeft className={'size-5 rotate-180'} />
 								</button>
 							}
-							onPageChange={({selected}) => onPageClick(selected + 1)}
+							onPageChange={({selected}) => {
+								return props.handlePageClick
+									? props.handlePageClick(selected + 1)
+									: onPageClick(selected + 1);
+							}}
 							pageLabelBuilder={page => (
 								<button
 									className={cl(

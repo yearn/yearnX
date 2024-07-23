@@ -20,19 +20,27 @@ export function PartersControls({
 	set_searchValue
 }: TPartnersControlsProps): ReactElement {
 	return (
-		<div className={'flex w-full items-center justify-between'}>
-			<div className={'flex items-center gap-x-8'}>
+		<div className={'flex w-full  items-center justify-between'}>
+			<div className={'flex flex-col items-start gap-x-8 gap-y-6 md:flex-row md:items-center'}>
 				<span className={'text-regularText text-2xl font-normal'}>{'Partners'}</span>
+				<div className={'md:hidden'}>
+					<SearchBar
+						searchValue={searchValue}
+						set_searchValue={set_searchValue}
+					/>
+				</div>
 				<Tabs
 					tabs={TABS}
 					selectedTab={selectedTab}
 					set_selectedTab={set_selectedTab}
 				/>
 			</div>
-			<SearchBar
-				searchValue={searchValue}
-				set_searchValue={set_searchValue}
-			/>
+			<div className={'hidden md:block'}>
+				<SearchBar
+					searchValue={searchValue}
+					set_searchValue={set_searchValue}
+				/>
+			</div>
 		</div>
 	);
 }

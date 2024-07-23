@@ -1,4 +1,5 @@
 import {cl} from '@builtbymom/web3/utils';
+import {IconCross} from '@lib/components/icons/IconCross';
 import {IconSearch} from '@lib/components/icons/IconSearch';
 
 import type {ReactElement} from 'react';
@@ -34,7 +35,13 @@ export function SearchBar(props: TSearchBarProps): ReactElement {
 					onChange={e => props.set_searchValue(e.target.value)}
 				/>
 
-				<IconSearch className={'text-regularText size-5'} />
+				{props.searchValue ? (
+					<button onClick={() => props.set_searchValue('')}>
+						<IconCross className={'text-regularText size-5'} />
+					</button>
+				) : (
+					<IconSearch className={'text-regularText size-5'} />
+				)}
 			</label>
 		</div>
 	);

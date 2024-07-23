@@ -12,7 +12,7 @@ type TTabsProps = {
 export function Tabs(props: TTabsProps): ReactElement {
 	const {tabs, selectedTab, set_selectedTab} = props;
 	return (
-		<div className={'flex gap-x-2'}>
+		<div className={'flex flex-wrap gap-2'}>
 			{tabs.map(tab => (
 				<button
 					onClick={() => set_selectedTab(tab)}
