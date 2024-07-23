@@ -13,11 +13,13 @@ function MyApp(props: AppProps): ReactElement {
 		<WithFonts>
 			<Meta
 				title={'YearnX Landing'}
-				titleColor={''}
-				themeColor={''}
-				description={''}
-				og={''}
-				uri={''}
+				titleColor={'#FFFFFF'}
+				themeColor={'#000000'}
+				description={
+					'Ape Stronger Together. Yearn partners with the best in the industry to bring you the best yield farming strategies.'
+				}
+				og={'https://yearn.space/og.png'}
+				uri={'https://yearn.space'}
 			/>
 			<div className={'bg-background flex w-full flex-col justify-center '}>
 				<main className={'relative mb-0  flex min-h-screen w-full flex-col pb-8 md:pb-0'}>
