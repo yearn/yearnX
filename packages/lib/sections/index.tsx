@@ -44,6 +44,7 @@ export function Section({variant, title, description, bgImage, cards}: TSectionP
 					title={title}
 					description={description}
 					bgImage={bgImage}
+					cards={cards}
 				/>
 			);
 		case 4:

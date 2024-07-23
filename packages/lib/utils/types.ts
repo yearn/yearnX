@@ -20,9 +20,9 @@ export type TSectionProps = {
 	title: string;
 	cards?: {
 		title: string;
-		currency: string;
+		currency?: string;
 		value: number;
-		decimals: number;
+		decimals?: number;
 		isReady: boolean;
 	}[];
 };

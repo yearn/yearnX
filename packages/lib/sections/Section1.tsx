@@ -6,13 +6,16 @@ import type {TSectionProps} from '@lib/utils/types';
 
 export const Section1 = ({title, bgImage, description}: TSectionProps): ReactElement => {
 	return (
-		<div className={'h-section min-h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
+		<div className={'md:h-section min-h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
 			<div
 				className={cl(
 					'col-span-12 md:col-span-5',
-					'bg-table flex h-full flex-col justify-between rounded-b-2xl p-10 md:rounded-2xl'
+					'bg-table flex flex-col justify-between rounded-b-2xl p-6 md:p-10 md:rounded-2xl'
 				)}>
-				<div className={'leading-4xl md:leading-7xl text-regularText text-4xl font-black md:text-7xl'}>
+				<div
+					className={
+						'md:leading-4xl md:leading-7xl text-regularText mb-4 text-4xl font-black leading-[48px] md:mb-0 lg:text-7xl'
+					}>
 					{title}
 				</div>
 				<div className={'w-full rounded-2xl'}>
@@ -22,7 +25,7 @@ export const Section1 = ({title, bgImage, description}: TSectionProps): ReactEle
 			<div
 				className={cl(
 					'col-span-12 md:col-span-7',
-					'w-full overflow-hidden rounded-t-2xl bg-cover bg-center bg-no-repeat md:rounded-2xl'
+					'w-full overflow-hidden rounded-t-2xl bg-cover min-h-64 md:min-h-max bg-center bg-no-repeat md:rounded-2xl'
 				)}>
 				<Image
 					src={bgImage ?? '/bg-placeholder.png'}
