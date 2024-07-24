@@ -134,7 +134,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 			onConnect();
 			return;
 		}
-		if (!isApproved) {
+		if (!isApproved && isZapNeededForWithdraw) {
 			onApprove?.();
 			return;
 		}
@@ -205,11 +205,11 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 		if (!canZap && !isFetchingQuote) {
 			return 'Impossible to zap out';
 		}
-		if (!isApproved) {
+		if (!isApproved && isZapNeededForWithdraw) {
 			return 'Approve';
 		}
 		return 'Withdraw';
-	}, [address, canZap, isFetchingQuote, isApproved]);
+	}, [address, canZap, isFetchingQuote, isApproved, isZapNeededForWithdraw]);
 
 	return (
 		<Transition

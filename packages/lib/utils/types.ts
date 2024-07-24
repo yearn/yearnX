@@ -39,3 +39,4 @@ export type TTokenAmountInputElement = {
 };
 
 export type TTokenToUse = Partial<{token: TToken; amount: TNormalizedBN}>;
+export type TAssertedTokenToUse = {token: TToken; amount: TNormalizedBN};

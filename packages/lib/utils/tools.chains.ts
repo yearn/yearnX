@@ -2,14 +2,16 @@
 'use client';
 
 import {arbitrum, base, fantom, gnosis, mainnet, optimism, polygon} from 'viem/chains';
+import {toAddress} from '@builtbymom/web3/utils';
 
 import type {Chain} from 'viem/chains';
-import type {TNDict} from '@builtbymom/web3/types';
+import type {TAddress, TNDict} from '@builtbymom/web3/types';
 
 type TSmolChains = TNDict<
 	Chain & {
 		coingeckoGasCoinID: string;
 		llamaChainName?: string;
+		yearnRouterAddress: TAddress | undefined;
 	}
 >;
 
@@ -61,44 +63,51 @@ const CHAINS: TSmolChains = {
 		...mainnet,
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'ethereum',
-		rpcUrls: assignRPCUrls(mainnet)
+		rpcUrls: assignRPCUrls(mainnet),
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
 	},
 	[optimism.id]: {
 		...optimism,
 		name: 'Optimism',
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'optimism',
-		rpcUrls: assignRPCUrls(optimism)
+		rpcUrls: assignRPCUrls(optimism),
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
 	},
 	[gnosis.id]: {
 		...gnosis,
 		coingeckoGasCoinID: 'xdai',
 		llamaChainName: 'xdai',
-		rpcUrls: assignRPCUrls(gnosis)
+		rpcUrls: assignRPCUrls(gnosis),
+		yearnRouterAddress: undefined
 	},
 	[polygon.id]: {
 		...polygon,
 		coingeckoGasCoinID: 'matic-network',
 		llamaChainName: 'polygon',
-		rpcUrls: assignRPCUrls(polygon)
+		rpcUrls: assignRPCUrls(polygon),
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
 	},
 	[fantom.id]: {
 		...fantom,
 		coingeckoGasCoinID: 'fantom',
 		llamaChainName: 'fantom',
-		rpcUrls: assignRPCUrls(fantom)
+		rpcUrls: assignRPCUrls(fantom),
+		yearnRouterAddress: undefined
 	},
 	[base.id]: {
 		...base,
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'base',
-		rpcUrls: assignRPCUrls(base)
+		rpcUrls: assignRPCUrls(base),
+		yearnRouterAddress: undefined
 	},
 	[arbitrum.id]: {
 		...arbitrum,
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'arbitrum',
-		rpcUrls: assignRPCUrls(arbitrum)
+		rpcUrls: assignRPCUrls(arbitrum),
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
 	}
 };
 

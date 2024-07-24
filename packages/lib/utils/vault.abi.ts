@@ -1,5 +1,28 @@
 export const VAULT_ABI = [
 	{
+		name: 'Deposit',
+		inputs: [
+			{name: 'sender', type: 'address', indexed: true},
+			{name: 'owner', type: 'address', indexed: true},
+			{name: 'assets', type: 'uint256', indexed: false},
+			{name: 'shares', type: 'uint256', indexed: false}
+		],
+		anonymous: false,
+		type: 'event'
+	},
+	{
+		name: 'Withdraw',
+		inputs: [
+			{name: 'sender', type: 'address', indexed: true},
+			{name: 'receiver', type: 'address', indexed: true},
+			{name: 'owner', type: 'address', indexed: true},
+			{name: 'assets', type: 'uint256', indexed: false},
+			{name: 'shares', type: 'uint256', indexed: false}
+		],
+		anonymous: false,
+		type: 'event'
+	},
+	{
 		name: 'Transfer',
 		inputs: [
 			{name: 'sender', type: 'address', indexed: true},
@@ -20,48 +43,10 @@ export const VAULT_ABI = [
 		type: 'event'
 	},
 	{
-		name: 'Deposit',
-		inputs: [
-			{name: 'recipient', type: 'address', indexed: true},
-			{name: 'shares', type: 'uint256', indexed: false},
-			{name: 'amount', type: 'uint256', indexed: false}
-		],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'Withdraw',
-		inputs: [
-			{name: 'recipient', type: 'address', indexed: true},
-			{name: 'shares', type: 'uint256', indexed: false},
-			{name: 'amount', type: 'uint256', indexed: false}
-		],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'Sweep',
-		inputs: [
-			{name: 'token', type: 'address', indexed: true},
-			{name: 'amount', type: 'uint256', indexed: false}
-		],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'LockedProfitDegradationUpdated',
-		inputs: [{name: 'value', type: 'uint256', indexed: false}],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'StrategyAdded',
+		name: 'StrategyChanged',
 		inputs: [
 			{name: 'strategy', type: 'address', indexed: true},
-			{name: 'debtRatio', type: 'uint256', indexed: false},
-			{name: 'minDebtPerHarvest', type: 'uint256', indexed: false},
-			{name: 'maxDebtPerHarvest', type: 'uint256', indexed: false},
-			{name: 'performanceFee', type: 'uint256', indexed: false}
+			{name: 'change_type', type: 'uint256', indexed: true}
 		],
 		anonymous: false,
 		type: 'event'
@@ -72,294 +57,441 @@ export const VAULT_ABI = [
 			{name: 'strategy', type: 'address', indexed: true},
 			{name: 'gain', type: 'uint256', indexed: false},
 			{name: 'loss', type: 'uint256', indexed: false},
-			{name: 'debtPaid', type: 'uint256', indexed: false},
-			{name: 'totalGain', type: 'uint256', indexed: false},
-			{name: 'totalLoss', type: 'uint256', indexed: false},
-			{name: 'totalDebt', type: 'uint256', indexed: false},
-			{name: 'debtAdded', type: 'uint256', indexed: false},
-			{name: 'debtRatio', type: 'uint256', indexed: false}
+			{name: 'current_debt', type: 'uint256', indexed: false},
+			{name: 'protocol_fees', type: 'uint256', indexed: false},
+			{name: 'total_fees', type: 'uint256', indexed: false},
+			{name: 'total_refunds', type: 'uint256', indexed: false}
 		],
 		anonymous: false,
 		type: 'event'
 	},
 	{
-		name: 'FeeReport',
-		inputs: [
-			{name: 'management_fee', type: 'uint256', indexed: false},
-			{name: 'performance_fee', type: 'uint256', indexed: false},
-			{name: 'strategist_fee', type: 'uint256', indexed: false},
-			{name: 'duration', type: 'uint256', indexed: false}
-		],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'WithdrawFromStrategy',
+		name: 'DebtUpdated',
 		inputs: [
 			{name: 'strategy', type: 'address', indexed: true},
-			{name: 'totalDebt', type: 'uint256', indexed: false},
-			{name: 'loss', type: 'uint256', indexed: false}
+			{name: 'current_debt', type: 'uint256', indexed: false},
+			{name: 'new_debt', type: 'uint256', indexed: false}
 		],
 		anonymous: false,
 		type: 'event'
 	},
 	{
-		name: 'UpdateGovernance',
-		inputs: [{name: 'governance', type: 'address', indexed: false}],
+		name: 'RoleSet',
+		inputs: [
+			{name: 'account', type: 'address', indexed: true},
+			{name: 'role', type: 'uint256', indexed: true}
+		],
 		anonymous: false,
 		type: 'event'
 	},
 	{
-		name: 'UpdateManagement',
-		inputs: [{name: 'management', type: 'address', indexed: false}],
+		name: 'UpdateRoleManager',
+		inputs: [{name: 'role_manager', type: 'address', indexed: true}],
 		anonymous: false,
 		type: 'event'
 	},
 	{
-		name: 'UpdateRewards',
-		inputs: [{name: 'rewards', type: 'address', indexed: false}],
+		name: 'UpdateAccountant',
+		inputs: [{name: 'accountant', type: 'address', indexed: true}],
+		anonymous: false,
+		type: 'event'
+	},
+	{
+		name: 'UpdateDepositLimitModule',
+		inputs: [{name: 'deposit_limit_module', type: 'address', indexed: true}],
+		anonymous: false,
+		type: 'event'
+	},
+	{
+		name: 'UpdateWithdrawLimitModule',
+		inputs: [{name: 'withdraw_limit_module', type: 'address', indexed: true}],
+		anonymous: false,
+		type: 'event'
+	},
+	{
+		name: 'UpdateDefaultQueue',
+		inputs: [{name: 'new_default_queue', type: 'address[]', indexed: false}],
+		anonymous: false,
+		type: 'event'
+	},
+	{
+		name: 'UpdateUseDefaultQueue',
+		inputs: [{name: 'use_default_queue', type: 'bool', indexed: false}],
+		anonymous: false,
+		type: 'event'
+	},
+	{
+		name: 'UpdatedMaxDebtForStrategy',
+		inputs: [
+			{name: 'sender', type: 'address', indexed: true},
+			{name: 'strategy', type: 'address', indexed: true},
+			{name: 'new_debt', type: 'uint256', indexed: false}
+		],
 		anonymous: false,
 		type: 'event'
 	},
 	{
 		name: 'UpdateDepositLimit',
-		inputs: [{name: 'depositLimit', type: 'uint256', indexed: false}],
+		inputs: [{name: 'deposit_limit', type: 'uint256', indexed: false}],
 		anonymous: false,
 		type: 'event'
 	},
 	{
-		name: 'UpdatePerformanceFee',
-		inputs: [{name: 'performanceFee', type: 'uint256', indexed: false}],
+		name: 'UpdateMinimumTotalIdle',
+		inputs: [{name: 'minimum_total_idle', type: 'uint256', indexed: false}],
 		anonymous: false,
 		type: 'event'
 	},
 	{
-		name: 'UpdateManagementFee',
-		inputs: [{name: 'managementFee', type: 'uint256', indexed: false}],
+		name: 'UpdateProfitMaxUnlockTime',
+		inputs: [{name: 'profit_max_unlock_time', type: 'uint256', indexed: false}],
 		anonymous: false,
 		type: 'event'
 	},
 	{
-		name: 'UpdateGuardian',
-		inputs: [{name: 'guardian', type: 'address', indexed: false}],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'EmergencyShutdown',
-		inputs: [{name: 'active', type: 'bool', indexed: false}],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'UpdateWithdrawalQueue',
-		inputs: [{name: 'queue', type: 'address[20]', indexed: false}],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'StrategyUpdateDebtRatio',
+		name: 'DebtPurchased',
 		inputs: [
 			{name: 'strategy', type: 'address', indexed: true},
-			{name: 'debtRatio', type: 'uint256', indexed: false}
+			{name: 'amount', type: 'uint256', indexed: false}
 		],
 		anonymous: false,
 		type: 'event'
 	},
-	{
-		name: 'StrategyUpdateMinDebtPerHarvest',
-		inputs: [
-			{name: 'strategy', type: 'address', indexed: true},
-			{name: 'minDebtPerHarvest', type: 'uint256', indexed: false}
-		],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'StrategyUpdateMaxDebtPerHarvest',
-		inputs: [
-			{name: 'strategy', type: 'address', indexed: true},
-			{name: 'maxDebtPerHarvest', type: 'uint256', indexed: false}
-		],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'StrategyUpdatePerformanceFee',
-		inputs: [
-			{name: 'strategy', type: 'address', indexed: true},
-			{name: 'performanceFee', type: 'uint256', indexed: false}
-		],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'StrategyMigrated',
-		inputs: [
-			{name: 'oldVersion', type: 'address', indexed: true},
-			{name: 'newVersion', type: 'address', indexed: true}
-		],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'StrategyRevoked',
-		inputs: [{name: 'strategy', type: 'address', indexed: true}],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'StrategyRemovedFromQueue',
-		inputs: [{name: 'strategy', type: 'address', indexed: true}],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'StrategyAddedToQueue',
-		inputs: [{name: 'strategy', type: 'address', indexed: true}],
-		anonymous: false,
-		type: 'event'
-	},
-	{
-		name: 'NewPendingGovernance',
-		inputs: [{name: 'pendingGovernance', type: 'address', indexed: true}],
-		anonymous: false,
-		type: 'event'
-	},
+	{name: 'Shutdown', inputs: [], anonymous: false, type: 'event'},
+	{stateMutability: 'nonpayable', type: 'constructor', inputs: [], outputs: []},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
 		name: 'initialize',
 		inputs: [
-			{name: 'token', type: 'address'},
-			{name: 'governance', type: 'address'},
-			{name: 'rewards', type: 'address'},
-			{name: 'nameOverride', type: 'string'},
-			{name: 'symbolOverride', type: 'string'}
+			{name: 'asset', type: 'address'},
+			{name: 'name', type: 'string'},
+			{name: 'symbol', type: 'string'},
+			{name: 'role_manager', type: 'address'},
+			{name: 'profit_max_unlock_time', type: 'uint256'}
 		],
 		outputs: []
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'initialize',
+		name: 'set_accountant',
+		inputs: [{name: 'new_accountant', type: 'address'}],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'set_default_queue',
+		inputs: [{name: 'new_default_queue', type: 'address[]'}],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'set_use_default_queue',
+		inputs: [{name: 'use_default_queue', type: 'bool'}],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'set_deposit_limit',
+		inputs: [{name: 'deposit_limit', type: 'uint256'}],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'set_deposit_limit',
 		inputs: [
-			{name: 'token', type: 'address'},
-			{name: 'governance', type: 'address'},
-			{name: 'rewards', type: 'address'},
-			{name: 'nameOverride', type: 'string'},
-			{name: 'symbolOverride', type: 'string'},
-			{name: 'guardian', type: 'address'}
+			{name: 'deposit_limit', type: 'uint256'},
+			{name: 'override', type: 'bool'}
 		],
 		outputs: []
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'initialize',
+		name: 'set_deposit_limit_module',
+		inputs: [{name: 'deposit_limit_module', type: 'address'}],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'set_deposit_limit_module',
 		inputs: [
-			{name: 'token', type: 'address'},
-			{name: 'governance', type: 'address'},
-			{name: 'rewards', type: 'address'},
-			{name: 'nameOverride', type: 'string'},
-			{name: 'symbolOverride', type: 'string'},
-			{name: 'guardian', type: 'address'},
-			{name: 'management', type: 'address'}
+			{name: 'deposit_limit_module', type: 'address'},
+			{name: 'override', type: 'bool'}
 		],
 		outputs: []
 	},
-	{stateMutability: 'pure', type: 'function', name: 'apiVersion', inputs: [], outputs: [{name: '', type: 'string'}]},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'set_withdraw_limit_module',
+		inputs: [{name: 'withdraw_limit_module', type: 'address'}],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'set_minimum_total_idle',
+		inputs: [{name: 'minimum_total_idle', type: 'uint256'}],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'setProfitMaxUnlockTime',
+		inputs: [{name: 'new_profit_max_unlock_time', type: 'uint256'}],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'set_role',
+		inputs: [
+			{name: 'account', type: 'address'},
+			{name: 'role', type: 'uint256'}
+		],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'add_role',
+		inputs: [
+			{name: 'account', type: 'address'},
+			{name: 'role', type: 'uint256'}
+		],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'remove_role',
+		inputs: [
+			{name: 'account', type: 'address'},
+			{name: 'role', type: 'uint256'}
+		],
+		outputs: []
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'transfer_role_manager',
+		inputs: [{name: 'role_manager', type: 'address'}],
+		outputs: []
+	},
+	{stateMutability: 'nonpayable', type: 'function', name: 'accept_role_manager', inputs: [], outputs: []},
+	{stateMutability: 'view', type: 'function', name: 'isShutdown', inputs: [], outputs: [{name: '', type: 'bool'}]},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'DOMAIN_SEPARATOR',
+		name: 'unlockedShares',
 		inputs: [],
-		outputs: [{name: '', type: 'bytes32'}]
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'pricePerShare',
+		inputs: [],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'get_default_queue',
+		inputs: [],
+		outputs: [{name: '', type: 'address[]'}]
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setName',
-		inputs: [{name: 'name', type: 'string'}],
+		name: 'process_report',
+		inputs: [{name: 'strategy', type: 'address'}],
+		outputs: [
+			{name: '', type: 'uint256'},
+			{name: '', type: 'uint256'}
+		]
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'buy_debt',
+		inputs: [
+			{name: 'strategy', type: 'address'},
+			{name: 'amount', type: 'uint256'}
+		],
 		outputs: []
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setSymbol',
-		inputs: [{name: 'symbol', type: 'string'}],
+		name: 'add_strategy',
+		inputs: [{name: 'new_strategy', type: 'address'}],
 		outputs: []
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setGovernance',
-		inputs: [{name: 'governance', type: 'address'}],
-		outputs: []
-	},
-	{stateMutability: 'nonpayable', type: 'function', name: 'acceptGovernance', inputs: [], outputs: []},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'setManagement',
-		inputs: [{name: 'management', type: 'address'}],
+		name: 'add_strategy',
+		inputs: [
+			{name: 'new_strategy', type: 'address'},
+			{name: 'add_to_queue', type: 'bool'}
+		],
 		outputs: []
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setRewards',
-		inputs: [{name: 'rewards', type: 'address'}],
+		name: 'revoke_strategy',
+		inputs: [{name: 'strategy', type: 'address'}],
 		outputs: []
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setLockedProfitDegradation',
-		inputs: [{name: 'degradation', type: 'uint256'}],
+		name: 'force_revoke_strategy',
+		inputs: [{name: 'strategy', type: 'address'}],
 		outputs: []
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setDepositLimit',
-		inputs: [{name: 'limit', type: 'uint256'}],
+		name: 'update_max_debt_for_strategy',
+		inputs: [
+			{name: 'strategy', type: 'address'},
+			{name: 'new_max_debt', type: 'uint256'}
+		],
 		outputs: []
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setPerformanceFee',
-		inputs: [{name: 'fee', type: 'uint256'}],
-		outputs: []
+		name: 'update_debt',
+		inputs: [
+			{name: 'strategy', type: 'address'},
+			{name: 'target_debt', type: 'uint256'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setManagementFee',
-		inputs: [{name: 'fee', type: 'uint256'}],
-		outputs: []
+		name: 'update_debt',
+		inputs: [
+			{name: 'strategy', type: 'address'},
+			{name: 'target_debt', type: 'uint256'},
+			{name: 'max_loss', type: 'uint256'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{stateMutability: 'nonpayable', type: 'function', name: 'shutdown_vault', inputs: [], outputs: []},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'deposit',
+		inputs: [
+			{name: 'assets', type: 'uint256'},
+			{name: 'receiver', type: 'address'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setGuardian',
-		inputs: [{name: 'guardian', type: 'address'}],
-		outputs: []
+		name: 'mint',
+		inputs: [
+			{name: 'shares', type: 'uint256'},
+			{name: 'receiver', type: 'address'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setEmergencyShutdown',
-		inputs: [{name: 'active', type: 'bool'}],
-		outputs: []
+		name: 'withdraw',
+		inputs: [
+			{name: 'assets', type: 'uint256'},
+			{name: 'receiver', type: 'address'},
+			{name: 'owner', type: 'address'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'setWithdrawalQueue',
-		inputs: [{name: 'queue', type: 'address[20]'}],
-		outputs: []
+		name: 'withdraw',
+		inputs: [
+			{name: 'assets', type: 'uint256'},
+			{name: 'receiver', type: 'address'},
+			{name: 'owner', type: 'address'},
+			{name: 'max_loss', type: 'uint256'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'withdraw',
+		inputs: [
+			{name: 'assets', type: 'uint256'},
+			{name: 'receiver', type: 'address'},
+			{name: 'owner', type: 'address'},
+			{name: 'max_loss', type: 'uint256'},
+			{name: 'strategies', type: 'address[]'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'redeem',
+		inputs: [
+			{name: 'shares', type: 'uint256'},
+			{name: 'receiver', type: 'address'},
+			{name: 'owner', type: 'address'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'redeem',
+		inputs: [
+			{name: 'shares', type: 'uint256'},
+			{name: 'receiver', type: 'address'},
+			{name: 'owner', type: 'address'},
+			{name: 'max_loss', type: 'uint256'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'redeem',
+		inputs: [
+			{name: 'shares', type: 'uint256'},
+			{name: 'receiver', type: 'address'},
+			{name: 'owner', type: 'address'},
+			{name: 'max_loss', type: 'uint256'},
+			{name: 'strategies', type: 'address[]'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'nonpayable',
+		type: 'function',
+		name: 'approve',
+		inputs: [
+			{name: 'spender', type: 'address'},
+			{name: 'amount', type: 'uint256'}
+		],
+		outputs: [{name: '', type: 'bool'}]
 	},
 	{
 		stateMutability: 'nonpayable',
@@ -385,45 +517,31 @@ export const VAULT_ABI = [
 	{
 		stateMutability: 'nonpayable',
 		type: 'function',
-		name: 'approve',
-		inputs: [
-			{name: 'spender', type: 'address'},
-			{name: 'amount', type: 'uint256'}
-		],
-		outputs: [{name: '', type: 'bool'}]
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'increaseAllowance',
-		inputs: [
-			{name: 'spender', type: 'address'},
-			{name: 'amount', type: 'uint256'}
-		],
-		outputs: [{name: '', type: 'bool'}]
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'decreaseAllowance',
-		inputs: [
-			{name: 'spender', type: 'address'},
-			{name: 'amount', type: 'uint256'}
-		],
-		outputs: [{name: '', type: 'bool'}]
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
 		name: 'permit',
 		inputs: [
 			{name: 'owner', type: 'address'},
 			{name: 'spender', type: 'address'},
 			{name: 'amount', type: 'uint256'},
-			{name: 'expiry', type: 'uint256'},
-			{name: 'signature', type: 'bytes'}
+			{name: 'deadline', type: 'uint256'},
+			{name: 'v', type: 'uint8'},
+			{name: 'r', type: 'bytes32'},
+			{name: 's', type: 'bytes32'}
 		],
 		outputs: [{name: '', type: 'bool'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'balanceOf',
+		inputs: [{name: 'addr', type: 'address'}],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'totalSupply',
+		inputs: [],
+		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
@@ -432,250 +550,200 @@ export const VAULT_ABI = [
 		inputs: [],
 		outputs: [{name: '', type: 'uint256'}]
 	},
+	{stateMutability: 'view', type: 'function', name: 'totalIdle', inputs: [], outputs: [{name: '', type: 'uint256'}]},
+	{stateMutability: 'view', type: 'function', name: 'totalDebt', inputs: [], outputs: [{name: '', type: 'uint256'}]},
 	{
-		stateMutability: 'nonpayable',
+		stateMutability: 'view',
 		type: 'function',
-		name: 'deposit',
-		inputs: [],
+		name: 'convertToShares',
+		inputs: [{name: 'assets', type: 'uint256'}],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
-		stateMutability: 'nonpayable',
+		stateMutability: 'view',
 		type: 'function',
-		name: 'deposit',
-		inputs: [{name: '_amount', type: 'uint256'}],
+		name: 'previewDeposit',
+		inputs: [{name: 'assets', type: 'uint256'}],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
-		stateMutability: 'nonpayable',
+		stateMutability: 'view',
 		type: 'function',
-		name: 'deposit',
+		name: 'previewMint',
+		inputs: [{name: 'shares', type: 'uint256'}],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'convertToAssets',
+		inputs: [{name: 'shares', type: 'uint256'}],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'maxDeposit',
+		inputs: [{name: 'receiver', type: 'address'}],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'maxMint',
+		inputs: [{name: 'receiver', type: 'address'}],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'maxWithdraw',
+		inputs: [{name: 'owner', type: 'address'}],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'maxWithdraw',
 		inputs: [
-			{name: '_amount', type: 'uint256'},
-			{name: 'recipient', type: 'address'}
+			{name: 'owner', type: 'address'},
+			{name: 'max_loss', type: 'uint256'}
 		],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'maxAvailableShares',
-		inputs: [],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'withdraw',
-		inputs: [],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'withdraw',
-		inputs: [{name: 'maxShares', type: 'uint256'}],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'withdraw',
+		name: 'maxWithdraw',
 		inputs: [
-			{name: 'maxShares', type: 'uint256'},
-			{name: 'recipient', type: 'address'}
-		],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'withdraw',
-		inputs: [
-			{name: 'maxShares', type: 'uint256'},
-			{name: 'recipient', type: 'address'},
-			{name: 'maxLoss', type: 'uint256'}
+			{name: 'owner', type: 'address'},
+			{name: 'max_loss', type: 'uint256'},
+			{name: 'strategies', type: 'address[]'}
 		],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'pricePerShare',
-		inputs: [],
+		name: 'maxRedeem',
+		inputs: [{name: 'owner', type: 'address'}],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
-		stateMutability: 'nonpayable',
+		stateMutability: 'view',
 		type: 'function',
-		name: 'addStrategy',
+		name: 'maxRedeem',
+		inputs: [
+			{name: 'owner', type: 'address'},
+			{name: 'max_loss', type: 'uint256'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'maxRedeem',
+		inputs: [
+			{name: 'owner', type: 'address'},
+			{name: 'max_loss', type: 'uint256'},
+			{name: 'strategies', type: 'address[]'}
+		],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'previewWithdraw',
+		inputs: [{name: 'assets', type: 'uint256'}],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'previewRedeem',
+		inputs: [{name: 'shares', type: 'uint256'}],
+		outputs: [{name: '', type: 'uint256'}]
+	},
+	{stateMutability: 'view', type: 'function', name: 'FACTORY', inputs: [], outputs: [{name: '', type: 'address'}]},
+	{stateMutability: 'view', type: 'function', name: 'apiVersion', inputs: [], outputs: [{name: '', type: 'string'}]},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'assess_share_of_unrealised_losses',
 		inputs: [
 			{name: 'strategy', type: 'address'},
-			{name: 'debtRatio', type: 'uint256'},
-			{name: 'minDebtPerHarvest', type: 'uint256'},
-			{name: 'maxDebtPerHarvest', type: 'uint256'},
-			{name: 'performanceFee', type: 'uint256'}
+			{name: 'assets_needed', type: 'uint256'}
 		],
-		outputs: []
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'updateStrategyDebtRatio',
-		inputs: [
-			{name: 'strategy', type: 'address'},
-			{name: 'debtRatio', type: 'uint256'}
-		],
-		outputs: []
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'updateStrategyMinDebtPerHarvest',
-		inputs: [
-			{name: 'strategy', type: 'address'},
-			{name: 'minDebtPerHarvest', type: 'uint256'}
-		],
-		outputs: []
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'updateStrategyMaxDebtPerHarvest',
-		inputs: [
-			{name: 'strategy', type: 'address'},
-			{name: 'maxDebtPerHarvest', type: 'uint256'}
-		],
-		outputs: []
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'updateStrategyPerformanceFee',
-		inputs: [
-			{name: 'strategy', type: 'address'},
-			{name: 'performanceFee', type: 'uint256'}
-		],
-		outputs: []
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'migrateStrategy',
-		inputs: [
-			{name: 'oldVersion', type: 'address'},
-			{name: 'newVersion', type: 'address'}
-		],
-		outputs: []
-	},
-	{stateMutability: 'nonpayable', type: 'function', name: 'revokeStrategy', inputs: [], outputs: []},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'revokeStrategy',
-		inputs: [{name: 'strategy', type: 'address'}],
-		outputs: []
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'addStrategyToQueue',
-		inputs: [{name: 'strategy', type: 'address'}],
-		outputs: []
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'removeStrategyFromQueue',
-		inputs: [{name: 'strategy', type: 'address'}],
-		outputs: []
+		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'debtOutstanding',
+		name: 'profitMaxUnlockTime',
 		inputs: [],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'debtOutstanding',
-		inputs: [{name: 'strategy', type: 'address'}],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{
-		stateMutability: 'view',
-		type: 'function',
-		name: 'creditAvailable',
+		name: 'fullProfitUnlockDate',
 		inputs: [],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'creditAvailable',
-		inputs: [{name: 'strategy', type: 'address'}],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{
-		stateMutability: 'view',
-		type: 'function',
-		name: 'availableDepositLimit',
+		name: 'profitUnlockingRate',
 		inputs: [],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'expectedReturn',
+		name: 'lastProfitUpdate',
 		inputs: [],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'expectedReturn',
-		inputs: [{name: 'strategy', type: 'address'}],
-		outputs: [{name: '', type: 'uint256'}]
+		name: 'DOMAIN_SEPARATOR',
+		inputs: [],
+		outputs: [{name: '', type: 'bytes32'}]
 	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'report',
-		inputs: [
-			{name: 'gain', type: 'uint256'},
-			{name: 'loss', type: 'uint256'},
-			{name: '_debtPayment', type: 'uint256'}
-		],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'sweep',
-		inputs: [{name: 'token', type: 'address'}],
-		outputs: []
-	},
-	{
-		stateMutability: 'nonpayable',
-		type: 'function',
-		name: 'sweep',
-		inputs: [
-			{name: 'token', type: 'address'},
-			{name: 'amount', type: 'uint256'}
-		],
-		outputs: []
-	},
-	{stateMutability: 'view', type: 'function', name: 'name', inputs: [], outputs: [{name: '', type: 'string'}]},
-	{stateMutability: 'view', type: 'function', name: 'symbol', inputs: [], outputs: [{name: '', type: 'string'}]},
-	{stateMutability: 'view', type: 'function', name: 'decimals', inputs: [], outputs: [{name: '', type: 'uint256'}]},
+	{stateMutability: 'view', type: 'function', name: 'asset', inputs: [], outputs: [{name: '', type: 'address'}]},
+	{stateMutability: 'view', type: 'function', name: 'decimals', inputs: [], outputs: [{name: '', type: 'uint8'}]},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'balanceOf',
+		name: 'strategies',
 		inputs: [{name: 'arg0', type: 'address'}],
-		outputs: [{name: '', type: 'uint256'}]
+		outputs: [
+			{
+				name: '',
+				type: 'tuple',
+				components: [
+					{name: 'activation', type: 'uint256'},
+					{name: 'last_report', type: 'uint256'},
+					{name: 'current_debt', type: 'uint256'},
+					{name: 'max_debt', type: 'uint256'}
+				]
+			}
+		]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'default_queue',
+		inputs: [{name: 'arg0', type: 'uint256'}],
+		outputs: [{name: '', type: 'address'}]
+	},
+	{
+		stateMutability: 'view',
+		type: 'function',
+		name: 'use_default_queue',
+		inputs: [],
+		outputs: [{name: '', type: 'bool'}]
 	},
 	{
 		stateMutability: 'view',
@@ -690,92 +758,55 @@ export const VAULT_ABI = [
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'totalSupply',
+		name: 'minimum_total_idle',
 		inputs: [],
 		outputs: [{name: '', type: 'uint256'}]
 	},
-	{stateMutability: 'view', type: 'function', name: 'token', inputs: [], outputs: [{name: '', type: 'address'}]},
-	{stateMutability: 'view', type: 'function', name: 'governance', inputs: [], outputs: [{name: '', type: 'address'}]},
-	{stateMutability: 'view', type: 'function', name: 'management', inputs: [], outputs: [{name: '', type: 'address'}]},
-	{stateMutability: 'view', type: 'function', name: 'guardian', inputs: [], outputs: [{name: '', type: 'address'}]},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'strategies',
-		inputs: [{name: 'arg0', type: 'address'}],
-		outputs: [
-			{
-				name: '',
-				type: 'tuple',
-				components: [
-					{name: 'performanceFee', type: 'uint256'},
-					{name: 'activation', type: 'uint256'},
-					{name: 'debtRatio', type: 'uint256'},
-					{name: 'minDebtPerHarvest', type: 'uint256'},
-					{name: 'maxDebtPerHarvest', type: 'uint256'},
-					{name: 'lastReport', type: 'uint256'},
-					{name: 'totalDebt', type: 'uint256'},
-					{name: 'totalGain', type: 'uint256'},
-					{name: 'totalLoss', type: 'uint256'}
-				]
-			}
-		]
+		name: 'deposit_limit',
+		inputs: [],
+		outputs: [{name: '', type: 'uint256'}]
 	},
+	{stateMutability: 'view', type: 'function', name: 'accountant', inputs: [], outputs: [{name: '', type: 'address'}]},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'withdrawalQueue',
-		inputs: [{name: 'arg0', type: 'uint256'}],
+		name: 'deposit_limit_module',
+		inputs: [],
 		outputs: [{name: '', type: 'address'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'emergencyShutdown',
+		name: 'withdraw_limit_module',
 		inputs: [],
-		outputs: [{name: '', type: 'bool'}]
+		outputs: [{name: '', type: 'address'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'depositLimit',
-		inputs: [],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{stateMutability: 'view', type: 'function', name: 'debtRatio', inputs: [], outputs: [{name: '', type: 'uint256'}]},
-	{stateMutability: 'view', type: 'function', name: 'totalIdle', inputs: [], outputs: [{name: '', type: 'uint256'}]},
-	{stateMutability: 'view', type: 'function', name: 'totalDebt', inputs: [], outputs: [{name: '', type: 'uint256'}]},
-	{stateMutability: 'view', type: 'function', name: 'lastReport', inputs: [], outputs: [{name: '', type: 'uint256'}]},
-	{stateMutability: 'view', type: 'function', name: 'activation', inputs: [], outputs: [{name: '', type: 'uint256'}]},
-	{
-		stateMutability: 'view',
-		type: 'function',
-		name: 'lockedProfit',
-		inputs: [],
+		name: 'roles',
+		inputs: [{name: 'arg0', type: 'address'}],
 		outputs: [{name: '', type: 'uint256'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'lockedProfitDegradation',
+		name: 'role_manager',
 		inputs: [],
-		outputs: [{name: '', type: 'uint256'}]
-	},
-	{stateMutability: 'view', type: 'function', name: 'rewards', inputs: [], outputs: [{name: '', type: 'address'}]},
-	{
-		stateMutability: 'view',
-		type: 'function',
-		name: 'managementFee',
-		inputs: [],
-		outputs: [{name: '', type: 'uint256'}]
+		outputs: [{name: '', type: 'address'}]
 	},
 	{
 		stateMutability: 'view',
 		type: 'function',
-		name: 'performanceFee',
+		name: 'future_role_manager',
 		inputs: [],
-		outputs: [{name: '', type: 'uint256'}]
+		outputs: [{name: '', type: 'address'}]
 	},
+	{stateMutability: 'view', type: 'function', name: 'name', inputs: [], outputs: [{name: '', type: 'string'}]},
+	{stateMutability: 'view', type: 'function', name: 'symbol', inputs: [], outputs: [{name: '', type: 'string'}]},
 	{
 		stateMutability: 'view',
 		type: 'function',

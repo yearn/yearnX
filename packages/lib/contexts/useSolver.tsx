@@ -9,6 +9,7 @@ import {useManageVaults} from './useManageVaults';
 
 import type {ReactElement} from 'react';
 import type {TNormalizedBN} from '@builtbymom/web3/types';
+import type {TPermitSignature} from '@lib/hooks/usePermit.types';
 import type {TPortalsEstimate} from '@lib/utils/api.portals';
 
 /**************************************************************************************************
@@ -19,6 +20,7 @@ export type TSolverContextBase = {
 	approvalStatus: TTxStatus;
 	onApprove: (onSuccess?: () => void) => Promise<void>;
 	allowance: TNormalizedBN;
+	permitSignature?: TPermitSignature;
 	isDisabled: boolean;
 	isApproved: boolean;
 	isFetchingAllowance: boolean;
