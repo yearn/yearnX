@@ -1,5 +1,5 @@
 import {useCallback, useMemo, useRef, useState} from 'react';
-import {encodeFunctionData, erc20Abi} from 'viem';
+import {encodeFunctionData, erc20Abi, zeroAddress} from 'viem';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
@@ -199,11 +199,16 @@ export const useVanilaSolver = (
 
 	const onDepositForGnosis = useCallback(
 		async (onSuccess?: () => void): Promise<void> => {
+			const batch = [];
 			const approveTransactionForBatch = getApproveTransaction(
 				toBigInt(configuration?.tokenToSpend.amount?.raw).toString(),
 				toAddress(configuration?.tokenToSpend.token?.address),
 				toAddress(configuration?.vault?.address)
 			);
+
+			if (zeroAddress !== toAddress(configuration?.tokenToSpend.token?.address)) {
+				batch.push(approveTransactionForBatch);
+			}
 
 			const depositTransactionForBatch = getDepositTransaction(
 				toAddress(configuration?.vault?.address),
@@ -211,8 +216,10 @@ export const useVanilaSolver = (
 				toAddress(address)
 			);
 
+			batch.push(depositTransactionForBatch);
+
 			try {
-				sdk.txs.send({txs: [approveTransactionForBatch, depositTransactionForBatch]}).then(async () => {
+				sdk.txs.send({txs: batch}).then(async () => {
 					await onRefresh(
 						[
 							{

@@ -354,16 +354,18 @@ export const usePortalsSolver = (
 			}
 
 			const network = PORTALS_NETWORK.get(tokenToSpend.chainID);
-			const transaction = await getPortalsTx({
+			const params = {
 				params: {
 					sender: toAddress(address),
 					inputToken: `${network}:${toAddress(inputToken)}`,
 					outputToken: `${network}:${toAddress(outputToken)}`,
 					inputAmount: String(amountToSpend?.raw ?? 0n),
 					slippageTolerancePercentage: slippage.toString(),
-					validate: 'true'
+					validate: 'false'
 				}
-			});
+			};
+
+			const transaction = await getPortalsTx(params);
 
 			if (!transaction.result) {
 				throw new Error('Transaction data was not fetched from Portals!');
