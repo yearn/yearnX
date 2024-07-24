@@ -7,7 +7,7 @@ import type {Dispatch, ReactElement} from 'react';
 import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TOptionalRenderProps} from '@lib/utils/optionalRenderProps';
-import type {TTokenToUse} from '@lib/utils/types';
+import type {TAssertedTokenToUse, TTokenToUse} from '@lib/utils/types';
 
 type TPartialToken = Partial<{token: TToken; amount: TNormalizedBN}>;
 type TVaultsActions =
@@ -23,6 +23,13 @@ export type TVaultsConfiguration = {
 	tokenToSpend: TTokenToUse;
 	tokenToReceive: TTokenToUse;
 	vault: TYDaemonVault | undefined;
+};
+
+export type TAssertedVaultsConfiguration = {
+	action: 'DEPOSIT' | 'WITHDRAW';
+	tokenToSpend: TAssertedTokenToUse;
+	tokenToReceive: TAssertedTokenToUse;
+	vault: TYDaemonVault;
 };
 
 export type TVaults = {
