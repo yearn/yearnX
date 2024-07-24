@@ -13,9 +13,11 @@ import {
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
+import {useSafeAppsSDK} from '@gnosis.pm/safe-apps-react-sdk';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {isSupportingPermit, signPermit} from '@lib/hooks/usePermit';
 import {approveERC20, deposit, depositViaRouter, redeemV3Shares, withdrawShares} from '@lib/utils/actions';
+import {getApproveTransaction, getDepositTransaction} from '@lib/utils/gnosis.tools';
 import {allowanceKey} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {YEARN_4626_ROUTER_ABI} from '@lib/utils/vaultRouter.abi.ts';
@@ -43,6 +45,7 @@ export const useVanilaSolver = (
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
 	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
 	const isAboveAllowance = allowance.raw >= spendAmount;
+	const {sdk} = useSafeAppsSDK();
 
 	/**********************************************************************************************
 	 ** The isV3Vault hook is used to determine if the current vault is a V3 vault. It's very
@@ -194,6 +197,55 @@ export const useVanilaSolver = (
 		[configuration, address, provider, onRetrieveAllowance, isV3Vault]
 	);
 
+	const onDepositForGnosis = useCallback(
+		async (onSuccess?: () => void): Promise<void> => {
+			const approveTransactionForBatch = getApproveTransaction(
+				toBigInt(configuration?.tokenToSpend.amount?.raw).toString(),
+				toAddress(configuration?.tokenToSpend.token?.address),
+				toAddress(configuration?.vault?.address)
+			);
+
+			const depositTransactionForBatch = getDepositTransaction(
+				toAddress(configuration?.vault?.address),
+				toBigInt(configuration?.tokenToSpend?.amount?.raw).toString(),
+				toAddress(address)
+			);
+
+			try {
+				sdk.txs.send({txs: [approveTransactionForBatch, depositTransactionForBatch]}).then(async () => {
+					await onRefresh(
+						[
+							{
+								chainID: Number(configuration?.vault?.chainID),
+								address: toAddress(configuration?.vault?.address)
+							},
+							{
+								chainID: Number(configuration?.vault?.chainID),
+								address: toAddress(configuration?.vault?.token?.address)
+							},
+							{chainID: Number(configuration?.vault?.chainID), address: ETH_TOKEN_ADDRESS}
+						],
+						false,
+						true
+					);
+					onSuccess?.();
+				});
+			} catch (err) {
+				console.error(err);
+			}
+		},
+		[
+			address,
+			configuration?.tokenToSpend.amount?.raw,
+			configuration?.tokenToSpend.token?.address,
+			configuration?.vault?.address,
+			configuration?.vault?.chainID,
+			configuration?.vault?.token?.address,
+			onRefresh,
+			sdk.txs
+		]
+	);
+
 	/**********************************************************************************************
 	 ** Trigger a deposit web3 action, simply trying to deposit `amount` tokens to
 	 ** the selected vault.
@@ -294,6 +346,7 @@ export const useVanilaSolver = (
 		depositStatus,
 		set_depositStatus,
 		onExecuteDeposit,
+		onDepositForGnosis,
 
 		/**Withdraw part */
 		withdrawStatus,

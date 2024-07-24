@@ -2,6 +2,7 @@ import {Toaster} from 'react-hot-toast';
 import PlausibleProvider from 'next-plausible';
 import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
 import {WithMom} from '@builtbymom/web3/contexts/WithMom';
+import SafeProvider from '@gnosis.pm/safe-apps-react-sdk';
 import {Meta} from '@lib/components/common/Meta';
 import {WithFonts} from '@lib/components/common/WithFonts';
 import {IconCheck} from '@lib/components/icons/IconCheck';
@@ -45,18 +46,20 @@ export default function MyApp(props: AppProps): ReactElement {
 					<WalletContextApp>
 						<WithPopularTokens>
 							<WithPrices supportedNetworks={supportedNetworks}>
-								<VaultsContextApp>
-									<SolverContextApp>
-										<div
-											className={
-												'bg-background flex h-lvh w-full justify-center overflow-auto p-6'
-											}>
-											<main className={'relative mb-auto flex w-full justify-center'}>
-												<Component />
-											</main>
-										</div>
-									</SolverContextApp>
-								</VaultsContextApp>
+								<SafeProvider>
+									<VaultsContextApp>
+										<SolverContextApp>
+											<div
+												className={
+													'bg-background flex h-lvh w-full justify-center overflow-auto p-6'
+												}>
+												<main className={'relative mb-auto flex w-full justify-center'}>
+													<Component />
+												</main>
+											</div>
+										</SolverContextApp>
+									</VaultsContextApp>
+								</SafeProvider>
 							</WithPrices>
 						</WithPopularTokens>
 					</WalletContextApp>

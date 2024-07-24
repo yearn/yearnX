@@ -9,6 +9,7 @@ import {
 	assertAddress,
 	ETH_TOKEN_ADDRESS,
 	isEthAddress,
+	isZeroAddress,
 	MAX_UINT_256,
 	toAddress,
 	toBigInt,
@@ -16,6 +17,7 @@ import {
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
+import {useSafeAppsSDK} from '@gnosis.pm/safe-apps-react-sdk';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {isSupportingPermit, signPermit} from '@lib/hooks/usePermit';
 import {approveERC20} from '@lib/utils/actions';
@@ -26,6 +28,7 @@ import {
 	PORTALS_NETWORK,
 	type TPortalsEstimate
 } from '@lib/utils/api.portals';
+import {getApproveTransaction} from '@lib/utils/gnosis.tools';
 import {isValidPortalsErrorObject} from '@lib/utils/isValidPortalsErrorObject';
 import {allowanceKey} from '@lib/utils/tools';
 import {readContract, sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
@@ -33,6 +36,7 @@ import {readContract, sendTransaction, switchChain, waitForTransactionReceipt} f
 import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
 import type {TAssertedVaultsConfiguration} from '@lib/contexts/useManageVaults';
+import type {BaseTransaction} from '@gnosis.pm/safe-apps-sdk';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
 import type {TPermitSignature} from '@lib/hooks/usePermit.types';
 import type {TInitSolverArgs} from '@lib/utils/solvers';
@@ -52,6 +56,7 @@ export const usePortalsSolver = (
 	const [latestQuote, set_latestQuote] = useState<TPortalsEstimate>();
 	const [isFetchingQuote, set_isFetchingQuote] = useState(false);
 	const [canZap, set_canZap] = useState(true);
+	const {sdk} = useSafeAppsSDK();
 	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
 	const isAboveAllowance = allowance.raw >= spendAmount;
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
@@ -329,6 +334,86 @@ export const usePortalsSolver = (
 		[address, configuration, permitSignature, provider, triggerRetreiveAllowance]
 	);
 
+	const onDepositForGnosis = useCallback(
+		async (onSuccess?: () => void): Promise<void> => {
+			assert(provider, 'Provider is not set');
+			assert(latestQuote, 'Quote is not set');
+			assert(configuration?.tokenToSpend.token, 'Token to Spend is not set');
+			assert(configuration?.tokenToReceive.token, 'Token to Receiver is not set');
+			assert(configuration?.vault, 'Output token is not set');
+
+			const tokenToSpend = configuration?.tokenToSpend.token;
+			const tokenToReceive = configuration?.tokenToReceive.token;
+			const amountToSpend = configuration?.tokenToSpend.amount;
+
+			let inputToken = tokenToSpend.address;
+			const outputToken =
+				configuration?.action === 'DEPOSIT' ? configuration?.vault.address : tokenToReceive.address;
+			if (isEthAddress(inputToken)) {
+				inputToken = zeroAddress;
+			}
+
+			const network = PORTALS_NETWORK.get(tokenToSpend.chainID);
+			const transaction = await getPortalsTx({
+				params: {
+					sender: toAddress(address),
+					inputToken: `${network}:${toAddress(inputToken)}`,
+					outputToken: `${network}:${toAddress(outputToken)}`,
+					inputAmount: String(amountToSpend?.raw ?? 0n),
+					slippageTolerancePercentage: slippage.toString(),
+					validate: 'true'
+				}
+			});
+
+			if (!transaction.result) {
+				throw new Error('Transaction data was not fetched from Portals!');
+			}
+
+			const {
+				tx: {value, to, data}
+			} = transaction.result;
+
+			const batch = [];
+
+			if (!isZeroAddress(inputToken)) {
+				const approveTransactionForBatch = getApproveTransaction(
+					toBigInt(configuration?.tokenToSpend.amount?.raw).toString(),
+					toAddress(configuration?.tokenToSpend.token.address),
+					toAddress(to)
+				);
+
+				batch.push(approveTransactionForBatch);
+			}
+
+			const portalsTransactionForBatch: BaseTransaction = {
+				to: toAddress(to),
+				value: toBigInt(value ?? 0n).toString(),
+				data
+			};
+
+			batch.push(portalsTransactionForBatch);
+
+			try {
+				sdk.txs.send({txs: batch}).then(() => {
+					onSuccess?.();
+				});
+			} catch (err) {
+				console.error(err);
+			}
+		},
+		[
+			address,
+			configuration?.action,
+			configuration?.tokenToReceive.token,
+			configuration?.tokenToSpend.amount,
+			configuration?.tokenToSpend.token,
+			configuration?.vault,
+			latestQuote,
+			provider,
+			sdk.txs
+		]
+	);
+
 	/**********************************************************************************************
 	 * execute will send the post request to execute the order and wait for it to be executed, no
 	 * matter the result. It returns a boolean value indicating whether the order was successful or
@@ -519,6 +604,7 @@ export const usePortalsSolver = (
 		depositStatus,
 		set_depositStatus,
 		onExecuteDeposit,
+		onDepositForGnosis,
 
 		/** Approval part */
 		approvalStatus,

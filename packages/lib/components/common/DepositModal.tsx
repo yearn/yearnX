@@ -29,7 +29,7 @@ type TDepositModalProps = {
 
 export function DepositModal(props: TDepositModalProps): ReactElement {
 	const plausible = usePlausible();
-	const {address} = useWeb3();
+	const {address, isWalletSafe} = useWeb3();
 	const {openAccountModal} = useAccountModal();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const {isZapNeededForDeposit} = useIsZapNeeded(configuration);
@@ -47,6 +47,9 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		if (!canZap && !isFetchingQuote) {
 			return 'Impossible to zap in';
 		}
+		if (isWalletSafe) {
+			return 'Approve and Deposit';
+		}
 		if (isApproved) {
 			return 'Deposit';
 		}
@@ -60,6 +63,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		isFetchingAllowance,
 		approvalStatus,
 		onExecuteDeposit,
+		onDepositForGnosis,
 		depositStatus,
 		isFetchingQuote,
 		quote
@@ -78,6 +82,32 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	const onAction = useCallback(async () => {
 		if (!address) {
 			openAccountModal?.();
+		}
+		if (isWalletSafe) {
+			return onDepositForGnosis?.(() => {
+				props.onClose();
+				props.set_isSuccessModalOpen(true);
+				props.set_successModalDescription(
+					<div className={'flex flex-col items-center'}>
+						<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully deposited'}</p>
+
+						<div className={'flex'}>
+							{!isZapNeededForDeposit
+								? configuration?.tokenToSpend.amount?.display.slice(0, 7)
+								: formatBigIntForDisplay(
+										configuration?.tokenToSpend.amount?.raw ?? 0n,
+										configuration?.tokenToSpend.token?.decimals ?? 18,
+										{maximumFractionDigits: 6}
+									)}
+							<p className={'ml-1'}>{configuration?.tokenToSpend?.token?.symbol}</p>
+							<span className={'text-regularText/50'}>
+								<span className={'mx-1'}>{'to'}</span>
+								{configuration?.vault?.name}
+							</span>
+						</div>
+					</div>
+				);
+			});
 		}
 		if (isApproved) {
 			return onExecuteDeposit?.(() => {
@@ -125,8 +155,10 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		configuration.tokenToSpend.token?.symbol,
 		configuration?.vault?.name,
 		isApproved,
+		isWalletSafe,
 		isZapNeededForDeposit,
 		onApprove,
+		onDepositForGnosis,
 		onExecuteDeposit,
 		openAccountModal,
 		plausible,

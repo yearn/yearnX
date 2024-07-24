@@ -29,6 +29,7 @@ export type TSolverContextBase = {
 	depositStatus: TTxStatus;
 	onExecuteDeposit: (onSuccess: () => void) => Promise<void>;
 	set_depositStatus: (value: TTxStatus) => void;
+	onDepositForGnosis: (onSuccess?: () => void) => Promise<void>;
 
 	/** Withdraw part */
 	withdrawStatus: TTxStatus;
