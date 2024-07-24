@@ -1,7 +1,7 @@
 export const PROJECT_TITLE = 'Yearn x Pendle';
 export const PROJECT_DESCRIPTION = 'Feeling lucky Penle Anon?';
 export const VARIANT_TO_USE = 1;
-export const VAULT_FILTER = 'v3';
+export const VAULT_FILTER = 'pendle';
 export const VAULTS_PER_PAGE = 20;
 
 export const HEADER_TABS = [
