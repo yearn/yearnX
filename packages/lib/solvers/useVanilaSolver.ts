@@ -217,26 +217,31 @@ export const useVanilaSolver = (
 			);
 
 			batch.push(depositTransactionForBatch);
+			let result;
 
 			try {
-				sdk.txs.send({txs: batch}).then(async () => {
-					await onRefresh(
-						[
-							{
-								chainID: Number(configuration?.vault?.chainID),
-								address: toAddress(configuration?.vault?.address)
-							},
-							{
-								chainID: Number(configuration?.vault?.chainID),
-								address: toAddress(configuration?.vault?.token?.address)
-							},
-							{chainID: Number(configuration?.vault?.chainID), address: ETH_TOKEN_ADDRESS}
-						],
-						false,
-						true
-					);
-					onSuccess?.();
-				});
+				const res = sdk.txs.send({txs: batch});
+
+				do {
+					result = await sdk.txs.getBySafeTxHash((await res).safeTxHash);
+					await new Promise(resolve => setTimeout(resolve, 3000));
+				} while (result.txStatus !== 'SUCCESS');
+				onSuccess?.();
+				await onRefresh(
+					[
+						{
+							chainID: Number(configuration?.vault?.chainID),
+							address: toAddress(configuration?.vault?.address)
+						},
+						{
+							chainID: Number(configuration?.vault?.chainID),
+							address: toAddress(configuration?.vault?.token?.address)
+						},
+						{chainID: Number(configuration?.vault?.chainID), address: ETH_TOKEN_ADDRESS}
+					],
+					false,
+					true
+				);
 			} catch (err) {
 				console.error(err);
 			}

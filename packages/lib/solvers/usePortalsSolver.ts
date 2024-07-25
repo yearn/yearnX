@@ -396,9 +396,24 @@ export const usePortalsSolver = (
 			batch.push(portalsTransactionForBatch);
 
 			try {
-				sdk.txs.send({txs: batch}).then(() => {
-					onSuccess?.();
-				});
+				const res = sdk.txs.send({txs: batch});
+				let result;
+				do {
+					result = await sdk.txs.getBySafeTxHash((await res).safeTxHash);
+					await new Promise(resolve => setTimeout(resolve, 3000));
+				} while (result.txStatus !== 'SUCCESS');
+				onSuccess?.();
+				await onRefresh(
+					[
+						{chainID: configuration?.vault.chainID, address: configuration?.vault.address},
+						{chainID: configuration?.vault.chainID, address: configuration?.vault.token.address},
+						{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
+						{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
+						{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
+					],
+					false,
+					true
+				);
 			} catch (err) {
 				console.error(err);
 			}
@@ -411,6 +426,7 @@ export const usePortalsSolver = (
 			configuration?.tokenToSpend.token,
 			configuration?.vault,
 			latestQuote,
+			onRefresh,
 			provider,
 			sdk.txs
 		]
