@@ -1,5 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
-import {BaseError, erc20Abi, isHex, zeroAddress} from 'viem';
+import {BaseError, encodeFunctionData, erc20Abi, isHex, zeroAddress} from 'viem';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
@@ -14,9 +14,10 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@builtbymom/web3/utils';
-import {defaultTxStatus, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
+import {defaultTxStatus, getNetwork, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {approveERC20} from '@lib/utils/actions';
+import {isSupportingPermit, signPermit} from '@lib/hooks/usePermit';
+import {approveERC20, multicall} from '@lib/utils/actions';
 import {
 	getPortalsApproval,
 	getPortalsTx,
@@ -25,12 +26,16 @@ import {
 	type TPortalsEstimate
 } from '@lib/utils/api.portals';
 import {isValidPortalsErrorObject} from '@lib/utils/isValidPortalsErrorObject';
+import {erc20AbiWithPermit} from '@lib/utils/permit.abi';
 import {allowanceKey} from '@lib/utils/tools';
+import {CHAINS} from '@lib/utils/tools.chains';
 import {readContract, sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
 
-import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
+import type {TAddress, TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
+import type {TAssertedVaultsConfiguration} from '@lib/contexts/useManageVaults';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
+import type {TPermitSignature} from '@lib/hooks/usePermit.types';
 import type {TInitSolverArgs} from '@lib/utils/solvers';
 
 export const usePortalsSolver = (
@@ -52,6 +57,7 @@ export const usePortalsSolver = (
 	const isAboveAllowance = allowance.raw >= spendAmount;
 	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
 	const slippage = 0.1;
+	const [permitSignature, set_permitSignature] = useState<TPermitSignature | undefined>(undefined);
 
 	/**********************************************************************************************
 	 * TODO: Add comment to explain how it works
@@ -106,27 +112,6 @@ export const usePortalsSolver = (
 		configuration?.tokenToReceive.token?.address,
 		configuration?.tokenToSpend.amount?.normalized
 	]);
-
-	/**********************************************************************************************
-	 * TODO: Add comment to explain how it works
-	 *********************************************************************************************/
-	useAsyncTrigger(async (): Promise<void> => {
-		if (!configuration?.action) {
-			return;
-		}
-		if (configuration.action === 'DEPOSIT' && !isZapNeededForDeposit) {
-			return;
-		}
-		if (configuration.action === 'WITHDRAW' && !isZapNeededForWithdraw) {
-			return;
-		}
-		if (configuration.action === 'WITHDRAW') {
-			onRetrieveQuote();
-		}
-		if (configuration.action === 'DEPOSIT') {
-			onRetrieveQuote();
-		}
-	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote]);
 
 	/**********************************************************************************************
 	 * Retrieve the allowance for the token to be used by the solver. This will be used to
@@ -196,6 +181,35 @@ export const usePortalsSolver = (
 	);
 
 	/**********************************************************************************************
+	 * TODO: Add comment to explain how it works
+	 *********************************************************************************************/
+	useAsyncTrigger(async (): Promise<void> => {
+		if (!configuration?.action) {
+			return;
+		}
+		if (configuration.action === 'DEPOSIT' && !isZapNeededForDeposit) {
+			return;
+		}
+		if (configuration.action === 'WITHDRAW' && !isZapNeededForWithdraw) {
+			return;
+		}
+		if (configuration.action === 'WITHDRAW') {
+			onRetrieveQuote();
+			return;
+		}
+		if (configuration.action === 'DEPOSIT') {
+			onRetrieveQuote();
+			return;
+		}
+
+		// set_permitSignature(undefined);
+		// set_approvalStatus(defaultTxStatus);
+		// set_depositStatus(defaultTxStatus);
+		// set_withdrawStatus(defaultTxStatus);
+		// set_allowance(await onRetrieveAllowance(false));
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote]);
+
+	/**********************************************************************************************
 	 * SWR hook to get the expected out for a given in/out pair with a specific amount. This hook
 	 * is called when amount/in or out changes. Calls the allowanceFetcher callback.
 	 *********************************************************************************************/
@@ -226,55 +240,122 @@ export const usePortalsSolver = (
 			assert(configuration?.tokenToSpend.token, 'Input token is not set');
 			assert(configuration?.tokenToSpend.amount, 'Input amount is not set');
 
+			const shouldUsePermit = await isSupportingPermit({
+				contractAddress: configuration?.tokenToSpend.token.address,
+				chainID: Number(configuration?.vault?.chainID)
+			});
+
+			const config = configuration as TAssertedVaultsConfiguration;
+
 			const amount = configuration?.tokenToSpend.amount.raw;
 
 			try {
-				const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
-				const {data: approval} = await getPortalsApproval({
-					params: {
-						sender: toAddress(address),
-						inputToken: `${network}:${toAddress(configuration?.tokenToSpend.token.address)}`,
-						inputAmount: toBigInt(configuration?.tokenToSpend.amount.raw).toString()
-					}
-				});
-
-				if (!approval) {
-					return;
-				}
-
-				const allowance = await readContract(retrieveConfig(), {
-					chainId: Number(configuration?.vault?.chainID),
-					abi: erc20Abi,
-					address: toAddress(configuration?.tokenToSpend?.token.address),
-					functionName: 'allowance',
-					args: [toAddress(address), toAddress(approval.context.spender)]
-				});
-
-				if (allowance < amount) {
-					assertAddress(approval.context.spender, 'spender');
-					const result = await approveERC20({
-						connector: provider,
-						chainID: configuration?.tokenToSpend.token.chainID,
-						contractAddress: configuration?.tokenToSpend.token.address,
-						spenderAddress: approval.context.spender,
-						amount: amount,
-						statusHandler: set_approvalStatus
+				if (shouldUsePermit) {
+					const signature = await signPermit({
+						contractAddress: config?.tokenToSpend.token.address,
+						ownerAddress: toAddress(address),
+						spenderAddress: toAddress(CHAINS[config.vault.chainID].yearnRouterAddress),
+						value: config.tokenToSpend.amount?.raw ?? 0n,
+						deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60),
+						chainID: config.vault.chainID
 					});
-					if (result.isSuccessful) {
-						onSuccess?.();
+
+					set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
+					set_permitSignature(signature);
+				} else {
+					const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
+					const {data: approval} = await getPortalsApproval({
+						params: {
+							sender: toAddress(address),
+							inputToken: `${network}:${toAddress(configuration?.tokenToSpend.token.address)}`,
+							inputAmount: toBigInt(configuration?.tokenToSpend.amount.raw).toString()
+						}
+					});
+
+					if (!approval) {
+						return;
 					}
+
+					const allowance = await readContract(retrieveConfig(), {
+						chainId: Number(configuration?.vault?.chainID),
+						abi: erc20Abi,
+						address: toAddress(configuration?.tokenToSpend?.token.address),
+						functionName: 'allowance',
+						args: [toAddress(address), toAddress(approval.context.spender)]
+					});
+
+					if (allowance < amount) {
+						assertAddress(approval.context.spender, 'spender');
+						const result = await approveERC20({
+							connector: provider,
+							chainID: configuration?.tokenToSpend.token.chainID,
+							contractAddress: configuration?.tokenToSpend.token.address,
+							spenderAddress: approval.context.spender,
+							amount: amount,
+							statusHandler: set_approvalStatus
+						});
+						if (result.isSuccessful) {
+							onSuccess?.();
+						}
+						triggerRetreiveAllowance();
+						return;
+					}
+					onSuccess?.();
 					triggerRetreiveAllowance();
 					return;
 				}
-				onSuccess?.();
-				triggerRetreiveAllowance();
-				return;
 			} catch (error) {
 				console.error(error);
 				return;
 			}
 		},
 		[address, configuration, provider, triggerRetreiveAllowance]
+	);
+
+	const onExecuteMulticall = useCallback(
+		async (
+			target: TAddress,
+			calldata: {
+				target: TAddress;
+				value: bigint;
+				allowFailure: boolean;
+				callData: TAddress;
+			}
+		): Promise<void> => {
+			if (permitSignature) {
+				const callDataPermitAllowance = {
+					target: target,
+					value: configuration?.tokenToSpend.amount?.raw ?? 0n,
+					allowFailure: false,
+					callData: encodeFunctionData({
+						abi: erc20AbiWithPermit,
+						functionName: 'permit',
+						args: [
+							toAddress(address),
+							calldata.target,
+							configuration?.tokenToSpend.amount?.raw,
+							permitSignature.deadline,
+							permitSignature.v,
+							permitSignature.r,
+							permitSignature.s
+						]
+					})
+				};
+
+				const multicallData = [callDataPermitAllowance, calldata];
+
+				const result = await multicall({
+					connector: provider,
+					chainID: Number(configuration?.vault?.chainID),
+					contractAddress: getNetwork(Number(configuration?.vault?.chainID)).contracts.multicall3?.address,
+					multicallData: multicallData,
+					statusHandler: undefined
+				});
+
+				console.log(result);
+			}
+		},
+		[address, configuration?.tokenToSpend.amount?.raw, configuration?.vault?.chainID, permitSignature, provider]
 	);
 
 	/**********************************************************************************************
@@ -320,9 +401,10 @@ export const usePortalsSolver = (
 						outputToken: `${network}:${toAddress(outputToken)}`,
 						inputAmount: String(amountToSpend?.raw ?? 0n),
 						slippageTolerancePercentage: slippage.toString(),
-						validate: 'true'
+						validate: 'false'
 					}
 				});
+
 				if (!transaction.result) {
 					throw new Error('Transaction data was not fetched from Portals!');
 				}
@@ -351,23 +433,39 @@ export const usePortalsSolver = (
 					}
 				}
 
-				/**********************************************************************************
-				 ** We assert that the data is in hex format and that the wallet client is set
-				 ** before sending the transaction prepared by the Portals solver.
-				 ** Once it's done and we have the receipt, we need to update the balances of all
-				 ** the tokens involved in the transaction
-				 *********************************************************************************/
-				assert(isHex(data), 'Data is not hex');
-				assert(wProvider.walletClient, 'Wallet client is not set');
-				const hash = await sendTransaction(retrieveConfig(), {
-					value: toBigInt(value ?? 0),
-					to: toAddress(to),
-					data,
-					chainId: tokenToSpend.chainID,
-					// gas: 2000000,
-					...rest
-				});
-				const receipt = await waitForTransactionReceipt(retrieveConfig(), {chainId: wProvider.chainId, hash});
+				if (permitSignature) {
+					onExecuteMulticall(toAddress(tx.to), {
+						target: toAddress(to),
+						value: toBigInt(value ?? 0),
+						allowFailure: false,
+						callData: toAddress(tx.data)
+					});
+				} else {
+					/**********************************************************************************
+					 ** We assert that the data is in hex format and that the wallet client is set
+					 ** before sending the transaction prepared by the Portals solver.
+					 ** Once it's done and we have the receipt, we need to update the balances of all
+					 ** the tokens involved in the transaction
+					 *********************************************************************************/
+					assert(isHex(data), 'Data is not hex');
+					assert(wProvider.walletClient, 'Wallet client is not set');
+					const hash = await sendTransaction(retrieveConfig(), {
+						value: toBigInt(value ?? 0),
+						to: toAddress(to),
+						data,
+						chainId: tokenToSpend.chainID,
+						// gas: 2000000,
+						...rest
+					});
+					const receipt = await waitForTransactionReceipt(retrieveConfig(), {
+						chainId: wProvider.chainId,
+						hash
+					});
+					if (receipt.status === 'success') {
+						return {isSuccessful: true, receipt: receipt};
+					}
+				}
+
 				await onRefresh(
 					[
 						{chainID: vault.chainID, address: vault.address},
@@ -380,9 +478,6 @@ export const usePortalsSolver = (
 					true
 				);
 
-				if (receipt.status === 'success') {
-					return {isSuccessful: true, receipt: receipt};
-				}
 				console.error('Fail to perform transaction');
 				return {isSuccessful: false};
 			} catch (error) {
@@ -403,7 +498,9 @@ export const usePortalsSolver = (
 			configuration?.tokenToSpend.token,
 			configuration?.vault,
 			latestQuote,
+			onExecuteMulticall,
 			onRefresh,
+			permitSignature,
 			provider
 		]
 	);
