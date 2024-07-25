@@ -224,7 +224,7 @@ export const useVanilaSolver = (
 
 				do {
 					result = await sdk.txs.getBySafeTxHash((await res).safeTxHash);
-					await new Promise(resolve => setTimeout(resolve, 3000));
+					await new Promise(resolve => setTimeout(resolve, 30_000));
 				} while (result.txStatus !== 'SUCCESS');
 				onSuccess?.();
 				await onRefresh(
