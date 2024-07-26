@@ -179,7 +179,10 @@ export const usePortalsSolver = (
 	);
 
 	/**********************************************************************************************
-	 * TODO: Add comment to explain how it works
+	 ** SWR hook to get the expected out for a given in/out pair with a specific amount. This hook
+	 ** is called when amount/in or out changes. Calls the allowanceFetcher callback.
+	 ** Note: we also clear the permit signature because this means that the user has changed the
+	 ** amount or the token to spend.
 	 *********************************************************************************************/
 	useAsyncTrigger(async (): Promise<void> => {
 		if (!configuration?.action) {
@@ -193,18 +196,15 @@ export const usePortalsSolver = (
 		}
 		if (configuration.action === 'WITHDRAW') {
 			onRetrieveQuote();
-			return;
 		}
 		if (configuration.action === 'DEPOSIT') {
 			onRetrieveQuote();
-			return;
 		}
 
-		// set_permitSignature(undefined);
-		// set_approvalStatus(defaultTxStatus);
-		// set_depositStatus(defaultTxStatus);
-		// set_withdrawStatus(defaultTxStatus);
-		// set_allowance(await onRetrieveAllowance(false));
+		set_permitSignature(undefined);
+		set_approvalStatus(defaultTxStatus);
+		set_depositStatus(defaultTxStatus);
+		set_withdrawStatus(defaultTxStatus);
 	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote]);
 
 	/**********************************************************************************************
