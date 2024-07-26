@@ -313,18 +313,15 @@ export const usePortalsSolver = (
 	);
 
 	const onExecuteMulticall = useCallback(
-		async (
-			target: TAddress,
-			calldata: {
-				target: TAddress;
-				value: bigint;
-				allowFailure: boolean;
-				callData: TAddress;
-			}
-		): Promise<void> => {
+		async (portalsCalldata: {
+			target: TAddress;
+			value: bigint;
+			allowFailure: boolean;
+			callData: TAddress;
+		}): Promise<void> => {
 			if (permitSignature) {
 				const callDataPermitAllowance = {
-					target: target,
+					target: toAddress(configuration?.tokenToSpend.token?.address),
 					value: configuration?.tokenToSpend.amount?.raw ?? 0n,
 					allowFailure: false,
 					callData: encodeFunctionData({
@@ -332,7 +329,7 @@ export const usePortalsSolver = (
 						functionName: 'permit',
 						args: [
 							toAddress(address),
-							calldata.target,
+							portalsCalldata.target,
 							configuration?.tokenToSpend.amount?.raw,
 							permitSignature.deadline,
 							permitSignature.v,
@@ -342,20 +339,59 @@ export const usePortalsSolver = (
 					})
 				};
 
-				const multicallData = [callDataPermitAllowance, calldata];
+				const multicallData = [callDataPermitAllowance, portalsCalldata];
+
+				console.log(multicallData);
 
 				const result = await multicall({
 					connector: provider,
 					chainID: Number(configuration?.vault?.chainID),
 					contractAddress: getNetwork(Number(configuration?.vault?.chainID)).contracts.multicall3?.address,
 					multicallData: multicallData,
-					statusHandler: undefined
+					statusHandler: set_depositStatus
 				});
 
-				console.log(result);
+				if (result.isSuccessful) {
+					await onRefresh(
+						[
+							{
+								chainID: Number(configuration?.vault?.chainID),
+								address: toAddress(configuration?.vault?.address)
+							},
+							{
+								chainID: Number(configuration?.vault?.chainID),
+								address: toAddress(configuration?.vault?.token.address)
+							},
+							{
+								chainID: Number(configuration?.tokenToSpend.token?.chainID),
+								address: toAddress(configuration?.tokenToSpend.token?.address)
+							},
+							{
+								chainID: Number(configuration?.tokenToReceive.token?.chainID),
+								address: toAddress(configuration?.tokenToReceive.token?.address)
+							},
+							{chainID: Number(configuration?.tokenToSpend.token?.chainID), address: ETH_TOKEN_ADDRESS}
+						],
+						false,
+						true
+					);
+				}
 			}
 		},
-		[address, configuration?.tokenToSpend.amount?.raw, configuration?.vault?.chainID, permitSignature, provider]
+		[
+			address,
+			configuration?.tokenToReceive.token?.address,
+			configuration?.tokenToReceive.token?.chainID,
+			configuration?.tokenToSpend.amount?.raw,
+			configuration?.tokenToSpend.token?.address,
+			configuration?.tokenToSpend.token?.chainID,
+			configuration?.vault?.address,
+			configuration?.vault?.chainID,
+			configuration?.vault?.token.address,
+			onRefresh,
+			permitSignature,
+			provider
+		]
 	);
 
 	/**********************************************************************************************
@@ -434,11 +470,11 @@ export const usePortalsSolver = (
 				}
 
 				if (permitSignature) {
-					onExecuteMulticall(toAddress(tx.to), {
+					onExecuteMulticall({
 						target: toAddress(to),
 						value: toBigInt(value ?? 0),
 						allowFailure: false,
-						callData: toAddress(tx.data)
+						callData: tx.data as TAddress
 					});
 				} else {
 					/**********************************************************************************
