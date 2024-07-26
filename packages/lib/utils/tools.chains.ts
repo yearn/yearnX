@@ -79,7 +79,7 @@ const CHAINS: TSmolChains = {
 		coingeckoGasCoinID: 'xdai',
 		llamaChainName: 'xdai',
 		rpcUrls: assignRPCUrls(gnosis),
-		yearnRouterAddress: undefined
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
 	},
 	[polygon.id]: {
 		...polygon,
@@ -100,7 +100,7 @@ const CHAINS: TSmolChains = {
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'base',
 		rpcUrls: assignRPCUrls(base),
-		yearnRouterAddress: undefined
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
 	},
 	[arbitrum.id]: {
 		...arbitrum,
