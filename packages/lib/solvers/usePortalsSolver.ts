@@ -28,7 +28,6 @@ import {
 import {isValidPortalsErrorObject} from '@lib/utils/isValidPortalsErrorObject';
 import {erc20AbiWithPermit} from '@lib/utils/permit.abi';
 import {allowanceKey} from '@lib/utils/tools';
-import {CHAINS} from '@lib/utils/tools.chains';
 import {readContract, sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
 
 import type {TAddress, TDict, TNormalizedBN} from '@builtbymom/web3/types';
@@ -250,11 +249,23 @@ export const usePortalsSolver = (
 			const amount = configuration?.tokenToSpend.amount.raw;
 
 			try {
+				const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
+				const {data: approval} = await getPortalsApproval({
+					params: {
+						sender: toAddress(address),
+						inputToken: `${network}:${toAddress(configuration?.tokenToSpend.token.address)}`,
+						inputAmount: toBigInt(configuration?.tokenToSpend.amount.raw).toString()
+					}
+				});
+
+				if (!approval) {
+					return;
+				}
 				if (shouldUsePermit) {
 					const signature = await signPermit({
 						contractAddress: config?.tokenToSpend.token.address,
 						ownerAddress: toAddress(address),
-						spenderAddress: toAddress(CHAINS[config.vault.chainID].yearnRouterAddress),
+						spenderAddress: toAddress(approval.context.spender),
 						value: config.tokenToSpend.amount?.raw ?? 0n,
 						deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60),
 						chainID: config.vault.chainID
@@ -263,19 +274,6 @@ export const usePortalsSolver = (
 					set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
 					set_permitSignature(signature);
 				} else {
-					const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
-					const {data: approval} = await getPortalsApproval({
-						params: {
-							sender: toAddress(address),
-							inputToken: `${network}:${toAddress(configuration?.tokenToSpend.token.address)}`,
-							inputAmount: toBigInt(configuration?.tokenToSpend.amount.raw).toString()
-						}
-					});
-
-					if (!approval) {
-						return;
-					}
-
 					const allowance = await readContract(retrieveConfig(), {
 						chainId: Number(configuration?.vault?.chainID),
 						abi: erc20Abi,
