@@ -321,16 +321,16 @@ export const usePortalsSolver = (
 		}): Promise<void> => {
 			if (permitSignature) {
 				const callDataPermitAllowance = {
-					target: toAddress(configuration?.tokenToSpend.token?.address),
+					target: toAddress(address),
 					value: configuration?.tokenToSpend.amount?.raw ?? 0n,
 					allowFailure: false,
 					callData: encodeFunctionData({
 						abi: erc20AbiWithPermit,
 						functionName: 'permit',
 						args: [
-							toAddress(address),
+							toAddress(configuration?.tokenToSpend.token?.address),
 							portalsCalldata.target,
-							configuration?.tokenToSpend.amount?.raw,
+							toBigInt(configuration?.tokenToSpend.amount?.raw),
 							permitSignature.deadline,
 							permitSignature.v,
 							permitSignature.r,
@@ -350,6 +350,8 @@ export const usePortalsSolver = (
 					multicallData: multicallData,
 					statusHandler: set_depositStatus
 				});
+
+				console.log(result);
 
 				if (result.isSuccessful) {
 					await onRefresh(
@@ -471,7 +473,7 @@ export const usePortalsSolver = (
 
 				if (permitSignature) {
 					onExecuteMulticall({
-						target: toAddress(to),
+						target: toAddress(address),
 						value: toBigInt(value ?? 0),
 						allowFailure: false,
 						callData: tx.data as TAddress
@@ -498,21 +500,20 @@ export const usePortalsSolver = (
 						hash
 					});
 					if (receipt.status === 'success') {
+						await onRefresh(
+							[
+								{chainID: vault.chainID, address: vault.address},
+								{chainID: vault.chainID, address: vault.token.address},
+								{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
+								{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
+								{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
+							],
+							false,
+							true
+						);
 						return {isSuccessful: true, receipt: receipt};
 					}
 				}
-
-				await onRefresh(
-					[
-						{chainID: vault.chainID, address: vault.address},
-						{chainID: vault.chainID, address: vault.token.address},
-						{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
-						{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
-						{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
-					],
-					false,
-					true
-				);
 
 				console.error('Fail to perform transaction');
 				return {isSuccessful: false};
