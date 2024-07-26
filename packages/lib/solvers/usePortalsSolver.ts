@@ -30,6 +30,7 @@ import {erc20AbiWithPermit} from '@lib/utils/permit.abi';
 import {allowanceKey} from '@lib/utils/tools';
 import {readContract, sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
 
+import type {Hex} from 'viem';
 import type {TAddress, TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
 import type {TAssertedVaultsConfiguration} from '@lib/contexts/useManageVaults';
@@ -263,14 +264,13 @@ export const usePortalsSolver = (
 				}
 				if (shouldUsePermit) {
 					const signature = await signPermit({
-						contractAddress: config?.tokenToSpend.token.address,
+						contractAddress: toAddress(config.tokenToSpend.token.address),
 						ownerAddress: toAddress(address),
 						spenderAddress: toAddress(approval.context.spender),
-						value: config.tokenToSpend.amount?.raw ?? 0n,
+						value: toBigInt(config.tokenToSpend.amount?.raw),
 						deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60),
 						chainID: config.vault.chainID
 					});
-
 					set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
 					set_permitSignature(signature);
 				} else {
@@ -319,14 +319,16 @@ export const usePortalsSolver = (
 		}): Promise<void> => {
 			if (permitSignature) {
 				const callDataPermitAllowance = {
-					target: toAddress(address),
-					value: configuration?.tokenToSpend.amount?.raw ?? 0n,
+					target: toAddress(configuration?.tokenToSpend.token?.address),
+					value: isEthAddress(configuration?.tokenToSpend.token?.address)
+						? toBigInt(configuration?.tokenToSpend.amount?.raw)
+						: 0n,
 					allowFailure: false,
 					callData: encodeFunctionData({
 						abi: erc20AbiWithPermit,
 						functionName: 'permit',
 						args: [
-							toAddress(configuration?.tokenToSpend.token?.address),
+							toAddress(address),
 							portalsCalldata.target,
 							toBigInt(configuration?.tokenToSpend.amount?.raw),
 							permitSignature.deadline,
@@ -336,10 +338,7 @@ export const usePortalsSolver = (
 						]
 					})
 				};
-
-				const multicallData = [callDataPermitAllowance, portalsCalldata];
-
-				console.log(multicallData);
+				const multicallData = [callDataPermitAllowance];
 
 				const result = await multicall({
 					connector: provider,
@@ -471,10 +470,10 @@ export const usePortalsSolver = (
 
 				if (permitSignature) {
 					onExecuteMulticall({
-						target: toAddress(address),
+						target: toAddress(tx.to),
 						value: toBigInt(value ?? 0),
 						allowFailure: false,
-						callData: tx.data as TAddress
+						callData: tx.data as Hex
 					});
 				} else {
 					/**********************************************************************************
