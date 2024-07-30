@@ -3,11 +3,12 @@ import {assert, assertAddress, MAX_UINT_256, toAddress, toBigInt} from '@builtby
 import {handleTx, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 import {readContract} from '@wagmi/core';
 
+import {MULTICALL_ABI} from './multicall.abi.ts';
 import {PRIZE_VAULT_ABI} from './prizeVault.abi';
 import {VAULT_ABI} from './vault.abi';
 import {YEARN_4626_ROUTER_ABI} from './vaultRouter.abi.ts';
 
-import type {EncodeFunctionDataReturnType} from 'viem';
+import type {EncodeFunctionDataReturnType, Hex} from 'viem';
 import type {TAddress} from '@builtbymom/web3/types';
 import type {TTxResponse, TWriteTransaction} from '@builtbymom/web3/utils/wagmi';
 
@@ -206,5 +207,40 @@ export async function depositViaRouter(props: TDepositViaRouter): Promise<TTxRes
 		functionName: 'multicall',
 		value: 0n,
 		args: [multicalls]
+	});
+}
+
+export type TMulticall = TWriteTransaction & {
+	multicallData: {
+		target: TAddress;
+		callData: Hex;
+		value: bigint;
+		allowFailure: boolean;
+	}[];
+};
+
+export async function multicall(props: TMulticall): Promise<TTxResponse> {
+	assert(props.connector, 'No connector');
+	assert(props.multicallData.length > 0, 'Nothing to do');
+	assertAddress(props.contractAddress, 'ContractAddress');
+
+	const value = props.multicallData.reduce((a: bigint, b: {value: bigint}): bigint => a + b.value, 0n);
+	try {
+		return await handleTx(props, {
+			address: props.contractAddress,
+			abi: MULTICALL_ABI,
+			functionName: 'aggregate3Value',
+			args: [props.multicallData],
+			value: value
+		});
+	} catch (err) {
+		console.log(err);
+	}
+	return await handleTx(props, {
+		address: props.contractAddress,
+		abi: MULTICALL_ABI,
+		functionName: 'aggregate3Value',
+		args: [props.multicallData],
+		value: value
 	});
 }

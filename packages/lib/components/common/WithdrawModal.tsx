@@ -211,6 +211,11 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 		return 'Withdraw';
 	}, [address, canZap, isFetchingQuote, isApproved, isZapNeededForWithdraw]);
 
+	const isWithdrawDisable =
+		!configuration?.tokenToSpend.amount ||
+		configuration?.tokenToSpend.amount.raw === 0n ||
+		(configuration?.tokenToSpend.amount && configuration?.tokenToSpend.amount?.normalized > balance);
+
 	return (
 		<Transition
 			show={props.isOpen}
@@ -421,7 +426,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 							<Button
 								onClick={onAction}
 								isBusy={isFetchingQuote || withdrawStatus?.pending || approvalStatus?.pending}
-								isDisabled={false}
+								isDisabled={isWithdrawDisable}
 								spinnerClassName={'text-background size-4 animate-spin'}
 								className={cl(
 									'text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText md:px-[34.5px] py-5 font-bold',
