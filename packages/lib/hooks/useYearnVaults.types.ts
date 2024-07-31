@@ -221,4 +221,8 @@ export type TPossibleVaultFilter =
 	| 'retired'
 	| 'pendle'
 	| 'optimism'
-	| 'pooltogether';
+	| 'pooltogether'
+	| 'aerodrome'
+	| 'curve'
+	| 'ajna'
+	| 'velodrome';
