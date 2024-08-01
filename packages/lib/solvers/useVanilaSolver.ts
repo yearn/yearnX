@@ -155,6 +155,7 @@ export const useVanilaSolver = (
 				chainID: config.vault.chainID
 			});
 			if (shouldUsePermit && isV3Vault && isAddress(CHAINS[config.vault.chainID].yearnRouterAddress)) {
+				set_approvalStatus({...defaultTxStatus, pending: true});
 				const signature = await signPermit({
 					contractAddress: config.tokenToSpend.token.address,
 					ownerAddress: toAddress(address),
@@ -163,8 +164,15 @@ export const useVanilaSolver = (
 					deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60), // 60 minutes
 					chainID: config.vault.chainID
 				});
-				set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
-				set_permitSignature(signature);
+
+				set_approvalStatus({...defaultTxStatus, success: !!signature});
+				if (!signature) {
+					set_permitSignature(undefined);
+					set_allowance(zeroNormalizedBN);
+				} else {
+					set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
+					set_permitSignature(signature);
+				}
 			} else {
 				const result = await approveERC20({
 					connector: provider,
@@ -177,6 +185,9 @@ export const useVanilaSolver = (
 				set_allowance(await onRetrieveAllowance(true));
 				if (result.isSuccessful) {
 					onSuccess?.();
+				} else {
+					set_permitSignature(undefined);
+					set_allowance(zeroNormalizedBN);
 				}
 			}
 		},
@@ -229,7 +240,14 @@ export const useVanilaSolver = (
 
 			onRefreshBalances(config);
 			onRetrieveAllowance(true);
-			result.isSuccessful ? onSuccess?.() : null;
+			if (result.isSuccessful) {
+				onSuccess?.();
+			} else {
+				if (permitSignature) {
+					set_permitSignature(undefined);
+					set_allowance(zeroNormalizedBN);
+				}
+			}
 			set_depositStatus({...defaultTxStatus, success: result.isSuccessful});
 		},
 		[configuration, onRefreshBalances, onRetrieveAllowance, permitSignature, provider]

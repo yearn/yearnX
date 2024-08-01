@@ -1,4 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
+import toast from 'react-hot-toast';
 import {BaseError, erc20Abi, isHex, zeroAddress} from 'viem';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
@@ -42,7 +43,7 @@ export const usePortalsSolver = (
 ): TSolverContextBase => {
 	const {configuration} = useManageVaults();
 	const {onRefresh} = useWallet();
-	const {address, provider} = useWeb3();
+	const {address, provider, isWalletSafe} = useWeb3();
 	const [approvalStatus, set_approvalStatus] = useState(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
 	const [withdrawStatus, set_withdrawStatus] = useState(defaultTxStatus);
@@ -237,40 +238,54 @@ export const usePortalsSolver = (
 
 			assert(configuration?.tokenToSpend.token, 'Input token is not set');
 			assert(configuration?.tokenToSpend.amount, 'Input amount is not set');
+			assert(configuration?.vault, 'Vault is not set');
 
 			const shouldUsePermit = await isSupportingPermit({
-				contractAddress: configuration?.tokenToSpend.token.address,
-				chainID: Number(configuration?.vault?.chainID)
+				contractAddress: configuration.tokenToSpend.token.address,
+				chainID: Number(configuration.vault.chainID)
+			});
+			console.warn({
+				contractAddress: configuration.tokenToSpend.token.address,
+				chainID: Number(configuration.vault.chainID),
+				shouldUsePermit
 			});
 
 			const config = configuration as TAssertedVaultsConfiguration;
 			const amount = configuration?.tokenToSpend.amount.raw;
-
 			try {
 				const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
 				const {data: approval} = await getPortalsApproval({
 					params: {
 						sender: toAddress(address),
 						inputToken: `${network}:${toAddress(configuration?.tokenToSpend.token.address)}`,
-						inputAmount: toBigInt(configuration?.tokenToSpend.amount.raw).toString()
+						inputAmount: toBigInt(configuration?.tokenToSpend.amount.raw).toString(),
+						permitDeadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60).toString()
 					}
 				});
 
 				if (!approval) {
 					return;
 				}
-				if (shouldUsePermit) {
+
+				if (shouldUsePermit && approval.context.canPermit) {
+					set_approvalStatus({...defaultTxStatus, pending: true});
 					const signature = await signPermit({
 						contractAddress: toAddress(config.tokenToSpend.token.address),
 						ownerAddress: toAddress(address),
 						spenderAddress: toAddress(approval.context.spender),
 						value: toBigInt(config.tokenToSpend.amount?.raw),
-						deadline: toBigInt('18446744073709551615'), //Portals enforce this deadline
-						//deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60),
+						deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60),
 						chainID: config.vault.chainID
 					});
-					set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
-					set_permitSignature(signature);
+
+					set_approvalStatus({...defaultTxStatus, success: !!signature});
+					if (!signature) {
+						set_permitSignature(undefined);
+						set_allowance(zeroNormalizedBN);
+					} else {
+						set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
+						set_permitSignature(signature);
+					}
 				} else {
 					const allowance = await readContract(retrieveConfig(), {
 						chainId: Number(configuration?.vault?.chainID),
@@ -301,11 +316,17 @@ export const usePortalsSolver = (
 					return;
 				}
 			} catch (error) {
+				if (permitSignature) {
+					set_permitSignature(undefined);
+					set_allowance(zeroNormalizedBN);
+				}
 				console.error(error);
+				toast.error((error as BaseError).shortMessage || (error as BaseError).message) ||
+					'An error occured while creating your transaction!';
 				return;
 			}
 		},
-		[address, configuration, provider, triggerRetreiveAllowance]
+		[address, configuration, permitSignature, provider, triggerRetreiveAllowance]
 	);
 
 	/**********************************************************************************************
@@ -351,8 +372,9 @@ export const usePortalsSolver = (
 						outputToken: `${network}:${toAddress(outputToken)}`,
 						inputAmount: String(amountToSpend?.raw ?? 0n),
 						slippageTolerancePercentage: slippage.toString(),
-						validate: 'true',
-						permitSignature: permitSignature?.signature || undefined
+						validate: isWalletSafe ? 'false' : 'true',
+						permitSignature: permitSignature?.signature || undefined,
+						permitDeadline: permitSignature?.deadline ? permitSignature.deadline.toString() : undefined
 					}
 				});
 
@@ -424,12 +446,21 @@ export const usePortalsSolver = (
 			} catch (error) {
 				if (isValidPortalsErrorObject(error)) {
 					const errorMessage = error.response.data.message;
-					console.dir(errorMessage);
+					toast.error(errorMessage);
+					console.error(errorMessage);
 				} else {
-					console.dir(error);
+					toast.error(
+						(error as BaseError).shortMessage || 'An error occured while creating your transaction!'
+					);
+					console.error(error);
 				}
 
 				return {isSuccessful: false};
+			} finally {
+				if (permitSignature) {
+					set_permitSignature(undefined);
+					set_allowance(zeroNormalizedBN);
+				}
 			}
 		},
 		[
@@ -438,6 +469,7 @@ export const usePortalsSolver = (
 			configuration?.tokenToSpend.amount,
 			configuration?.tokenToSpend.token,
 			configuration?.vault,
+			isWalletSafe,
 			latestQuote,
 			onRefresh,
 			permitSignature,

@@ -49,6 +49,7 @@ type TGetTransactionProps = Omit<TGetEstimateProps, 'params'> & {
 	params: Required<Pick<TGetEstimateProps, 'params'>['params']> & {
 		sender: TAddress;
 		validate?: string;
+		permitDeadline?: string;
 		permitSignature?: Hex;
 		feePercentage?: string;
 	};
@@ -92,6 +93,7 @@ type TGetApprovalProps = {
 		sender: TAddress;
 		inputToken: string;
 		inputAmount: string;
+		permitDeadline?: string;
 	};
 };
 
