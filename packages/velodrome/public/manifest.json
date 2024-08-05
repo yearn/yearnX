@@ -1,12 +1,12 @@
 {
-	"name": "Yearn x Pool Together",
-	"short_name": "yPoolTogether",
-	"description": "Feeling lucky Anon?",
-	"locale": "en-US",
-	"uri": "https://pooltogether.yearn.space/",
-	"og": "https://pooltogether.yearn.space/og.png",
-	"iconPath": "https://pooltogether.yearn.space/favicons/favicon.svg",
+	"name": "Yearn x Velodrome",
+	"short_name": "yVelodrome",
+	"uri": "https://velodrome.yearn.space/",
+	"og": "https://velodrome.yearn.space/og.png",
+	"iconPath": "https://velodrome.yearn.space/favicons/favicon-512x512.png",
 	"twitter": "@yearnfi",
+	"description": "",
+	"locale": "en-US",
 	"icons": [
 		{
 			"src": "/favicons/android-icon-192x192.png",

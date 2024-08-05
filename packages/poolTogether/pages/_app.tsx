@@ -28,8 +28,8 @@ export default function MyApp(props: AppProps): ReactElement {
 				description={PROJECT_DESCRIPTION}
 				titleColor={COLORS.background}
 				themeColor={COLORS.primary}
-				og={''}
-				uri={''}
+				og={'https://pooltogether.yearn.space/og.png'}
+				uri={'https://pooltogether.yearn.space'}
 			/>
 			<WithMom
 				supportedChains={supportedNetworks}
