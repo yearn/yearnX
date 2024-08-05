@@ -51,20 +51,11 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		return 'Approve';
 	};
 
-	const {
-		onApprove,
-		isApproved,
-		isFetchingAllowance,
-		approvalStatus,
-		onExecuteDeposit,
-		depositStatus,
-		isFetchingQuote,
-		quote
-	} = useSolver();
+	const {onApprove, isApproved, isApproving, onExecuteDeposit, depositStatus, isFetchingQuote, quote} = useSolver();
 
 	const isBusy = !configuration?.tokenToSpend.amount?.normalized
 		? false
-		: Boolean(isFetchingAllowance || approvalStatus?.pending || depositStatus?.pending || isFetchingQuote);
+		: Boolean(isApproving || depositStatus?.pending || isFetchingQuote);
 
 	/**********************************************************************************************
 	 ** onAction is a callback that decides what to do on button click. If wallet isn't connected,

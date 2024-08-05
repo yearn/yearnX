@@ -1,5 +1,5 @@
 import {encodeFunctionData, erc20Abi} from 'viem';
-import {assert, assertAddress, MAX_UINT_256, toAddress, toBigInt} from '@builtbymom/web3/utils';
+import {assert, assertAddress, MAX_UINT_256, toBigInt} from '@builtbymom/web3/utils';
 import {handleTx, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 import {readContract} from '@wagmi/core';
 
@@ -79,54 +79,6 @@ export async function withdrawShares(props: TWithdrawSharesArgs): Promise<TTxRes
 		abi: VAULT_ABI,
 		functionName: 'withdraw',
 		args: [props.amount]
-	});
-}
-
-/*******************************************************************************
- ** approveERC20 is a _WRITE_ function that approves a token for a spender.
- **
- ** @param spenderAddress - The address of the spender.
- ** @param amount - The amount of collateral to deposit.
- ******************************************************************************/
-//Because USDT do not return a boolean on approve, we need to use this ABI
-const ALTERNATE_ERC20_APPROVE_ABI = [
-	{
-		constant: false,
-		inputs: [
-			{name: '_spender', type: 'address'},
-			{name: '_value', type: 'uint256'}
-		],
-		name: 'approve',
-		outputs: [],
-		payable: false,
-		stateMutability: 'nonpayable',
-		type: 'function'
-	}
-] as const;
-
-type TApproveERC20 = TWriteTransaction & {
-	spenderAddress: TAddress | undefined;
-	amount: bigint;
-};
-export async function approveERC20(props: TApproveERC20): Promise<TTxResponse> {
-	assertAddress(props.spenderAddress, 'spenderAddress');
-	assertAddress(props.contractAddress);
-
-	props.onTrySomethingElse = async (): Promise<TTxResponse> => {
-		assertAddress(props.spenderAddress, 'spenderAddress');
-		return await handleTx(props, {
-			address: toAddress(props.contractAddress),
-			abi: ALTERNATE_ERC20_APPROVE_ABI,
-			functionName: 'approve',
-			args: [props.spenderAddress, props.amount]
-		});
-	};
-
-	return await handleTx(props, {
-		address: props.contractAddress,
-		abi: erc20Abi,
-		functionName: 'approve',
-		args: [props.spenderAddress, props.amount]
 	});
 }
 

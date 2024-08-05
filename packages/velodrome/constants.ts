@@ -13,13 +13,13 @@ export const HEADER_TABS = [
 ];
 
 export const COLORS = {
-	button: '#0052FF', // The main color of the button
-	buttonHover: '#054DED', // The hover color of the button
+	button: '#EE2524', // The main color of the button
+	buttonHover: '#C81E1D', // The hover color of the button
 	regularText: '#FFFFFF', // The color of the regular text
 	accentText: '#FFFFFF', // The color of the text on the button or the primary color
-	background: '#151B33', // The background color of the page
-	table: '#1E233D', // The background color of the table (front element)
-	primary: '#0052FF', // The primary color of the page
-	secondary: '#FF1001', // The secondary color of the page
-	headerTag: '#232947' // The color of the header tag [Yearn x Something]
+	background: '#151F2E', // The background color of the page
+	table: '#1E293B', // The background color of the table (front element)
+	primary: '#EE2524', // The primary color of the page
+	secondary: '#C05638', // The secondary color of the page
+	headerTag: '#233045' // The color of the header tag [Yearn x Something]
 };

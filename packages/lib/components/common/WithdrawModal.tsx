@@ -45,7 +45,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	const toggleButtonRef = useRef(null);
 	const tokensOnCurrentChain = listTokens(configuration?.vault?.chainID);
 	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
-	const {onExecuteWithdraw, quote, isFetchingQuote, withdrawStatus, canZap, onApprove, isApproved, approvalStatus} =
+	const {onExecuteWithdraw, quote, isFetchingQuote, withdrawStatus, canZap, onApprove, isApproved, isApproving} =
 		useSolver();
 	const {balances, getBalance} = useWallet();
 
@@ -425,7 +425,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 
 							<Button
 								onClick={onAction}
-								isBusy={isFetchingQuote || withdrawStatus?.pending || approvalStatus?.pending}
+								isBusy={isFetchingQuote || withdrawStatus?.pending || isApproving}
 								isDisabled={isWithdrawDisable}
 								spinnerClassName={'text-background size-4 animate-spin'}
 								className={cl(

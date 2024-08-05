@@ -1,5 +1,4 @@
 import {createContext, useContext, useMemo} from 'react';
-import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {defaultTxStatus, type TTxStatus} from '@builtbymom/web3/utils/wagmi';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {usePortalsSolver} from '@lib/solvers/usePortalsSolver';
@@ -8,8 +7,7 @@ import {useVanilaSolver} from '@lib/solvers/useVanilaSolver';
 import {useManageVaults} from './useManageVaults';
 
 import type {ReactElement} from 'react';
-import type {TNormalizedBN} from '@builtbymom/web3/types';
-import type {TPermitSignature} from '@lib/hooks/usePermit.types';
+import type {TPermitSignature} from '@builtbymom/web3/hooks/usePermit.types';
 import type {TPortalsEstimate} from '@lib/utils/api.portals';
 
 /**************************************************************************************************
@@ -17,13 +15,11 @@ import type {TPortalsEstimate} from '@lib/utils/api.portals';
  *************************************************************************************************/
 export type TSolverContextBase = {
 	/** Approval part */
-	approvalStatus: TTxStatus;
-	onApprove: (onSuccess?: () => void) => Promise<void>;
-	allowance: TNormalizedBN;
+	onApprove: (onSuccess?: () => void, onFailure?: () => void) => Promise<void>;
+	allowance: bigint;
 	permitSignature?: TPermitSignature;
-	isDisabled: boolean;
 	isApproved: boolean;
-	isFetchingAllowance: boolean;
+	isApproving: boolean;
 
 	/** Deposit part */
 	depositStatus: TTxStatus;
@@ -48,12 +44,10 @@ export type TSolverContextBase = {
 type TSolverContext = Partial<TSolverContextBase>;
 
 const SolverContext = createContext<Partial<TSolverContextBase>>({
-	approvalStatus: defaultTxStatus,
 	onApprove: async (): Promise<void> => undefined,
-	allowance: zeroNormalizedBN,
-	isDisabled: false,
+	allowance: 0n,
 	isApproved: false,
-	isFetchingAllowance: false,
+	isApproving: false,
 
 	withdrawStatus: defaultTxStatus,
 	set_withdrawStatus: (): void => undefined,
