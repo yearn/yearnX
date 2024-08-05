@@ -27,8 +27,8 @@ export default function MyApp(props: AppProps): ReactElement {
 				description={PROJECT_DESCRIPTION}
 				titleColor={COLORS.background}
 				themeColor={COLORS.primary}
-				og={''}
-				uri={''}
+				og={'https://velodrome.yearn.space/og.png'}
+				uri={'https://velodrome.yearn.space'}
 			/>
 			<WithMom
 				supportedChains={supportedNetworks}
