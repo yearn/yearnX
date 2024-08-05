@@ -27,8 +27,8 @@ export default function MyApp(props: AppProps): ReactElement {
 				description={PROJECT_DESCRIPTION}
 				titleColor={COLORS.background}
 				themeColor={COLORS.primary}
-				og={''}
-				uri={''}
+				og={'https://pendle.yearn/space/og.png'}
+				uri={'https://pendle.yearn.space'}
 			/>
 			<WithMom
 				supportedChains={supportedNetworks}
