@@ -1,40 +1,20 @@
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useState} from 'react';
 import toast from 'react-hot-toast';
-import {BaseError, erc20Abi, isHex, zeroAddress} from 'viem';
+import {BaseError, isHex, zeroAddress} from 'viem';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useApprove} from '@builtbymom/web3/hooks/useApprove';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
-import {
-	assert,
-	assertAddress,
-	ETH_TOKEN_ADDRESS,
-	isEthAddress,
-	MAX_UINT_256,
-	toAddress,
-	toBigInt,
-	toNormalizedBN,
-	zeroNormalizedBN
-} from '@builtbymom/web3/utils';
+import {assert, ETH_TOKEN_ADDRESS, isEthAddress, toAddress, toBigInt} from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {isSupportingPermit, signPermit} from '@lib/hooks/usePermit';
-import {approveERC20} from '@lib/utils/actions';
-import {
-	getPortalsApproval,
-	getPortalsTx,
-	getQuote,
-	PORTALS_NETWORK,
-	type TPortalsEstimate
-} from '@lib/utils/api.portals';
+import {getPortalsApproval, getPortalsTx, getQuote, PORTALS_NETWORK} from '@lib/utils/api.portals';
 import {isValidPortalsErrorObject} from '@lib/utils/isValidPortalsErrorObject';
-import {allowanceKey} from '@lib/utils/tools';
-import {readContract, sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
+import {sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
 
-import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
 import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
-import type {TAssertedVaultsConfiguration} from '@lib/contexts/useManageVaults';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
-import type {TPermitSignature} from '@lib/hooks/usePermit.types';
+import type {TPortalsApproval, TPortalsEstimate} from '@lib/utils/api.portals';
 import type {TInitSolverArgs} from '@lib/utils/solvers';
 
 export const usePortalsSolver = (
@@ -44,19 +24,69 @@ export const usePortalsSolver = (
 	const {configuration} = useManageVaults();
 	const {onRefresh} = useWallet();
 	const {address, provider, isWalletSafe} = useWeb3();
-	const [approvalStatus, set_approvalStatus] = useState(defaultTxStatus);
 	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
 	const [withdrawStatus, set_withdrawStatus] = useState(defaultTxStatus);
-	const [allowance, set_allowance] = useState<TNormalizedBN>(zeroNormalizedBN);
-	const [isFetchingAllowance, set_isFetchingAllowance] = useState(false);
 	const [latestQuote, set_latestQuote] = useState<TPortalsEstimate>();
 	const [isFetchingQuote, set_isFetchingQuote] = useState(false);
 	const [canZap, set_canZap] = useState(true);
-	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
-	const isAboveAllowance = allowance.raw >= spendAmount;
-	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
+	const [approveCtx, set_approveCtx] = useState<TPortalsApproval>();
 	const slippage = 0.1;
-	const [permitSignature, set_permitSignature] = useState<TPermitSignature | undefined>(undefined);
+
+	/**********************************************************************************************
+	 * TODO: Add comment to explain how it works
+	 *********************************************************************************************/
+	useAsyncTrigger(async (): Promise<void> => {
+		if (isEthAddress(configuration?.tokenToSpend.token?.address)) {
+			set_approveCtx(undefined);
+			return;
+		}
+		if (!configuration?.tokenToSpend.token || !configuration?.tokenToSpend?.amount?.raw) {
+			set_approveCtx(undefined);
+			return;
+		}
+
+		if (approveCtx?.context.target === configuration?.vault?.address) {
+			return;
+		}
+
+		const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
+		const {data: approval} = await getPortalsApproval({
+			params: {
+				sender: toAddress(address),
+				inputToken: `${network}:${toAddress(configuration?.tokenToSpend.token.address)}`,
+				inputAmount: toBigInt(configuration?.tokenToSpend.amount.raw).toString(),
+				permitDeadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60).toString()
+			}
+		});
+
+		if (!approval) {
+			set_approveCtx(undefined);
+			return;
+		}
+		set_approveCtx(approval);
+	}, [
+		address,
+		approveCtx?.context.target,
+		configuration?.tokenToSpend?.amount?.raw,
+		configuration?.tokenToSpend.token,
+		configuration?.vault?.address
+	]);
+
+	/**********************************************************************************************
+	 ** The useApprove hook is used to approve the token to spend for the vault. This is used to
+	 ** allow the vault to spend the token on behalf of the user. This is required for the deposit
+	 ** function to work.
+	 *********************************************************************************************/
+	const {isApproved, isApproving, onApprove, amountApproved, permitSignature, onClearPermit} = useApprove({
+		provider,
+		chainID: configuration?.vault?.chainID || 0,
+		tokenToApprove: toAddress(configuration?.tokenToSpend.token?.address),
+		spender: toAddress(approveCtx?.context.spender || zeroAddress),
+		owner: toAddress(address),
+		amountToApprove: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
+		shouldUsePermit: approveCtx?.context.canPermit || false,
+		deadline: 60
+	});
 
 	/**********************************************************************************************
 	 * TODO: Add comment to explain how it works
@@ -113,73 +143,6 @@ export const usePortalsSolver = (
 	]);
 
 	/**********************************************************************************************
-	 * Retrieve the allowance for the token to be used by the solver. This will be used to
-	 * determine if the user should approve the token or not.
-	 *********************************************************************************************/
-	const onRetrieveAllowance = useCallback(
-		async (shouldForceRefetch?: boolean): Promise<TNormalizedBN> => {
-			if (!latestQuote || !configuration?.tokenToSpend.token || !configuration?.tokenToReceive.token) {
-				return zeroNormalizedBN;
-			}
-			if (configuration.tokenToSpend.amount === zeroNormalizedBN) {
-				return zeroNormalizedBN;
-			}
-
-			const inputToken = configuration?.tokenToSpend.token.address;
-			const outputToken = configuration?.tokenToReceive.token.address;
-
-			if (isEthAddress(inputToken)) {
-				return toNormalizedBN(MAX_UINT_256, 18);
-			}
-
-			const key = allowanceKey(
-				configuration?.tokenToSpend.token?.chainID,
-				toAddress(inputToken),
-				toAddress(outputToken),
-				toAddress(address)
-			);
-			if (existingAllowances.current[key] && !shouldForceRefetch) {
-				return existingAllowances.current[key];
-			}
-
-			set_isFetchingAllowance(true);
-
-			try {
-				const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
-				const {data: approval} = await getPortalsApproval({
-					params: {
-						sender: toAddress(address),
-						inputToken: `${network}:${toAddress(inputToken)}`,
-						inputAmount: toBigInt(configuration?.tokenToSpend.amount?.raw).toString()
-					}
-				});
-
-				if (!approval) {
-					throw new Error('Portals approval not found');
-				}
-
-				existingAllowances.current[key] = toNormalizedBN(
-					toBigInt(approval.context.allowance),
-					configuration?.tokenToSpend.token.decimals
-				);
-
-				set_isFetchingAllowance(false);
-				return existingAllowances.current[key];
-			} catch (err) {
-				set_isFetchingAllowance(false);
-				return zeroNormalizedBN;
-			}
-		},
-		[
-			address,
-			configuration?.tokenToReceive.token,
-			configuration.tokenToSpend.amount,
-			configuration.tokenToSpend.token,
-			latestQuote
-		]
-	);
-
-	/**********************************************************************************************
 	 ** SWR hook to get the expected out for a given in/out pair with a specific amount. This hook
 	 ** is called when amount/in or out changes. Calls the allowanceFetcher callback.
 	 ** Note: we also clear the permit signature because this means that the user has changed the
@@ -201,133 +164,9 @@ export const usePortalsSolver = (
 		if (configuration.action === 'DEPOSIT') {
 			onRetrieveQuote();
 		}
-
-		set_permitSignature(undefined);
-		set_approvalStatus(defaultTxStatus);
 		set_depositStatus(defaultTxStatus);
 		set_withdrawStatus(defaultTxStatus);
 	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote]);
-
-	/**********************************************************************************************
-	 * SWR hook to get the expected out for a given in/out pair with a specific amount. This hook
-	 * is called when amount/in or out changes. Calls the allowanceFetcher callback.
-	 *********************************************************************************************/
-	const triggerRetreiveAllowance = useAsyncTrigger(async (): Promise<void> => {
-		if (!configuration?.action) {
-			return;
-		}
-		if (configuration.action === 'DEPOSIT' && !isZapNeededForDeposit) {
-			return;
-		}
-		if (configuration.action === 'WITHDRAW' && !isZapNeededForWithdraw) {
-			return;
-		}
-		set_allowance(await onRetrieveAllowance(true));
-	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveAllowance]);
-
-	/**********************************************************************************************
-	 * Trigger an signature to approve the token to be used by the Portals
-	 * solver. A single signature is required, which will allow the spending
-	 * of the token by the Portals solver.
-	 *********************************************************************************************/
-	const onApprove = useCallback(
-		async (onSuccess?: () => void): Promise<void> => {
-			if (!provider) {
-				return;
-			}
-
-			assert(configuration?.tokenToSpend.token, 'Input token is not set');
-			assert(configuration?.tokenToSpend.amount, 'Input amount is not set');
-			assert(configuration?.vault, 'Vault is not set');
-
-			const shouldUsePermit = await isSupportingPermit({
-				contractAddress: configuration.tokenToSpend.token.address,
-				chainID: Number(configuration.vault.chainID)
-			});
-			console.warn({
-				contractAddress: configuration.tokenToSpend.token.address,
-				chainID: Number(configuration.vault.chainID),
-				shouldUsePermit
-			});
-
-			const config = configuration as TAssertedVaultsConfiguration;
-			const amount = configuration?.tokenToSpend.amount.raw;
-			try {
-				const network = PORTALS_NETWORK.get(configuration?.tokenToSpend.token.chainID);
-				const {data: approval} = await getPortalsApproval({
-					params: {
-						sender: toAddress(address),
-						inputToken: `${network}:${toAddress(configuration?.tokenToSpend.token.address)}`,
-						inputAmount: toBigInt(configuration?.tokenToSpend.amount.raw).toString(),
-						permitDeadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60).toString()
-					}
-				});
-
-				if (!approval) {
-					return;
-				}
-
-				if (shouldUsePermit && approval.context.canPermit) {
-					set_approvalStatus({...defaultTxStatus, pending: true});
-					const signature = await signPermit({
-						contractAddress: toAddress(config.tokenToSpend.token.address),
-						ownerAddress: toAddress(address),
-						spenderAddress: toAddress(approval.context.spender),
-						value: toBigInt(config.tokenToSpend.amount?.raw),
-						deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60),
-						chainID: config.vault.chainID
-					});
-
-					set_approvalStatus({...defaultTxStatus, success: !!signature});
-					if (!signature) {
-						set_permitSignature(undefined);
-						set_allowance(zeroNormalizedBN);
-					} else {
-						set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
-						set_permitSignature(signature);
-					}
-				} else {
-					const allowance = await readContract(retrieveConfig(), {
-						chainId: Number(configuration?.vault?.chainID),
-						abi: erc20Abi,
-						address: toAddress(configuration?.tokenToSpend?.token.address),
-						functionName: 'allowance',
-						args: [toAddress(address), toAddress(approval.context.spender)]
-					});
-
-					if (allowance < amount) {
-						assertAddress(approval.context.spender, 'spender');
-						const result = await approveERC20({
-							connector: provider,
-							chainID: configuration?.tokenToSpend.token.chainID,
-							contractAddress: configuration?.tokenToSpend.token.address,
-							spenderAddress: approval.context.spender,
-							amount: amount,
-							statusHandler: set_approvalStatus
-						});
-						if (result.isSuccessful) {
-							onSuccess?.();
-						}
-						triggerRetreiveAllowance();
-						return;
-					}
-					onSuccess?.();
-					triggerRetreiveAllowance();
-					return;
-				}
-			} catch (error) {
-				if (permitSignature) {
-					set_permitSignature(undefined);
-					set_allowance(zeroNormalizedBN);
-				}
-				console.error(error);
-				toast.error((error as BaseError).shortMessage || (error as BaseError).message) ||
-					'An error occured while creating your transaction!';
-				return;
-			}
-		},
-		[address, configuration, permitSignature, provider, triggerRetreiveAllowance]
-	);
 
 	/**********************************************************************************************
 	 * execute will send the post request to execute the order and wait for it to be executed, no
@@ -457,10 +296,7 @@ export const usePortalsSolver = (
 
 				return {isSuccessful: false};
 			} finally {
-				if (permitSignature) {
-					set_permitSignature(undefined);
-					set_allowance(zeroNormalizedBN);
-				}
+				onClearPermit();
 			}
 		},
 		[
@@ -471,8 +307,10 @@ export const usePortalsSolver = (
 			configuration?.vault,
 			isWalletSafe,
 			latestQuote,
+			onClearPermit,
 			onRefresh,
-			permitSignature,
+			permitSignature?.deadline,
+			permitSignature?.signature,
 			provider
 		]
 	);
@@ -521,12 +359,11 @@ export const usePortalsSolver = (
 		onExecuteDeposit,
 
 		/** Approval part */
-		approvalStatus,
-		allowance,
-		isFetchingAllowance,
-		isApproved: isAboveAllowance,
-		isDisabled: !approvalStatus.none,
 		onApprove,
+		allowance: amountApproved,
+		permitSignature,
+		isApproving,
+		isApproved,
 
 		/** Withdraw part */
 		withdrawStatus,
