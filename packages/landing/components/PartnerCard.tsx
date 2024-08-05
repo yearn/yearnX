@@ -17,6 +17,7 @@ export function PartnerCard(props: TPartnerCardProps): ReactElement {
 			<div className={'bg-card-bg size-full rounded-2xl p-10 transition-colors hover:bg-[#414141]/40'}>
 				{props.partner.icon ? (
 					<Image
+						className={'rounded-t-2xl'}
 						src={props.partner.icon}
 						alt={props.partner.name}
 						width={100}

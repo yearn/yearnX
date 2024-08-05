@@ -28,7 +28,7 @@ class MyDocument extends Document {
 						rel={'stylesheet'}
 					/>
 				</Head>
-				<body className={'bg-grey-500 scrollbar-none transition-colors duration-150'}>
+				<body className={'scrollbar-none bg-background transition-colors duration-150'}>
 					<Main />
 					<NextScript />
 				</body>

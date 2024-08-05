@@ -12,32 +12,46 @@ export const PARTNERS_PER_PAGE = 16;
 
 export const PARTNERS: TPartners = [
 	{
-		name: 'Yearn X PoolTogether',
-		description: 'Feeling lucky Anon?',
-		icon: 'https://pooltogether.yearn.space/partnerLogo.png',
+		name: 'Yearn X Aerodrome',
+		description: 'Take a flight with the Yearn X Aerodrome Vaults',
+		icon: 'https://aerodrome.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v2',
-		url: 'https://pooltogether.yearn.space'
-	},
-	{
-		name: 'Yearn X Optimism',
-		description: 'Discover the fanciest yVaults on Optimism',
-		icon: 'https://optimism.yearn.space/partnerLogo.svg',
-		vaultType: 'v2',
-		url: 'https://optimism.yearn.space'
-	},
-	{
-		name: 'Yearn X Pendle',
-		description: 'Hop on the Yield Express with the Yearn X Pendle Vaults',
-		icon: 'https://pendle.yearn.space/partnerLogo.png',
-		vaultType: 'v2',
-		url: 'https://pendle.yearn.space'
+		url: 'https://aerodrome.yearn.space'
 	},
 	{
 		name: 'Yearn X Ajna',
 		description: 'Embrace the yield with no Oracles with Yearn X Ajna Vaults',
-		icon: 'https://assets.smold.app/api/token/1/0x9a96ec9B57Fb64FbC60B423d1f4da7691Bd35079/logo-128.png',
+		icon: 'https://ajna.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v2',
-		url: 'https://juiced.app'
+		url: 'https://ajna.yearn.space'
+	},
+	{
+		name: 'Yearn X Curve',
+		description: 'Discover the fanciest yVaults with Curve',
+		icon: 'https://curve.yearn.space/favicons/favicon-512x512.png',
+		vaultType: 'v2',
+		url: 'https://curve.yearn.space'
+	},
+	{
+		name: 'Yearn X Pendle',
+		description: 'Hop on the Yield Express with the Yearn X Pendle Vaults',
+		icon: 'https://pendle.yearn.space/favicons/favicon-512x512.png',
+		vaultType: 'v2',
+		url: 'https://pendle.yearn.space'
+	},
+	{
+		name: 'Yearn X PoolTogether',
+		description: 'Feeling lucky Anon?',
+		icon: 'https://pooltogether.yearn.space/favicons/favicon-512x512.png',
+		vaultType: 'v2',
+		url: 'https://pooltogether.yearn.space'
+	},
+	{
+		name: 'Yearn X Velodrome',
+		description: 'Earn the yellow jersey or Yield with the Yearn X Velodrome Vaults',
+		icon: 'https://velodrome.yearn.space/favicons/favicon-512x512.png',
+		vaultType: 'v2',
+		url: 'https://velodrome.yearn.space'
 	}
 	// {
 	// 	name: 'Yearn X ',

@@ -45,7 +45,7 @@ export default function Index(): ReactElement {
 	}, [searchValue, tabFilteredPartners]);
 
 	return (
-		<div className={'flex w-full max-w-6xl flex-col gap-y-10 !px-0'}>
+		<div className={'flex w-full max-w-6xl flex-col gap-y-10 !px-0 pb-40'}>
 			<PartersControls
 				selectedTab={selectedTab}
 				set_selectedTab={set_selectedTab}
