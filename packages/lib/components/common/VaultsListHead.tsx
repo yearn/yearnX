@@ -107,7 +107,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 							item.value === 'vault'
 								? 'col-span-2 justify-start'
 								: item.value === 'manage'
-									? 'justify-center col-span-2'
+									? 'justify-center col-span-2 pl-10'
 									: 'justify-end'
 						)}>
 						{item.label}

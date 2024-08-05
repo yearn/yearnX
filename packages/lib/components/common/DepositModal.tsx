@@ -39,7 +39,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	 *********************************************************************************************/
 	const getButtonTitle = (): string => {
 		if (!address) {
-			return 'Connect wallet';
+			return 'Connect Wallet';
 		}
 		if (!canZap && !isFetchingQuote) {
 			return 'Impossible to zap in';

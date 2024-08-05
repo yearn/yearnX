@@ -259,7 +259,7 @@ export function TokenAmountWrapper({
 				isBusy={isPerformingAction}
 				isDisabled={!address ? false : isButtonDisabled}
 				className={cl(
-					'text-background flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText md:px-[34.5px] py-5 font-bold',
+					'text-black flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText md:px-[34.5px] py-5 font-bold',
 					'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed !h-12'
 				)}>
 				{buttonTitle}
