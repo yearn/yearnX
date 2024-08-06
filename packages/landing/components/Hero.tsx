@@ -22,6 +22,8 @@ export function Hero(): ReactElement {
 					'absolute right-0 top-0 z-10 hidden h-[600px] max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge lg:block'
 				}
 				src={'/img_hero.png'}
+				priority
+				loading={'eager'}
 				alt={''}
 				width={'800'}
 				height={'700'}
@@ -32,6 +34,8 @@ export function Hero(): ReactElement {
 					'absolute right-0 top-0 z-10 block max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge md:hidden'
 				}
 				src={'/img_hero_mob.png'}
+				priority
+				loading={'eager'}
 				alt={''}
 				width={'385'}
 				height={'315'}
@@ -42,6 +46,8 @@ export function Hero(): ReactElement {
 					'absolute right-0 top-0 z-10 hidden max-h-[600px] rounded-[40px] opacity-100 bg-blend-color-dodge md:block lg:hidden'
 				}
 				src={'/img_hero_md.png'}
+				priority
+				loading={'eager'}
 				alt={''}
 				width={'700'}
 				height={'700'}
