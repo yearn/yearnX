@@ -67,7 +67,7 @@ export function Hero(): ReactElement {
 						}
 					</div>
 
-					<Button className={'bg-button w-full !rounded-3xl px-8 py-4 !text-base md:w-40'}>
+					<Button className={'bg-button !h-14 w-full !rounded-3xl px-8 py-4 !text-base md:w-40'}>
 						{'Button example'}
 					</Button>
 				</div>
