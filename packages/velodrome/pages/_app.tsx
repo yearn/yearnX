@@ -26,6 +26,10 @@ export default function MyApp(props: AppProps): ReactElement {
 			<PlausibleProvider
 				domain={process.env.PLAUSIBLE_DOMAIN || 'yearn.space'}
 				pageviewProps={{title: PROJECT_TITLE}}
+				scriptProps={{
+					src: '/js/tellmom.js',
+					nonce: PROJECT_TITLE
+				}}
 				enabled={true}>
 				<Meta
 					title={PROJECT_TITLE}

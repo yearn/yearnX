@@ -6,8 +6,8 @@ const withPWA = require('next-pwa')({
 const {withPlausibleProxy} = require('next-plausible');
 
 module.exports = withPlausibleProxy({
-	customDomain: 'https://yearn.space',
-	scriptName: 'tellmom'
+	scriptName: 'script',
+	customDomain: 'https://yearn.space'
 })(
 	withPWA({
 		experimental: {
@@ -50,8 +50,16 @@ module.exports = withPlausibleProxy({
 		async rewrites() {
 			return [
 				{
-					source: '/js/:slug',
-					destination: 'https://plausible.io/js/:slug'
+					source: '/js/script.js',
+					destination: 'https://plausible.io/js/script.js'
+				},
+				{
+					source: '/js/tellmom.js',
+					destination: 'https://plausible.io/js/script.pageview-props.js'
+				},
+				{
+					source: '/js/script.pageview-props.js',
+					destination: 'https://plausible.io/js/script.pageview-props.js'
 				},
 				{
 					source: '/api/event',

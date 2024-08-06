@@ -15,6 +15,10 @@ function MyApp(props: AppProps): ReactElement {
 			<PlausibleProvider
 				domain={process.env.PLAUSIBLE_DOMAIN || 'yearn.space'}
 				pageviewProps={{title: 'Yearn Space'}}
+				scriptProps={{
+					src: '/js/tellmom.js',
+					nonce: 'Yearn Space'
+				}}
 				enabled={true}>
 				<Meta
 					title={'Yearn Space'}
