@@ -50,8 +50,8 @@ module.exports = withPlausibleProxy({
 		async rewrites() {
 			return [
 				{
-					source: '/js/tellmom.js',
-					destination: 'https://plausible.io/js/script.pageview-props.js'
+					source: '/js/:slug',
+					destination: 'https://plausible.io/js/:slug'
 				},
 				{
 					source: '/api/event',
