@@ -50,8 +50,12 @@ module.exports = withPlausibleProxy({
 		async rewrites() {
 			return [
 				{
+					source: '/js/script.js',
+					destination: 'https://plausible.io/js/script.js'
+				},
+				{
 					source: '/js/script.pageview-props.js',
-					destination: 'https://plausible.io/js/script.pageview-props.js'
+					destination: 'https://plausible.io/js/script.js'
 				},
 				{
 					source: '/api/event',
