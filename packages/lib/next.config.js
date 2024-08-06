@@ -51,7 +51,7 @@ module.exports = withPlausibleProxy({
 			return [
 				{
 					source: '/js/script.js',
-					destination: 'https://plausible.io/js/script.js'
+					destination: 'https://plausible.io/js/script.pageview-props.js'
 				},
 				{
 					source: '/js/script.pageview-props.js',
