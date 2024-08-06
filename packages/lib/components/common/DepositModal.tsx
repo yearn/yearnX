@@ -1,4 +1,5 @@
 import {Fragment, type ReactElement, useCallback, useMemo} from 'react';
+import {usePlausible} from 'next-plausible';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl} from '@builtbymom/web3/utils';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
@@ -6,6 +7,7 @@ import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
+import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
 import {useAccountModal} from '@rainbow-me/rainbowkit';
 
 import {IconCross} from '../icons/IconCross';
@@ -26,6 +28,7 @@ type TDepositModalProps = {
 };
 
 export function DepositModal(props: TDepositModalProps): ReactElement {
+	const plausible = usePlausible();
 	const {address} = useWeb3();
 	const {openAccountModal} = useAccountModal();
 	const {configuration, dispatchConfiguration} = useManageVaults();
@@ -78,6 +81,16 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		}
 		if (isApproved) {
 			return onExecuteDeposit?.(() => {
+				plausible(PLAUSIBLE_EVENTS.DEPOSIT, {
+					props: {
+						vaultAddress: props.vault.address,
+						vaultSymbol: props.vault.symbol,
+						amountToDeposit: configuration.tokenToSpend.amount?.display,
+						tokenAddress: configuration.tokenToSpend.token?.address,
+						tokenSymbol: configuration.tokenToSpend.token?.symbol,
+						isZap: isZapNeededForDeposit
+					}
+				});
 				props.onClose();
 				props.set_isSuccessModalOpen(true);
 				props.set_successModalDescription(
@@ -105,16 +118,18 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		return onApprove?.();
 	}, [
 		address,
-		configuration?.tokenToSpend.amount?.display,
-		configuration?.tokenToSpend.amount?.raw,
-		configuration?.tokenToSpend.token?.decimals,
-		configuration?.tokenToSpend.token?.symbol,
+		configuration.tokenToSpend.amount?.display,
+		configuration.tokenToSpend.amount?.raw,
+		configuration.tokenToSpend.token?.address,
+		configuration.tokenToSpend.token?.decimals,
+		configuration.tokenToSpend.token?.symbol,
 		configuration?.vault?.name,
 		isApproved,
 		isZapNeededForDeposit,
 		onApprove,
 		onExecuteDeposit,
 		openAccountModal,
+		plausible,
 		props
 	]);
 

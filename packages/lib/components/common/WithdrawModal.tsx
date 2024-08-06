@@ -1,4 +1,5 @@
 import {Fragment, type ReactElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {usePlausible} from 'next-plausible';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
 import {serialize} from 'wagmi';
@@ -11,6 +12,7 @@ import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePopularTokens} from '@lib/contexts/usePopularTokens';
 import {useSolver} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
+import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 
 import {IconChevron} from '../icons/IconChevron';
@@ -35,6 +37,7 @@ type TWithdrawModalProps = {
 };
 
 function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
+	const plausible = usePlausible();
 	const {address, onConnect} = useWeb3();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const [isSelectorOpen, set_isSelectorOpen] = useState(false);
@@ -139,6 +142,16 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 			return;
 		}
 		return onExecuteWithdraw?.(() => {
+			plausible(PLAUSIBLE_EVENTS.WITHDRAW, {
+				props: {
+					vaultAddress: props.vault.address,
+					vaultSymbol: props.vault.symbol,
+					amountToWithdraw: configuration.tokenToSpend.amount?.display,
+					tokenAddress: configuration.tokenToReceive.token?.address,
+					tokenSymbol: configuration.tokenToReceive.token?.symbol,
+					isZap: isZapNeededForWithdraw
+				}
+			});
 			props.onClose();
 			props.set_isSuccessModalOpen(true);
 			props.set_successModalDescription(
