@@ -59,16 +59,21 @@ export function Hero(): ReactElement {
 						<IconYearnLogo className={'z-20 '} />
 					</div>
 					<span className={'text-regularText text-3xl font-bold  md:text-[80px] md:leading-[80px]'}>
-						{'Yearn X Partners'}
+						{'Yearn X'}
 					</span>
 					<div className={'mb-6 mt-2 max-w-screen-sm text-base font-normal md:mb-16 md:mt-6 md:text-lg'}>
 						{
-							'Ape Stronger Together. Yearn partners with the best in the industry to bring you the best yield farming strategies.'
+							'The best risk adjusted yields in DeFi, on the best protocols in crypto. Yearn X takes you straight to Yearn Vaults from some of the most popular crypto ecosystems.'
 						}
 					</div>
 
-					<Button className={'bg-button w-full !rounded-3xl px-8 py-4 !text-base md:w-40'}>
-						{'Button example'}
+					<Button
+						onClick={() => {
+							const element = document.getElementById('partners');
+							element?.scrollIntoView({behavior: 'smooth'});
+						}}
+						className={'bg-button w-full !rounded-3xl px-8 py-4 !text-base md:w-40'}>
+						{'To the yield!'}
 					</Button>
 				</div>
 				<div />

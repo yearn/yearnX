@@ -48,7 +48,9 @@ export function PartnersList({partners, searchValue}: {partners: TPartners; sear
 		);
 	};
 	return (
-		<div className={'flex w-full flex-col'}>
+		<div
+			id={'partners'}
+			className={'flex w-full flex-col'}>
 			<div className={'w-full'}>{getLayout()}</div>
 			<Pagination
 				currentPage={currentPage}
