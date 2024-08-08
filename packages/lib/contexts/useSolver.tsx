@@ -63,7 +63,7 @@ const SolverContext = createContext<Partial<TSolverContextBase>>({
 	quote: null
 });
 
-export function SolverContextApp({children}: {children: ReactElement}): ReactElement {
+function WithContexts({children}: {children: ReactElement}): ReactElement {
 	const {configuration} = useManageVaults();
 	const {isZapNeededForDeposit, isZapNeededForWithdraw} = useIsZapNeeded(configuration);
 	const vanila = useVanilaSolver(isZapNeededForDeposit, isZapNeededForWithdraw);
@@ -79,10 +79,14 @@ export function SolverContextApp({children}: {children: ReactElement}): ReactEle
 		return vanila;
 	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, portals, vanila]);
 
+	return <SolverContext.Provider value={{...currentSolver}}>{children}</SolverContext.Provider>;
+}
+export function SolverContextApp(props: {children: ReactElement}): ReactElement {
 	return (
 		<SafeProvider>
-			<SolverContext.Provider value={{...currentSolver}}>{children}</SolverContext.Provider>
+			<WithContexts {...props} />
 		</SafeProvider>
 	);
 }
+
 export const useSolver = (): TSolverContext => useContext(SolverContext);
