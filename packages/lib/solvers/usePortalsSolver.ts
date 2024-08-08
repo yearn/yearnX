@@ -200,9 +200,9 @@ export const usePortalsSolver = (
 					sender: toAddress(address),
 					inputToken: `${network}:${toAddress(inputToken)}`,
 					outputToken: `${network}:${toAddress(outputToken)}`,
-					inputAmount: String(amountToSpend?.raw ?? 0n),
+					inputAmount: toBigInt(amountToSpend?.raw).toString(),
 					slippageTolerancePercentage: slippage.toString(),
-					validate: 'true'
+					validate: isWalletSafe ? 'false' : 'true'
 				}
 			});
 
@@ -316,7 +316,7 @@ export const usePortalsSolver = (
 						sender: toAddress(address),
 						inputToken: `${network}:${toAddress(inputToken)}`,
 						outputToken: `${network}:${toAddress(outputToken)}`,
-						inputAmount: String(amountToSpend?.raw ?? 0n),
+						inputAmount: toBigInt(amountToSpend?.raw).toString(),
 						slippageTolerancePercentage: slippage.toString(),
 						validate: isWalletSafe ? 'false' : 'true',
 						permitSignature: permitSignature?.signature || undefined,
