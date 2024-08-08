@@ -1,4 +1,4 @@
-import {Fragment, type ReactElement, useCallback, useMemo} from 'react';
+import {Fragment, useCallback, useMemo} from 'react';
 import {usePlausible} from 'next-plausible';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl} from '@builtbymom/web3/utils';
@@ -14,7 +14,9 @@ import {IconCross} from '../icons/IconCross';
 import {TokenAmountWrapper} from './TokenAmountInput';
 import {VaultLink} from './VaultLink';
 
+import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TSuccessModal} from './VaultItem';
 
 type TDepositModalProps = {
 	isOpen: boolean;
@@ -22,8 +24,7 @@ type TDepositModalProps = {
 	vault: TYDaemonVault;
 	yearnfiLink: string;
 	hasBalanceForVault: boolean;
-	set_isSuccessModalOpen: (isOpen: boolean) => void;
-	set_successModalDescription: (value: ReactElement) => void;
+	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
 	totalProfit?: string;
 };
 
@@ -35,12 +36,14 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	const {isZapNeededForDeposit} = useIsZapNeeded(configuration);
 	const {canZap} = useSolver();
 
+	const {onApprove, isApproving, isDepositing, onDeposit, canDeposit, isFetchingQuote, quote} = useSolver();
+
 	/**********************************************************************************************
 	 ** buttonTitle for deposit only button depends - on wallet(if wallet isn't connected, button
 	 ** says 'Connect Wallet'), - on isApproved(if token to deposit isn't approve, button says
 	 ** 'Approve'). And if everything is ready for deposit, it says 'Deposit'.
 	 *********************************************************************************************/
-	const getButtonTitle = (): string => {
+	const getButtonTitle = useMemo((): string => {
 		if (!address) {
 			return 'Connect Wallet';
 		}
@@ -50,27 +53,16 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		if (isWalletSafe) {
 			return 'Approve and Deposit';
 		}
-		if (isApproved) {
+		if (canDeposit) {
 			return 'Deposit';
 		}
 
 		return 'Approve';
-	};
-
-	const {
-		onApprove,
-		isApproved,
-		isApproving,
-		onExecuteDeposit,
-		onDepositForGnosis,
-		depositStatus,
-		isFetchingQuote,
-		quote
-	} = useSolver();
+	}, [address, canDeposit, canZap, isFetchingQuote, isWalletSafe]);
 
 	const isBusy = !configuration?.tokenToSpend.amount?.normalized
 		? false
-		: Boolean(isApproving || depositStatus?.pending || isFetchingQuote);
+		: Boolean(isApproving || isDepositing || isDepositing || isFetchingQuote);
 
 	/**********************************************************************************************
 	 ** onAction is a callback that decides what to do on button click. If wallet isn't connected,
@@ -82,34 +74,9 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		if (!address) {
 			openAccountModal?.();
 		}
-		if (isWalletSafe) {
-			return onDepositForGnosis?.(() => {
-				props.onClose();
-				props.set_isSuccessModalOpen(true);
-				props.set_successModalDescription(
-					<div className={'flex flex-col items-center'}>
-						<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully deposited'}</p>
-
-						<div className={'flex'}>
-							{!isZapNeededForDeposit
-								? configuration?.tokenToSpend.amount?.display.slice(0, 7)
-								: formatBigIntForDisplay(
-										configuration?.tokenToSpend.amount?.raw ?? 0n,
-										configuration?.tokenToSpend.token?.decimals ?? 18,
-										{maximumFractionDigits: 6}
-									)}
-							<p className={'ml-1'}>{configuration?.tokenToSpend?.token?.symbol}</p>
-							<span className={'text-regularText/50'}>
-								<span className={'mx-1'}>{'to'}</span>
-								{configuration?.vault?.name}
-							</span>
-						</div>
-					</div>
-				);
-			});
-		}
-		if (isApproved) {
-			return onExecuteDeposit?.(() => {
+		if (canDeposit) {
+			const isSuccess = await onDeposit();
+			if (isSuccess) {
 				plausible(PLAUSIBLE_EVENTS.DEPOSIT, {
 					props: {
 						vaultAddress: props.vault.address,
@@ -121,47 +88,46 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 					}
 				});
 				props.onClose();
-				props.set_isSuccessModalOpen(true);
-				props.set_successModalDescription(
-					<div className={'flex flex-col items-center'}>
-						<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully deposited'}</p>
+				props.openSuccessModal({
+					isOpen: true,
+					description: (
+						<div className={'flex flex-col items-center'}>
+							<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully deposited'}</p>
 
-						<div className={'flex'}>
-							{!isZapNeededForDeposit
-								? configuration?.tokenToSpend.amount?.display.slice(0, 7)
-								: formatBigIntForDisplay(
-										configuration?.tokenToSpend.amount?.raw ?? 0n,
-										configuration?.tokenToSpend.token?.decimals ?? 18,
-										{maximumFractionDigits: 6}
-									)}
-							<p className={'ml-1'}>{configuration?.tokenToSpend?.token?.symbol}</p>
-							<span className={'text-regularText/50'}>
-								<span className={'mx-1'}>{'to'}</span>
-								{configuration?.vault?.name}
-							</span>
+							<div className={'flex'}>
+								{!isZapNeededForDeposit
+									? configuration?.tokenToSpend.amount?.display.slice(0, 7)
+									: formatBigIntForDisplay(
+											configuration?.tokenToSpend.amount?.raw ?? 0n,
+											configuration?.tokenToSpend.token?.decimals ?? 18,
+											{maximumFractionDigits: 6}
+										)}
+								<p className={'ml-1'}>{configuration?.tokenToSpend?.token?.symbol}</p>
+								<span className={'text-regularText/50'}>
+									<span className={'mx-1'}>{'to'}</span>
+									{configuration?.vault?.name}
+								</span>
+							</div>
 						</div>
-					</div>
-				);
-			});
+					)
+				});
+			}
+		} else {
+			onApprove();
 		}
-		return onApprove?.();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		address,
-		configuration.tokenToSpend.amount?.display,
-		configuration.tokenToSpend.amount?.raw,
-		configuration.tokenToSpend.token?.address,
-		configuration.tokenToSpend.token?.decimals,
-		configuration.tokenToSpend.token?.symbol,
+		canDeposit,
+		configuration?.tokenToSpend.amount?.display,
+		configuration?.tokenToSpend.amount?.raw,
+		configuration?.tokenToSpend.token?.decimals,
+		configuration?.tokenToSpend.token?.symbol,
 		configuration?.vault?.name,
-		isApproved,
-		isWalletSafe,
 		isZapNeededForDeposit,
 		onApprove,
-		onDepositForGnosis,
-		onExecuteDeposit,
-		openAccountModal,
-		plausible,
-		props
+		onDeposit,
+		openAccountModal
 	]);
 
 	/**********************************************************************************************
@@ -243,7 +209,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 							<div className={'flex w-full flex-col items-start gap-y-1'}>
 								<TokenAmountWrapper
 									vault={props.vault}
-									buttonTitle={getButtonTitle()}
+									buttonTitle={getButtonTitle}
 									isPerformingAction={isBusy}
 									onActionClick={onAction}
 									isDisabled={!isValid && Boolean(address)}

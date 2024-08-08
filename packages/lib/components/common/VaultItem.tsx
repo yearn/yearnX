@@ -32,12 +32,15 @@ type TVaultItem = {
 	vault: TYDaemonVault;
 	price: TNormalizedBN;
 };
+export type TSuccessModal = {
+	isOpen: boolean;
+	description: ReactElement | null;
+};
 
 export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {balances, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
-	const [isSuccessModalOpen, set_isSuccsessModalOpen] = useState(false);
-	const [successModalDescription, set_successModalDescription] = useState<ReactElement | null>(null);
+	const [successModal, set_successModal] = useState<TSuccessModal>({isOpen: false, description: null});
 	const isDepositModalOpen = configuration.action === 'DEPOSIT' && configuration.vault?.address === vault.address;
 	const isWithdrawModalOpen = configuration.action === 'WITHDRAW' && configuration.vault?.address === vault.address;
 
@@ -208,8 +211,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				vault={vault}
 				yearnfiLink={yearnfiLink}
 				hasBalanceForVault={balance > 0}
-				set_isSuccessModalOpen={set_isSuccsessModalOpen}
-				set_successModalDescription={set_successModalDescription}
+				openSuccessModal={set_successModal}
 				totalProfit={totalProfit}
 			/>
 			<WithdrawModal
@@ -218,13 +220,12 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				vault={vault}
 				yearnfiLink={yearnfiLink}
 				hasBalanceForVault={balance > 0}
-				set_isSuccessModalOpen={set_isSuccsessModalOpen}
-				set_successModalDescription={set_successModalDescription}
+				openSuccessModal={set_successModal}
 			/>
 			<SuccessModal
-				isOpen={isSuccessModalOpen}
-				onClose={() => set_isSuccsessModalOpen(false)}
-				description={successModalDescription}
+				onClose={() => set_successModal({isOpen: false, description: null})}
+				isOpen={successModal.isOpen}
+				description={successModal.description}
 			/>
 			{/* Desctop screen Item */}
 			<div className={'bg-regularText/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>

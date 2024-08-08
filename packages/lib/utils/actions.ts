@@ -7,6 +7,7 @@ import {MULTICALL_ABI} from './multicall.abi.ts';
 import {PRIZE_VAULT_ABI} from './prizeVault.abi';
 import {VAULT_ABI} from './vault.abi';
 import {YEARN_4626_ROUTER_ABI} from './vaultRouter.abi.ts';
+import {VAULT_V2_ABI} from './vaultV2.abi.ts';
 
 import type {EncodeFunctionDataReturnType, Hex} from 'viem';
 import type {TAddress} from '@builtbymom/web3/types';
@@ -76,7 +77,7 @@ export async function withdrawShares(props: TWithdrawSharesArgs): Promise<TTxRes
 
 	return await handleTx(props, {
 		address: props.contractAddress,
-		abi: VAULT_ABI,
+		abi: VAULT_V2_ABI,
 		functionName: 'withdraw',
 		args: [props.amount]
 	});
