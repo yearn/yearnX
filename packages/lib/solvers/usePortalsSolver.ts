@@ -175,105 +175,99 @@ export const usePortalsSolver = (
 	/**********************************************************************************************
 	 * TODO: Add comment to explain how it works
 	 *********************************************************************************************/
-	const onDepositForGnosis = useCallback(
-		async (onSuccess?: () => void): Promise<void> => {
-			assert(provider, 'Provider is not set');
-			assert(latestQuote, 'Quote is not set');
-			assert(configuration?.tokenToSpend.token, 'Token to Spend is not set');
-			assert(configuration?.tokenToReceive.token, 'Token to Receiver is not set');
-			assert(configuration?.vault, 'Output token is not set');
+	const onDepositForGnosis = useCallback(async (): Promise<boolean> => {
+		assert(provider, 'Provider is not set');
+		assert(latestQuote, 'Quote is not set');
+		assert(configuration?.tokenToSpend.token, 'Token to Spend is not set');
+		assert(configuration?.tokenToReceive.token, 'Token to Receiver is not set');
+		assert(configuration?.vault, 'Output token is not set');
 
-			const tokenToSpend = configuration?.tokenToSpend.token;
-			const tokenToReceive = configuration?.tokenToReceive.token;
-			const amountToSpend = configuration?.tokenToSpend.amount;
+		const tokenToSpend = configuration?.tokenToSpend.token;
+		const tokenToReceive = configuration?.tokenToReceive.token;
+		const amountToSpend = configuration?.tokenToSpend.amount;
 
-			let inputToken = tokenToSpend.address;
-			const outputToken =
-				configuration?.action === 'DEPOSIT' ? configuration?.vault.address : tokenToReceive.address;
-			if (isEthAddress(inputToken)) {
-				inputToken = zeroAddress;
+		let inputToken = tokenToSpend.address;
+		const outputToken = configuration?.action === 'DEPOSIT' ? configuration?.vault.address : tokenToReceive.address;
+		if (isEthAddress(inputToken)) {
+			inputToken = zeroAddress;
+		}
+
+		const network = PORTALS_NETWORK.get(tokenToSpend.chainID);
+		const transaction = await getPortalsTx({
+			params: {
+				sender: toAddress(address),
+				inputToken: `${network}:${toAddress(inputToken)}`,
+				outputToken: `${network}:${toAddress(outputToken)}`,
+				inputAmount: toBigInt(amountToSpend?.raw).toString(),
+				slippageTolerancePercentage: slippage.toString(),
+				validate: isWalletSafe ? 'false' : 'true'
 			}
+		});
 
-			const network = PORTALS_NETWORK.get(tokenToSpend.chainID);
-			const transaction = await getPortalsTx({
-				params: {
-					sender: toAddress(address),
-					inputToken: `${network}:${toAddress(inputToken)}`,
-					outputToken: `${network}:${toAddress(outputToken)}`,
-					inputAmount: toBigInt(amountToSpend?.raw).toString(),
-					slippageTolerancePercentage: slippage.toString(),
-					validate: isWalletSafe ? 'false' : 'true'
-				}
-			});
+		if (!transaction.result) {
+			console.error(new Error('Transaction data was not fetched from Portals!'));
+			return false;
+		}
 
-			if (!transaction.result) {
-				throw new Error('Transaction data was not fetched from Portals!');
-			}
+		const {
+			tx: {value, to, data}
+		} = transaction.result;
 
-			const {
-				tx: {value, to, data}
-			} = transaction.result;
+		const batch = [];
 
-			const batch = [];
+		if (!isZeroAddress(inputToken)) {
+			const approveTransactionForBatch = getApproveTransaction(
+				toBigInt(configuration?.tokenToSpend.amount?.raw).toString(),
+				toAddress(configuration?.tokenToSpend.token.address),
+				toAddress(to)
+			);
 
-			if (!isZeroAddress(inputToken)) {
-				const approveTransactionForBatch = getApproveTransaction(
-					toBigInt(configuration?.tokenToSpend.amount?.raw).toString(),
-					toAddress(configuration?.tokenToSpend.token.address),
-					toAddress(to)
-				);
+			batch.push(approveTransactionForBatch);
+		}
 
-				batch.push(approveTransactionForBatch);
-			}
+		const portalsTransactionForBatch: BaseTransaction = {
+			to: toAddress(to),
+			value: toBigInt(value ?? 0n).toString(),
+			data
+		};
 
-			const portalsTransactionForBatch: BaseTransaction = {
-				to: toAddress(to),
-				value: toBigInt(value ?? 0n).toString(),
-				data
-			};
+		batch.push(portalsTransactionForBatch);
 
-			batch.push(portalsTransactionForBatch);
-
-			try {
-				const res = sdk.txs.send({txs: batch});
-				let result;
-				do {
-					result = await sdk.txs.getBySafeTxHash((await res).safeTxHash);
-					await new Promise(resolve => setTimeout(resolve, 30_000));
-				} while (
-					result.txStatus !== 'SUCCESS' &&
-					result.txStatus !== 'FAILED' &&
-					result.txStatus !== 'CANCELLED'
-				);
-				onSuccess?.();
-				await onRefresh(
-					[
-						{chainID: configuration?.vault.chainID, address: configuration?.vault.address},
-						{chainID: configuration?.vault.chainID, address: configuration?.vault.token.address},
-						{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
-						{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
-						{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
-					],
-					false,
-					true
-				);
-			} catch (err) {
-				console.error(err);
-			}
-		},
-		[
-			address,
-			configuration?.action,
-			configuration?.tokenToReceive.token,
-			configuration?.tokenToSpend.amount,
-			configuration?.tokenToSpend.token,
-			configuration?.vault,
-			latestQuote,
-			provider,
-			onRefresh,
-			sdk.txs
-		]
-	);
+		let result;
+		try {
+			const res = sdk.txs.send({txs: batch});
+			do {
+				result = await sdk.txs.getBySafeTxHash((await res).safeTxHash);
+				await new Promise(resolve => setTimeout(resolve, 30_000));
+			} while (result.txStatus !== 'SUCCESS' && result.txStatus !== 'FAILED' && result.txStatus !== 'CANCELLED');
+			await onRefresh(
+				[
+					{chainID: configuration?.vault.chainID, address: configuration?.vault.address},
+					{chainID: configuration?.vault.chainID, address: configuration?.vault.token.address},
+					{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
+					{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
+					{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
+				],
+				false,
+				true
+			);
+		} catch (err) {
+			console.error(err);
+		}
+		return result?.txStatus === 'SUCCESS';
+	}, [
+		provider,
+		latestQuote,
+		configuration?.tokenToSpend.token,
+		configuration?.tokenToSpend.amount,
+		configuration?.tokenToReceive.token,
+		configuration?.vault,
+		configuration?.action,
+		address,
+		isWalletSafe,
+		sdk.txs,
+		onRefresh
+	]);
 
 	/**********************************************************************************************
 	 * execute will send the post request to execute the order and wait for it to be executed, no
@@ -427,57 +421,39 @@ export const usePortalsSolver = (
 	 ** solver. The deposit will be executed by the Portals solver by simply swapping the input
 	 ** token for the output token.
 	 *********************************************************************************************/
-	const onExecuteDeposit = useCallback(
-		async (onSuccess: () => void): Promise<void> => {
-			assert(provider, 'Provider is not set');
+	const onExecuteDeposit = useCallback(async (): Promise<boolean> => {
+		assert(provider, 'Provider is not set');
 
-			set_depositStatus({...defaultTxStatus, pending: true});
-			const status = await execute('DEPOSIT');
-			if (status.isSuccessful) {
-				set_depositStatus({...defaultTxStatus, success: true});
-				onSuccess();
-			} else {
-				set_depositStatus({...defaultTxStatus, error: true});
-			}
-		},
-		[execute, provider]
-	);
+		if (isWalletSafe) {
+			return await onDepositForGnosis();
+		}
 
-	const onExecuteWithdraw = useCallback(
-		async (onSuccess: () => void): Promise<void> => {
-			assert(provider, 'Provider is not set');
+		set_depositStatus({...defaultTxStatus, pending: true});
+		const status = await execute('DEPOSIT');
+		set_depositStatus({...defaultTxStatus, success: status.isSuccessful});
+		return status.isSuccessful;
+	}, [execute, isWalletSafe, onDepositForGnosis, provider]);
 
-			set_withdrawStatus({...defaultTxStatus, pending: true});
-			const status = await execute('WITHDRAW');
-			if (status.isSuccessful) {
-				set_withdrawStatus({...defaultTxStatus, success: true});
-				onSuccess();
-			} else {
-				set_withdrawStatus({...defaultTxStatus, error: true});
-			}
-		},
-		[execute, provider]
-	);
+	const onExecuteWithdraw = useCallback(async (): Promise<boolean> => {
+		assert(provider, 'Provider is not set');
+
+		set_withdrawStatus({...defaultTxStatus, pending: true});
+		const status = await execute('WITHDRAW');
+		set_withdrawStatus({...defaultTxStatus, success: status.isSuccessful});
+		return status.isSuccessful;
+	}, [execute, provider]);
 
 	return {
-		/** Deposit part */
-		depositStatus,
-		set_depositStatus,
-		onExecuteDeposit,
-		onDepositForGnosis,
-
-		/** Approval part */
-		onApprove,
+		isApproved,
+		isApproving,
+		canDeposit: isApproved && !isApproving && !isFetchingQuote && canZap,
+		isDepositing: depositStatus.pending,
 		allowance: amountApproved,
 		permitSignature,
-		isApproving,
-		isApproved,
-
-		/** Withdraw part */
-		withdrawStatus,
-		set_withdrawStatus,
-		onExecuteWithdraw,
-
+		onApprove,
+		onDeposit: onExecuteDeposit,
+		isWithdrawing: withdrawStatus.pending,
+		onWithdraw: onExecuteWithdraw,
 		canZap,
 		isFetchingQuote,
 		quote: latestQuote || null

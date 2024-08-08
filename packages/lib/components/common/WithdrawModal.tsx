@@ -1,4 +1,4 @@
-import {Fragment, type ReactElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
 import {serialize} from 'wagmi';
@@ -21,8 +21,10 @@ import {ImageWithFallback} from './ImageWithFallback';
 import {TokenSelectorDropdown} from './TokenSelectorDropdown';
 import {VaultLink} from './VaultLink';
 
+import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TSuccessModal} from './VaultItem';
 
 type TWithdrawModalProps = {
 	isOpen: boolean;
@@ -30,8 +32,7 @@ type TWithdrawModalProps = {
 	vault: TYDaemonVault;
 	yearnfiLink: string;
 	hasBalanceForVault: boolean;
-	set_isSuccessModalOpen: (value: boolean) => void;
-	set_successModalDescription: (value: ReactElement) => void;
+	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
 };
 
 function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
@@ -45,8 +46,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	const toggleButtonRef = useRef(null);
 	const tokensOnCurrentChain = listTokens(configuration?.vault?.chainID);
 	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
-	const {onExecuteWithdraw, quote, isFetchingQuote, withdrawStatus, canZap, onApprove, isApproved, isApproving} =
-		useSolver();
+	const {onWithdraw, quote, isFetchingQuote, isWithdrawing, canZap, onApprove, isApproved, isApproving} = useSolver();
 	const {balances, getBalance} = useWallet();
 
 	useOnClickOutside([selectorRef, toggleButtonRef], () => set_isSelectorOpen(false));
@@ -126,7 +126,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	/**********************************************************************************************
 	 ** onAction is a callback that decides what to do on button click. If wallet isn't connected,
 	 ** button opens Wallet connect modal. If wallet's connected, but token isn't approved, is
-	 ** calls approve contract. And if everything's ready, it calls onExecuteWithdraw function,
+	 ** calls approve contract. And if everything's ready, it calls onWithdraw function,
 	 ** and if everything is successfull, we close withdraw modal and open successModal.
 	 *********************************************************************************************/
 	const onAction = useCallback(async () => {
@@ -138,30 +138,32 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 			onApprove?.();
 			return;
 		}
-		return onExecuteWithdraw?.(() => {
+		return onWithdraw?.(() => {
 			props.onClose();
-			props.set_isSuccessModalOpen(true);
-			props.set_successModalDescription(
-				<div className={'flex flex-col items-center'}>
-					<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully withdrawn'}</p>
-
+			props.openSuccessModal({
+				isOpen: true,
+				description: (
 					<div className={'flex flex-col items-center'}>
-						<div className={'flex'}>
-							{!isZapNeededForWithdraw
-								? configuration?.tokenToSpend.amount?.display.slice(0, 7)
-								: formatBigIntForDisplay(
-										BigInt(quote?.minOutputAmount ?? ''),
-										quote?.outputTokenDecimals ?? 18,
-										{maximumFractionDigits: 6}
-									)}
-							<p className={'ml-1'}>{configuration?.tokenToReceive?.token?.symbol}</p>
+						<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully withdrawn'}</p>
+
+						<div className={'flex flex-col items-center'}>
+							<div className={'flex'}>
+								{!isZapNeededForWithdraw
+									? configuration?.tokenToSpend.amount?.display.slice(0, 7)
+									: formatBigIntForDisplay(
+											BigInt(quote?.minOutputAmount ?? ''),
+											quote?.outputTokenDecimals ?? 18,
+											{maximumFractionDigits: 6}
+										)}
+								<p className={'ml-1'}>{configuration?.tokenToReceive?.token?.symbol}</p>
+							</div>
+							<span className={'text-regularText/50'}>
+								<span className={'mx-1'}>{'to your wallet'}</span>
+							</span>
 						</div>
-						<span className={'text-regularText/50'}>
-							<span className={'mx-1'}>{'to your wallet'}</span>
-						</span>
 					</div>
-				</div>
-			);
+				)
+			});
 		});
 	}, [
 		address,
@@ -171,7 +173,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 		isZapNeededForWithdraw,
 		onApprove,
 		onConnect,
-		onExecuteWithdraw,
+		onWithdraw,
 		props,
 		quote?.minOutputAmount,
 		quote?.outputTokenDecimals
@@ -425,7 +427,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 
 							<Button
 								onClick={onAction}
-								isBusy={isFetchingQuote || withdrawStatus?.pending || isApproving}
+								isBusy={isFetchingQuote || isWithdrawing || isApproving}
 								isDisabled={isWithdrawDisable}
 								spinnerClassName={'text-background size-4 animate-spin'}
 								className={cl(

@@ -1,5 +1,4 @@
 import {createContext, useContext, useMemo} from 'react';
-import {defaultTxStatus, type TTxStatus} from '@builtbymom/web3/utils/wagmi';
 import SafeProvider from '@gnosis.pm/safe-apps-react-sdk';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {usePortalsSolver} from '@lib/solvers/usePortalsSolver';
@@ -15,23 +14,16 @@ import type {TPortalsEstimate} from '@lib/utils/api.portals';
  * This type is a return type of every solver. It should stay the same for every new solver added
  *************************************************************************************************/
 export type TSolverContextBase = {
-	/** Approval part */
-	onApprove: (onSuccess?: () => void, onFailure?: () => void) => Promise<void>;
-	allowance: bigint;
-	permitSignature?: TPermitSignature;
 	isApproved: boolean;
 	isApproving: boolean;
-
-	/** Deposit part */
-	depositStatus: TTxStatus;
-	onExecuteDeposit: (onSuccess: () => void) => Promise<void>;
-	set_depositStatus: (value: TTxStatus) => void;
-
-	/** Withdraw part */
-	withdrawStatus: TTxStatus;
-	set_withdrawStatus: (value: TTxStatus) => void;
-	onExecuteWithdraw: (onSuccess: () => void) => Promise<void>;
-	onDepositForGnosis: (onSuccess?: () => void) => Promise<void>;
+	canDeposit: boolean;
+	isDepositing: boolean;
+	isWithdrawing: boolean;
+	allowance: bigint;
+	permitSignature?: TPermitSignature;
+	onApprove: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
+	onDeposit: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
+	onWithdraw: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
 
 	canZap: boolean;
 	isFetchingQuote: boolean;
@@ -43,24 +35,19 @@ export type TSolverContextBase = {
  * 1. Current solver actions
  * 2. Current solver withdraw actions (same for every solver)
  */
-type TSolverContext = Partial<TSolverContextBase>;
-
-const SolverContext = createContext<Partial<TSolverContextBase>>({
-	onApprove: async (): Promise<void> => undefined,
-	allowance: 0n,
+const SolverContext = createContext<TSolverContextBase>({
 	isApproved: false,
 	isApproving: false,
-
-	withdrawStatus: defaultTxStatus,
-	set_withdrawStatus: (): void => undefined,
-	onExecuteWithdraw: async (): Promise<void> => undefined,
-
-	depositStatus: defaultTxStatus,
-	set_depositStatus: (): void => undefined,
-	onExecuteDeposit: async (): Promise<void> => undefined,
-
+	canDeposit: false,
+	isDepositing: false,
+	isWithdrawing: false,
+	canZap: false,
 	isFetchingQuote: false,
-	quote: null
+	allowance: 0n,
+	quote: null,
+	onApprove: async (): Promise<boolean> => false,
+	onDeposit: async (): Promise<boolean> => false,
+	onWithdraw: async (): Promise<boolean> => false
 });
 
 function WithContexts({children}: {children: ReactElement}): ReactElement {
@@ -89,4 +76,4 @@ export function SolverContextApp(props: {children: ReactElement}): ReactElement 
 	);
 }
 
-export const useSolver = (): TSolverContext => useContext(SolverContext);
+export const useSolver = (): TSolverContextBase => useContext(SolverContext);
