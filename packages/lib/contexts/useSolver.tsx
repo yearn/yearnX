@@ -1,5 +1,6 @@
 import {createContext, useContext, useMemo} from 'react';
 import {defaultTxStatus, type TTxStatus} from '@builtbymom/web3/utils/wagmi';
+import SafeProvider from '@gnosis.pm/safe-apps-react-sdk';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {usePortalsSolver} from '@lib/solvers/usePortalsSolver';
 import {useVanilaSolver} from '@lib/solvers/useVanilaSolver';
@@ -30,6 +31,7 @@ export type TSolverContextBase = {
 	withdrawStatus: TTxStatus;
 	set_withdrawStatus: (value: TTxStatus) => void;
 	onExecuteWithdraw: (onSuccess: () => void) => Promise<void>;
+	onDepositForGnosis: (onSuccess?: () => void) => Promise<void>;
 
 	canZap: boolean;
 	isFetchingQuote: boolean;
@@ -77,6 +79,10 @@ export function SolverContextApp({children}: {children: ReactElement}): ReactEle
 		return vanila;
 	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, portals, vanila]);
 
-	return <SolverContext.Provider value={{...currentSolver}}>{children}</SolverContext.Provider>;
+	return (
+		<SafeProvider>
+			<SolverContext.Provider value={{...currentSolver}}>{children}</SolverContext.Provider>
+		</SafeProvider>
+	);
 }
 export const useSolver = (): TSolverContext => useContext(SolverContext);

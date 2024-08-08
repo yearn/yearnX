@@ -46,7 +46,7 @@ export const Section3 = ({title, description, bgImage, cards}: TSectionProps): R
 				'bg-primary text-accentText grid w-full grid-cols-1 gap-y-12 rounded-2xl p-6 md:grid-cols-3 md:gap-x-6 md:px-10 md:py-16'
 			}>
 			{cards?.map(card => (
-				<div>
+				<div key={card.value}>
 					{card.isReady && (
 						<p className={'mb-4 text-lg font-bold uppercase leading-[22px] md:mb-0'}>{card.title}</p>
 					)}

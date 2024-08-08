@@ -39,7 +39,8 @@
 		"viem": "^2.18.8",
 		"wagmi": "^2.12.2",
 		"xxhashjs": "^0.2.2",
-		"zod": "^3.23.8"
+		"zod": "^3.23.8",
+		"web3-eth-abi": "1.10.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^19.3.0",
