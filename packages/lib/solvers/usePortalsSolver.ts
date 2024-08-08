@@ -5,14 +5,17 @@ import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useApprove} from '@builtbymom/web3/hooks/useApprove';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
-import {assert, ETH_TOKEN_ADDRESS, isEthAddress, toAddress, toBigInt} from '@builtbymom/web3/utils';
+import {assert, ETH_TOKEN_ADDRESS, isEthAddress, isZeroAddress, toAddress, toBigInt} from '@builtbymom/web3/utils';
 import {defaultTxStatus, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
+import {useSafeAppsSDK} from '@gnosis.pm/safe-apps-react-sdk';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {getPortalsApproval, getPortalsTx, getQuote, PORTALS_NETWORK} from '@lib/utils/api.portals';
 import {isValidPortalsErrorObject} from '@lib/utils/isValidPortalsErrorObject';
+import {getApproveTransaction} from '@lib/utils/tools.gnosis';
 import {sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
 
 import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
+import type {BaseTransaction} from '@gnosis.pm/safe-apps-sdk';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
 import type {TPortalsApproval, TPortalsEstimate} from '@lib/utils/api.portals';
 import type {TInitSolverArgs} from '@lib/utils/solvers';
@@ -24,6 +27,7 @@ export const usePortalsSolver = (
 	const {configuration} = useManageVaults();
 	const {onRefresh} = useWallet();
 	const {address, provider, isWalletSafe} = useWeb3();
+	const {sdk} = useSafeAppsSDK();
 	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
 	const [withdrawStatus, set_withdrawStatus] = useState(defaultTxStatus);
 	const [latestQuote, set_latestQuote] = useState<TPortalsEstimate>();
@@ -167,6 +171,109 @@ export const usePortalsSolver = (
 		set_depositStatus(defaultTxStatus);
 		set_withdrawStatus(defaultTxStatus);
 	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote]);
+
+	/**********************************************************************************************
+	 * TODO: Add comment to explain how it works
+	 *********************************************************************************************/
+	const onDepositForGnosis = useCallback(
+		async (onSuccess?: () => void): Promise<void> => {
+			assert(provider, 'Provider is not set');
+			assert(latestQuote, 'Quote is not set');
+			assert(configuration?.tokenToSpend.token, 'Token to Spend is not set');
+			assert(configuration?.tokenToReceive.token, 'Token to Receiver is not set');
+			assert(configuration?.vault, 'Output token is not set');
+
+			const tokenToSpend = configuration?.tokenToSpend.token;
+			const tokenToReceive = configuration?.tokenToReceive.token;
+			const amountToSpend = configuration?.tokenToSpend.amount;
+
+			let inputToken = tokenToSpend.address;
+			const outputToken =
+				configuration?.action === 'DEPOSIT' ? configuration?.vault.address : tokenToReceive.address;
+			if (isEthAddress(inputToken)) {
+				inputToken = zeroAddress;
+			}
+
+			const network = PORTALS_NETWORK.get(tokenToSpend.chainID);
+			const transaction = await getPortalsTx({
+				params: {
+					sender: toAddress(address),
+					inputToken: `${network}:${toAddress(inputToken)}`,
+					outputToken: `${network}:${toAddress(outputToken)}`,
+					inputAmount: String(amountToSpend?.raw ?? 0n),
+					slippageTolerancePercentage: slippage.toString(),
+					validate: 'true'
+				}
+			});
+
+			if (!transaction.result) {
+				throw new Error('Transaction data was not fetched from Portals!');
+			}
+
+			const {
+				tx: {value, to, data}
+			} = transaction.result;
+
+			const batch = [];
+
+			if (!isZeroAddress(inputToken)) {
+				const approveTransactionForBatch = getApproveTransaction(
+					toBigInt(configuration?.tokenToSpend.amount?.raw).toString(),
+					toAddress(configuration?.tokenToSpend.token.address),
+					toAddress(to)
+				);
+
+				batch.push(approveTransactionForBatch);
+			}
+
+			const portalsTransactionForBatch: BaseTransaction = {
+				to: toAddress(to),
+				value: toBigInt(value ?? 0n).toString(),
+				data
+			};
+
+			batch.push(portalsTransactionForBatch);
+
+			try {
+				const res = sdk.txs.send({txs: batch});
+				let result;
+				do {
+					result = await sdk.txs.getBySafeTxHash((await res).safeTxHash);
+					await new Promise(resolve => setTimeout(resolve, 30_000));
+				} while (
+					result.txStatus !== 'SUCCESS' &&
+					result.txStatus !== 'FAILED' &&
+					result.txStatus !== 'CANCELLED'
+				);
+				onSuccess?.();
+				await onRefresh(
+					[
+						{chainID: configuration?.vault.chainID, address: configuration?.vault.address},
+						{chainID: configuration?.vault.chainID, address: configuration?.vault.token.address},
+						{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
+						{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
+						{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
+					],
+					false,
+					true
+				);
+			} catch (err) {
+				console.error(err);
+			}
+		},
+		[
+			address,
+			configuration?.action,
+			configuration?.tokenToReceive.token,
+			configuration?.tokenToSpend.amount,
+			configuration?.tokenToSpend.token,
+			configuration?.vault,
+			latestQuote,
+			provider,
+			onRefresh,
+			sdk.txs
+		]
+	);
 
 	/**********************************************************************************************
 	 * execute will send the post request to execute the order and wait for it to be executed, no
@@ -357,6 +464,7 @@ export const usePortalsSolver = (
 		depositStatus,
 		set_depositStatus,
 		onExecuteDeposit,
+		onDepositForGnosis,
 
 		/** Approval part */
 		onApprove,
