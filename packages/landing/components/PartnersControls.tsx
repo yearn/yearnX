@@ -1,8 +1,6 @@
 import {type ReactElement} from 'react';
 
-import {TABS} from '../constants';
 import {SearchBar} from './SearchBar';
-import {Tabs} from './Tabs';
 
 import type {TTab} from '../types';
 
@@ -14,8 +12,8 @@ type TPartnersControlsProps = {
 };
 
 export function PartersControls({
-	selectedTab,
-	set_selectedTab,
+	// selectedTab,
+	// set_selectedTab,
 	searchValue,
 	set_searchValue
 }: TPartnersControlsProps): ReactElement {
@@ -29,11 +27,11 @@ export function PartersControls({
 						set_searchValue={set_searchValue}
 					/>
 				</div>
-				<Tabs
+				{/* <Tabs
 					tabs={TABS}
 					selectedTab={selectedTab}
 					set_selectedTab={set_selectedTab}
-				/>
+				/> */}
 			</div>
 			<div className={'hidden md:block'}>
 				<SearchBar

@@ -12,7 +12,9 @@ class MyDocument extends Document {
 
 	render(): ReactElement {
 		return (
-			<Html lang={'en'}>
+			<Html
+				lang={'en'}
+				className={'scrollbar-none'}>
 				<Head>
 					<link
 						rel={'preconnect'}
@@ -28,7 +30,7 @@ class MyDocument extends Document {
 						rel={'stylesheet'}
 					/>
 				</Head>
-				<body className={'scrollbar-none bg-background transition-colors duration-150'}>
+				<body className={'bg-background transition-colors duration-150'}>
 					<Main />
 					<NextScript />
 				</body>

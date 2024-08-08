@@ -1,11 +1,32 @@
 @import '@rainbow-me/rainbowkit/styles.css';
 
 @tailwind base;
+
+/***************************************************************************
+** Then, we import the tailwind class. They will be able to overwrite all
+** the previous classes, not the next ones directly.
+**************************************************************************/
 @tailwind components;
 @tailwind utilities;
+
+html {
+	@apply scrollbar-none;
+}
 
 body {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
+}
+
+/***************************************************************************
+** Some accessibilities fixes
+**************************************************************************/
+.scrollbar-none::-webkit-scrollbar {
+	display: none;
+}
+
+.scrollbar-none {
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
 }
