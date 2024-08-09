@@ -1,8 +1,8 @@
-import {type ReactElement, useMemo, useState} from 'react';
+import {type ReactElement, useMemo} from 'react';
+import {useQueryState} from 'nuqs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
 import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
-import {useDebounce} from '@lib/hooks/useDebounce';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
 
@@ -22,9 +22,8 @@ type TVaultListProps = {
 };
 
 export const VaultList = (props: TVaultListProps): ReactElement => {
+	const [searchValue, set_searchValue] = useQueryState('search', {defaultValue: '', shallow: true});
 	const {getPrices, pricingHash} = usePrices();
-	const [searchValue, set_searchValue] = useState('');
-	const {debouncedValue} = useDebounce(searchValue, 400);
 
 	/**********************************************************************************************
 	 ** useMemo hook to retrieve and memoize prices for all tokens associated with the vaults.
@@ -43,7 +42,7 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 	 *********************************************************************************************/
 	const filteredVaults = useMemo(() => {
 		const filteredVaults = props.vaults?.filter(vault => {
-			const lowercaseValue = debouncedValue.toLowerCase();
+			const lowercaseValue = searchValue.toLowerCase();
 			return (
 				vault.name.toLowerCase().includes(lowercaseValue) ||
 				vault.address.toLowerCase().includes(lowercaseValue) ||
@@ -52,14 +51,14 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 		});
 
 		return filteredVaults;
-	}, [debouncedValue, props.vaults]);
+	}, [searchValue, props.vaults]);
 
-	const {vaults, nextPage, prevPage, currentPage, amountOfPages} = useVaultsPagination(
+	const {vaults, goToNextPage, goToPrevPage, goToPage, currentPage, amountOfPages} = useVaultsPagination(
 		VAULTS_PER_PAGE,
-		debouncedValue ? filteredVaults : props.vaults
+		searchValue ? filteredVaults : props.vaults
 	);
 
-	const {sortBy, sortDirection, sortedVaults} = useSortedVaults(vaults, allPrices);
+	const sort = useSortedVaults(vaults, allPrices);
 
 	/**********************************************************************************************
 	 ** Generates the layout based on the current props and state.
@@ -72,10 +71,10 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 			return <Skeleton />;
 		}
 
-		if (sortedVaults?.length) {
+		if (sort.sortedVaults?.length) {
 			return (
 				<div className={'flex flex-col gap-y-3'}>
-					{sortedVaults.map(vault => (
+					{sort.sortedVaults.map(vault => (
 						<VaultItem
 							key={vault.address}
 							vault={vault}
@@ -105,8 +104,10 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 				/>
 				<VaultsListHead
 					items={props.headerTabs}
-					sortBy={sortBy}
-					sortDirection={sortDirection}
+					sortBy={sort.sortBy}
+					sortDirection={sort.sortDirection}
+					onSortBy={sort.onSortBy}
+					onSortDirection={sort.onSortDirection}
 					vaults={props.vaults}
 				/>
 
@@ -115,8 +116,9 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 
 			<Pagination
 				currentPage={currentPage}
-				nextPage={nextPage}
-				prevPage={prevPage}
+				goToNextPage={goToNextPage}
+				goToPrevPage={goToPrevPage}
+				goToPage={goToPage}
 				amountOfPages={amountOfPages}
 			/>
 		</div>

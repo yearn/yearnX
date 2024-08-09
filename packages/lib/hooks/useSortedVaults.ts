@@ -1,6 +1,6 @@
-import {useEffect, useMemo} from 'react';
-import {useRouter, useSearchParams} from 'next/navigation';
-import {deserialize, serialize} from 'wagmi';
+import {useMemo} from 'react';
+import {useQueryState} from 'nuqs';
+import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {numberSort} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
@@ -14,15 +14,18 @@ type TSortedVaults = {
 	sortBy: TVaultsSortBy;
 	sortDirection: TSortDirection;
 	sortedVaults: TYDaemonVaults | undefined;
+	onSortBy: (sortBy: TVaultsSortBy) => void;
+	onSortDirection: (sortDirection: TSortDirection) => void;
 };
 export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<TNormalizedBN>>): TSortedVaults => {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const {pricingHash} = usePrices();
 	const {balances, getBalance} = useWallet();
-	const sortDirection = searchParams.get('sortDirection');
-	const sortBy = searchParams.get('sortBy');
-	const currentPage = searchParams.get('page') ?? 1;
+	const {pricingHash} = usePrices();
+	const [sortDirection, set_sortDirection] = useQueryState('sortDirection', {defaultValue: '', shallow: true});
+	const [sortBy, set_sortBy] = useQueryState('sortBy', {
+		defaultValue: 'balance',
+		shallow: true,
+		clearOnDefault: true
+	});
 
 	/**********************************************************************************************
 	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
@@ -35,17 +38,10 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 	}, [balances]);
 
 	/**********************************************************************************************
-	 ** If sortDirection is empty we show the array in original order, and also we need to clean the
-	 ** url.
-	 *********************************************************************************************/
-	useEffect(() => {
-		if (!sortDirection && sortBy) {
-			router.push(`?page=${currentPage}`);
-		}
-	}, [currentPage, router, sortBy, sortDirection]);
-
-	/**********************************************************************************************
-	 ** This is memoized sorted vaults by apr.
+	 ** The sortedByBalance memoized value will return the vaults sorted by APR.
+	 **
+	 ** @params void
+	 ** @returns TYDaemonVaults - The sorted vaults.
 	 *********************************************************************************************/
 	const sortedByAPR = useMemo((): TYDaemonVaults => {
 		if (sortBy !== 'apr') {
@@ -63,7 +59,10 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 	}, [sortBy, vaults, sortDirection]);
 
 	/**********************************************************************************************
-	 ** This is memoized sorted by deposit.
+	 ** The sortedByBalance memoized value will return the vaults sorted by TVL.
+	 **
+	 ** @params void
+	 ** @returns TYDaemonVaults - The sorted vaults.
 	 *********************************************************************************************/
 	const sortedByDeposits = useMemo((): TYDaemonVaults => {
 		if (sortBy !== 'deposits') {
@@ -81,12 +80,16 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 	}, [sortBy, vaults, sortDirection]);
 
 	/**********************************************************************************************
-	 ** This is memoized sorted by balance.
+	 ** The sortedByBalance memoized value will return the vaults sorted by balance, based on the
+	 ** current balance and the price of the vault. This is the default sorting method.
+	 **
+	 ** @params void
+	 ** @returns TYDaemonVaults - The sorted vaults.
 	 *********************************************************************************************/
 	const sortedByBalance = useMemo((): TYDaemonVaults => {
 		pricingHash;
 		currentBalanceIdentifier;
-		if (sortBy !== 'balance') {
+		if (!sortBy || sortBy !== 'balance') {
 			return vaults;
 		}
 		return vaults?.length
@@ -107,15 +110,16 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 			: [];
 	}, [pricingHash, currentBalanceIdentifier, sortBy, vaults, allPrices, getBalance, sortDirection]);
 
-	const stringifiedSortList = serialize(vaults) ?? '{}';
-
 	/**********************************************************************************************
-	 ** This is memoized sorted allowances that contains allowances according to sortBy state.
+	 ** The sortedVaults memoized value will return the sorted vaults based on the sortBy value,
+	 ** returning the llist of vaults matching it.
+	 **
+	 ** @params void
+	 ** @returns TYDaemonVaults - The sorted vaults.
 	 *********************************************************************************************/
 	const sortedVaults = useMemo(() => {
-		const sortResult = deserialize(stringifiedSortList) as TYDaemonVaults;
 		if (sortDirection === '') {
-			return sortResult;
+			return sortedByBalance;
 		}
 		if (sortBy === 'apr') {
 			return sortedByAPR;
@@ -128,12 +132,34 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 		if (sortBy === 'balance') {
 			return sortedByBalance;
 		}
-		return sortResult;
-	}, [sortBy, sortDirection, sortedByAPR, sortedByBalance, sortedByDeposits, stringifiedSortList]);
+		return sortedByBalance;
+	}, [sortBy, sortDirection, sortedByAPR, sortedByBalance, sortedByDeposits]);
+
+	/**********************************************************************************************
+	 ** onSortBy will update the sortBy state with a provided value.
+	 **
+	 ** @params value: TVaultsSortBy - The value to update the sortBy state with.
+	 ** @returns void
+	 *********************************************************************************************/
+	const onSortBy = (value: TVaultsSortBy): void => {
+		set_sortBy(value);
+	};
+
+	/**********************************************************************************************
+	 ** onSortDirection will update the sortDirection state with a provided value.
+	 **
+	 ** @params value: TSortDirection - The value to update the sortDirection state with.
+	 ** @returns void
+	 *********************************************************************************************/
+	const onSortDirection = (value: TSortDirection): void => {
+		set_sortDirection(value);
+	};
 
 	return {
 		sortBy: sortBy as TVaultsSortBy,
 		sortDirection: sortDirection as TSortDirection,
-		sortedVaults
+		sortedVaults,
+		onSortBy,
+		onSortDirection
 	};
 };

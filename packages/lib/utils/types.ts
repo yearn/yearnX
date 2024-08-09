@@ -12,7 +12,7 @@ export type TVaultData = {
 	balanceOf: TNormalizedBN;
 };
 
-export type TVaultsSortBy = 'vault' | 'apr' | 'deposits' | 'balance';
+export type TVaultsSortBy = 'vault' | 'apr' | 'deposits' | 'balance' | null;
 
 export type TSectionProps = {
 	bgImage?: string;

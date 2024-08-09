@@ -8,6 +8,8 @@ import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {HEADER_TABS, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 
+import type {GetServerSideProps} from 'next';
+
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
@@ -44,3 +46,6 @@ export default function Index(): ReactElement {
 		</section>
 	);
 }
+
+// Using the getServerSideProps to make sure that the search params are available on the client from the first render
+export const getServerSideProps = (async () => ({props: {}})) satisfies GetServerSideProps;

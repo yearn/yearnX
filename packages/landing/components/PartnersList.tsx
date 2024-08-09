@@ -8,14 +8,7 @@ import type {ReactElement} from 'react';
 import type {TPartners} from '../types';
 
 export function PartnersList({partners, searchValue}: {partners: TPartners; searchValue: string}): ReactElement {
-	const {
-		currentPage,
-		partners: paginatedPartners,
-		nextPage,
-		prevPage,
-		goToPage,
-		amountOfPages
-	} = usePartnersPagination(PARTNERS_PER_PAGE, partners);
+	const page = usePartnersPagination(PARTNERS_PER_PAGE, partners);
 
 	/**********************************************************************************************
 	 ** getLayout fucntion returns jsx according or Parters array. If there are no partners,
@@ -23,7 +16,7 @@ export function PartnersList({partners, searchValue}: {partners: TPartners; sear
 	 ** it returns "Nothing to display, The partner 'search value' does not exist" label
 	 *********************************************************************************************/
 	const getLayout = (): ReactElement => {
-		if (paginatedPartners.length === 0) {
+		if (page.partners.length === 0) {
 			return (
 				<div className={'flex w-full flex-col items-center justify-center'}>
 					<div className={'text-regularText mb-1 text-lg font-bold'}>{'Nothing to display'}</div>
@@ -38,7 +31,7 @@ export function PartnersList({partners, searchValue}: {partners: TPartners; sear
 
 		return (
 			<div className={'grid size-full grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4'}>
-				{paginatedPartners.map(partner => (
+				{page.partners.map(partner => (
 					<PartnerCard
 						key={partner.name}
 						partner={partner}
@@ -51,11 +44,11 @@ export function PartnersList({partners, searchValue}: {partners: TPartners; sear
 		<div className={'flex w-full flex-col'}>
 			<div className={'w-full'}>{getLayout()}</div>
 			<Pagination
-				currentPage={currentPage}
-				amountOfPages={amountOfPages}
-				nextPage={nextPage}
-				prevPage={prevPage}
-				handlePageClick={(page: number) => goToPage(page)}
+				currentPage={page.currentPage}
+				amountOfPages={page.amountOfPages}
+				goToNextPage={page.goToNextPage}
+				goToPrevPage={page.goToPrevPage}
+				goToPage={page.goToPage}
 			/>
 		</div>
 	);
