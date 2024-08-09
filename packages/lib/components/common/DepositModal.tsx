@@ -34,9 +34,7 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 	const {openAccountModal} = useAccountModal();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const {isZapNeededForDeposit} = useIsZapNeeded(configuration);
-	const {canZap} = useSolver();
-
-	const {onApprove, isApproving, isDepositing, onDeposit, canDeposit, isFetchingQuote, quote} = useSolver();
+	const {canZap, onApprove, isApproving, isDepositing, onDeposit, canDeposit, isFetchingQuote, quote} = useSolver();
 
 	/**********************************************************************************************
 	 ** buttonTitle for deposit only button depends - on wallet(if wallet isn't connected, button

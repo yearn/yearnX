@@ -1,5 +1,6 @@
 import {type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
+import {useQueryState} from 'nuqs';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
@@ -40,9 +41,84 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {configuration} = useManageVaults();
 	const {pricingHash, getPrice} = usePrices();
 	const [successModal, set_successModal] = useState<TSuccessModal>({isOpen: false, description: null});
-	const isDepositModalOpen = configuration.action === 'DEPOSIT' && configuration.vault?.address === vault.address;
-	const isWithdrawModalOpen = configuration.action === 'WITHDRAW' && configuration.vault?.address === vault.address;
 	const [vaultPrice, set_vaultPrice] = useState<TNormalizedBN>(zeroNormalizedBN);
+	const [selectedVault, set_selectedVault] = useQueryState('vault');
+	const [selectedAction, set_selectedAction] = useQueryState('action');
+	const isDepositModalOpen = selectedAction === 'DEPOSIT' && selectedVault === vault.address;
+	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
+	const {dispatchConfiguration} = useManageVaults();
+
+	/**********************************************************************************************
+	 ** useEffect hook that will trigger the dispatchConfiguration call when the deposit modal is
+	 ** open. It will set the deposit action and the vault token as default to be deposited.
+	 ** This effect is triggered by the isDepositModalOpen value being true, which is set thanks
+	 ** to the useQueryState hook.
+	 *********************************************************************************************/
+	useEffect(() => {
+		if (!isDepositModalOpen) {
+			return;
+		}
+		dispatchConfiguration({
+			type: 'SET_DEPOSIT',
+			payload: {
+				vault,
+				toSpend: {
+					token: {
+						address: vault.token.address,
+						name: vault.token.name,
+						symbol: vault.token.symbol,
+						decimals: vault.token.decimals,
+						chainID: vault.chainID,
+						value: 0,
+						balance: getBalance({address: vault.token.address, chainID: vault.chainID})
+					},
+					amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+				}
+			}
+		});
+	}, [dispatchConfiguration, getBalance, isDepositModalOpen, vault]);
+
+	/**********************************************************************************************
+	 ** useEffect hook that will trigger the dispatchConfiguration call when the withdraw modal is
+	 ** open. It will set the withdraw action and the vault token as default to be withdrawn.
+	 ** This effect is triggered by the isWithdrawModalOpen value being true, which is set thanks
+	 ** to the useQueryState hook.
+	 *********************************************************************************************/
+	useEffect(() => {
+		if (!isWithdrawModalOpen) {
+			return;
+		}
+		dispatchConfiguration({
+			type: 'SET_WITHDRAW',
+			payload: {
+				vault,
+				toReceive: {
+					token: {
+						address: vault.token.address,
+						symbol: vault.token.symbol,
+						name: vault.token.name,
+						decimals: vault.token.decimals,
+						chainID: vault.chainID,
+						balance: zeroNormalizedBN,
+						value: 0
+					},
+					amount: getBalance({address: vault.address, chainID: vault.chainID})
+				},
+				toSpend: {
+					token: {
+						address: vault.token.address,
+						name: vault.token.name,
+						symbol: vault.token.symbol,
+						decimals: vault.token.decimals,
+						chainID: vault.chainID,
+						value: 0,
+						balance: getBalance({address: vault.token.address, chainID: vault.chainID})
+					},
+					amount: getBalance({address: vault.token.address, chainID: vault.chainID})
+				}
+			}
+		});
+	}, [dispatchConfiguration, getBalance, isDepositModalOpen, isWithdrawModalOpen, vault]);
 
 	/**********************************************************************************************
 	 ** useEffect hook to retrieve and memoize prices for the vault token.
@@ -121,69 +197,23 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		)}`;
 	}, [configuration?.tokenToSpend.amount?.normalized, vault.apr.netAPR, vaultPrice.normalized]);
 
-	const {dispatchConfiguration} = useManageVaults();
-
 	/**********************************************************************************************
 	 ** onDepositClick is a callback that sets "DEPOSIT" (and it opens deposit modal) to reducer
 	 ** as action and sets vault token as default to be deposited.
 	 *********************************************************************************************/
 	const onDepositClick = useCallback(async (): Promise<void> => {
-		dispatchConfiguration({
-			type: 'SET_DEPOSIT',
-			payload: {
-				vault,
-				toSpend: {
-					token: {
-						address: vault.token.address,
-						name: vault.token.name,
-						symbol: vault.token.symbol,
-						decimals: vault.token.decimals,
-						chainID: vault.chainID,
-						value: 0,
-						balance: getBalance({address: vault.token.address, chainID: vault.chainID})
-					},
-					amount: getBalance({address: vault.token.address, chainID: vault.chainID})
-				}
-			}
-		});
-	}, [dispatchConfiguration, getBalance, vault]);
+		set_selectedVault(vault.address);
+		set_selectedAction('DEPOSIT');
+	}, [set_selectedAction, set_selectedVault, vault]);
 
 	/**********************************************************************************************
 	 ** onWithdrawClick is a callback that sets "WITHDRAW" (and it opens withdraw modal) to reducer
 	 ** as action and sets vault token as default to be withdrawn.
 	 *********************************************************************************************/
 	const onWithdrawClick = useCallback(async (): Promise<void> => {
-		dispatchConfiguration({
-			type: 'SET_WITHDRAW',
-			payload: {
-				vault,
-				toReceive: {
-					token: {
-						address: vault.token.address,
-						symbol: vault.token.symbol,
-						name: vault.token.name,
-						decimals: vault.token.decimals,
-						chainID: vault.chainID,
-						balance: zeroNormalizedBN,
-						value: 0
-					},
-					amount: getBalance({address: vault.address, chainID: vault.chainID})
-				},
-				toSpend: {
-					token: {
-						address: vault.token.address,
-						name: vault.token.name,
-						symbol: vault.token.symbol,
-						decimals: vault.token.decimals,
-						chainID: vault.chainID,
-						value: 0,
-						balance: getBalance({address: vault.token.address, chainID: vault.chainID})
-					},
-					amount: getBalance({address: vault.token.address, chainID: vault.chainID})
-				}
-			}
-		});
-	}, [dispatchConfiguration, getBalance, vault]);
+		set_selectedVault(vault.address);
+		set_selectedAction('WITHDRAW');
+	}, [set_selectedAction, set_selectedVault, vault]);
 
 	/**********************************************************************************************
 	 ** Create the link to the Yearn.fi website. The link will be different depending on the
@@ -194,11 +224,21 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 		return `https://yearn.fi/${vaultOrV3}/${vault.chainID}/${vault.address}`;
 	}, [vault.address, vault.chainID, vault.version]);
 
+	/**********************************************************************************************
+	 ** onClose contains the actions to perform when the modal is closed. It resets the
+	 ** configuration reducer, closes the modal and clear the URL query state.
+	 *********************************************************************************************/
+	const onClose = useCallback(() => {
+		dispatchConfiguration({type: 'RESET'});
+		set_selectedVault(null);
+		set_selectedAction(null);
+	}, [dispatchConfiguration, set_selectedAction, set_selectedVault]);
+
 	return (
 		<div>
 			<DepositModal
 				isOpen={isDepositModalOpen}
-				onClose={() => dispatchConfiguration({type: 'RESET'})}
+				onClose={onClose}
 				vault={vault}
 				yearnfiLink={yearnfiLink}
 				hasBalanceForVault={balance > 0}
@@ -207,7 +247,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 			/>
 			<WithdrawModal
 				isOpen={isWithdrawModalOpen}
-				onClose={() => dispatchConfiguration({type: 'RESET'})}
+				onClose={onClose}
 				vault={vault}
 				yearnfiLink={yearnfiLink}
 				hasBalanceForVault={balance > 0}
@@ -218,6 +258,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				isOpen={successModal.isOpen}
 				description={successModal.description}
 			/>
+
 			{/* Desctop screen Item */}
 			<div className={'bg-regularText/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-7'}>
 				<Link

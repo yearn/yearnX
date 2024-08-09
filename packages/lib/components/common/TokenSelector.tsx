@@ -43,6 +43,7 @@ export function TokenSelector({
 	const [searchValue, set_searchValue] = useState('');
 	const {configuration} = useManageVaults();
 	const [tokensToUse, set_tokensToUse] = useState<TToken[]>([]);
+
 	/**********************************************************************************************
 	 ** Create the list of tokens that might be possible to deposit, prepending the vault token and
 	 ** filtering out duplicates.

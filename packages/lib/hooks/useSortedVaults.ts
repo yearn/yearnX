@@ -19,7 +19,11 @@ type TSortedVaults = {
 export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<TNormalizedBN>>): TSortedVaults => {
 	const {balanceHash, getBalance} = useWallet();
 	const {pricingHash} = usePrices();
-	const [sortDirection, set_sortDirection] = useQueryState('sortDirection', {defaultValue: '', shallow: true});
+	const [sortDirection, set_sortDirection] = useQueryState('sortDirection', {
+		defaultValue: 'desc',
+		shallow: true,
+		clearOnDefault: true
+	});
 	const [sortBy, set_sortBy] = useQueryState('sortBy', {
 		defaultValue: 'balance',
 		shallow: true,
