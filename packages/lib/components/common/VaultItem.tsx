@@ -1,6 +1,5 @@
-import {type ReactElement, useCallback, useMemo, useState} from 'react';
+import {type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
-import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {
@@ -16,8 +15,7 @@ import {
 import {getNetwork} from '@builtbymom/web3/utils/wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePrices} from '@lib/contexts/usePrices';
-import {toPercent} from '@lib/utils/tools';
-import {createUniqueID} from '@lib/utils/tools.identifiers';
+import {acknowledge, toPercent} from '@lib/utils/tools';
 
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {DepositModal} from './DepositModal';
@@ -38,23 +36,26 @@ export type TSuccessModal = {
 };
 
 export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
-	const {balances, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
+	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
+	const {pricingHash, getPrice} = usePrices();
 	const [successModal, set_successModal] = useState<TSuccessModal>({isOpen: false, description: null});
 	const isDepositModalOpen = configuration.action === 'DEPOSIT' && configuration.vault?.address === vault.address;
 	const isWithdrawModalOpen = configuration.action === 'WITHDRAW' && configuration.vault?.address === vault.address;
+	const [vaultPrice, set_vaultPrice] = useState<TNormalizedBN>(zeroNormalizedBN);
 
 	/**********************************************************************************************
-	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
-	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
-	 ** We will use classic hash function to create a hash from the balances object.
+	 ** useEffect hook to retrieve and memoize prices for the vault token.
 	 *********************************************************************************************/
-	const currentBalanceIdentifier = useMemo(() => {
-		const hash = createUniqueID(serialize(balances));
-		return hash;
-	}, [balances]);
-
-	const {getPrice} = usePrices();
+	useEffect(() => {
+		acknowledge(pricingHash);
+		set_vaultPrice(
+			getPrice({
+				chainID: Number(configuration?.tokenToSpend.token?.chainID),
+				address: toAddress(configuration?.tokenToSpend.token?.address)
+			}) || zeroNormalizedBN
+		);
+	}, [pricingHash, configuration?.tokenToSpend.token, getPrice]);
 
 	/**********************************************************************************************
 	 ** In some situations, the token is not in the list and we need to fetch/get it. This
@@ -72,14 +73,14 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 
 	/**********************************************************************************************
 	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
-	 ** from the useWallet hook to retrieve the balance. We are using currentBalanceIdentifier as a
-	 ** dependency to trigger the useEffect hook when the balances object changes.
+	 ** from the useWallet hook to retrieve the balance. We are using balanceHash as a dependency
+	 ** to trigger the useEffect hook when the balances object changes.
 	 *********************************************************************************************/
 	const balance = useMemo(() => {
-		currentBalanceIdentifier;
+		acknowledge(balanceHash);
 		const value = getBalance({address: vault.address, chainID: vault.chainID}).normalized || 0;
 		return value;
-	}, [getBalance, vault.address, vault.chainID, currentBalanceIdentifier]);
+	}, [getBalance, vault.address, vault.chainID, balanceHash]);
 
 	/**********************************************************************************************
 	 ** The totalDeposits is the total value locked in the vault. We will use the tvl property
@@ -105,11 +106,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	 ** We are basically multiply amount the users typed with apr and price of the token.
 	 *********************************************************************************************/
 	const totalProfit = useMemo(() => {
-		const price =
-			getPrice({
-				chainID: Number(configuration?.tokenToSpend.token?.chainID),
-				address: toAddress(configuration?.tokenToSpend.token?.address)
-			})?.normalized ?? 0;
+		const price = vaultPrice.normalized ?? 0;
 		return `$${formatLocalAmount(
 			Number(configuration?.tokenToSpend.amount?.normalized) * vault.apr.netAPR * price +
 				Number(configuration?.tokenToSpend.amount?.normalized) * price,
@@ -122,13 +119,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				shouldCompactValue: true
 			}
 		)}`;
-	}, [
-		configuration?.tokenToSpend.amount?.normalized,
-		configuration?.tokenToSpend.token?.address,
-		configuration?.tokenToSpend.token?.chainID,
-		getPrice,
-		vault.apr.netAPR
-	]);
+	}, [configuration?.tokenToSpend.amount?.normalized, vault.apr.netAPR, vaultPrice.normalized]);
 
 	const {dispatchConfiguration} = useManageVaults();
 

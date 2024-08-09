@@ -1,10 +1,11 @@
-import {type ReactElement, useMemo} from 'react';
+import {type ReactElement, useEffect, useMemo, useState} from 'react';
 import {useQueryState} from 'nuqs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
 import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
+import {acknowledge} from '@lib/utils/tools';
 
 import {Pagination} from './Pagination';
 import {Skeleton} from './Skeleton';
@@ -12,7 +13,7 @@ import {VaultItem} from './VaultItem';
 import {VaultSearch} from './VaultSearch';
 import {VaultsListHead} from './VaultsListHead';
 
-import type {TToken} from '@builtbymom/web3/types';
+import type {TDict, TNDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
 
 type TVaultListProps = {
@@ -24,16 +25,18 @@ type TVaultListProps = {
 export const VaultList = (props: TVaultListProps): ReactElement => {
 	const [searchValue, set_searchValue] = useQueryState('search', {defaultValue: '', shallow: true});
 	const {getPrices, pricingHash} = usePrices();
+	const [allPrices, set_allPrices] = useState<TNDict<TDict<TNormalizedBN>>>({});
 
 	/**********************************************************************************************
-	 ** useMemo hook to retrieve and memoize prices for all tokens associated with the vaults.
+	 ** useEffect hook to retrieve and memoize prices for all tokens associated with the vaults.
 	 ** - Constructs an array of tokens from `props.vaults` containing chain IDs and addresses.
 	 ** - Uses `getPrices` to fetch prices for these tokens.
 	 *********************************************************************************************/
-	const allPrices = useMemo(() => {
+	useEffect(() => {
+		acknowledge(pricingHash);
 		const allTokens = props.vaults.map(vault => ({chainID: vault.chainID, address: vault.address}));
-		return getPrices(allTokens as TToken[]);
-	}, [props.vaults, getPrices, pricingHash]); // eslint-disable-line react-hooks/exhaustive-deps
+		set_allPrices(getPrices(allTokens as TToken[]));
+	}, [pricingHash, props.vaults, getPrices]);
 
 	/**********************************************************************************************
 	 ** useMemo hook to filter vaults based on a debounced search value.

@@ -1,8 +1,7 @@
-import {usePlausible} from 'next-plausible';
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {usePlausible} from 'next-plausible';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
-import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, fromNormalized, isAddress, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
@@ -13,7 +12,7 @@ import {usePopularTokens} from '@lib/contexts/usePopularTokens';
 import {useSolver} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
-import {createUniqueID} from '@lib/utils/tools.identifiers';
+import {acknowledge} from '@lib/utils/tools';
 
 import {IconChevron} from '../icons/IconChevron';
 import {IconCross} from '../icons/IconCross';
@@ -50,19 +49,9 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	const tokensOnCurrentChain = listTokens(configuration?.vault?.chainID);
 	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
 	const {onWithdraw, quote, isFetchingQuote, isWithdrawing, canZap, onApprove, isApproved, isApproving} = useSolver();
-	const {balances, getBalance} = useWallet();
+	const {balanceHash, getBalance} = useWallet();
 
 	useOnClickOutside([selectorRef, toggleButtonRef], () => set_isSelectorOpen(false));
-
-	/**********************************************************************************************
-	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
-	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
-	 ** We will use classic hash function to create a hash from the balances object.
-	 *********************************************************************************************/
-	const currentBalanceIdentifier = useMemo(() => {
-		const hash = createUniqueID(serialize(balances));
-		return hash;
-	}, [balances]);
 
 	/**********************************************************************************************
 	 ** useMemo hook to create a vault token object based on the current configuration.
@@ -71,6 +60,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	 ** `value`, and `balance`.
 	 *********************************************************************************************/
 	const vaultToken = useMemo((): TToken | undefined => {
+		acknowledge(balanceHash);
 		if (!configuration?.vault?.token) {
 			return undefined;
 		}
@@ -83,8 +73,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 				address: toAddress(configuration.vault.token.address)
 			})
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [configuration?.vault?.chainID, configuration?.vault?.token, currentBalanceIdentifier]);
+	}, [configuration?.vault?.chainID, configuration?.vault?.token, balanceHash]);
 
 	/**********************************************************************************************
 	 ** useEffect hook to set the list of all available tokens when certain conditions are met.
@@ -194,18 +183,18 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 
 	/**********************************************************************************************
 	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
-	 ** from the useWallet hook to retrieve the balance. We are using currentBalanceIdentifier as a
-	 ** dependency to trigger the useEffect hook when the balances object changes.
+	 ** from the useWallet hook to retrieve the balance. We are using balanceHash as a dependency
+	 ** to trigger the useEffect hook when the balances object changes.
 	 *********************************************************************************************/
 	const balance = useMemo(() => {
-		currentBalanceIdentifier;
+		acknowledge(balanceHash);
 		const value =
 			getBalance({
 				address: toAddress(configuration?.vault?.address),
 				chainID: Number(configuration?.vault?.chainID)
 			}).normalized || 0;
 		return value;
-	}, [getBalance, configuration?.vault?.address, configuration?.vault?.chainID, currentBalanceIdentifier]);
+	}, [getBalance, configuration?.vault?.address, configuration?.vault?.chainID, balanceHash]);
 
 	/**********************************************************************************************
 	 ** buttonTitle for withdraw only button depends - on wallet(if wallet isn't connected, button

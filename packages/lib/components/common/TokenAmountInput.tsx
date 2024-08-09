@@ -2,13 +2,12 @@ import {type ReactElement, useMemo, useRef, useState} from 'react';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
 import {zeroAddress} from 'viem';
-import {serialize, useReadContract} from 'wagmi';
+import {useReadContract} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, fromNormalized, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {toPercent} from '@lib/utils/tools';
-import {createUniqueID} from '@lib/utils/tools.identifiers';
+import {acknowledge, toPercent} from '@lib/utils/tools';
 import {VAULT_ABI} from '@lib/utils/vault.abi';
 
 import {Button} from './Button';
@@ -114,7 +113,7 @@ export function TokenAmountWrapper({
 	set_tokenToUse,
 	totalProfit
 }: TTokenAmountWrapperProps): ReactElement {
-	const {balances, getBalance} = useWallet();
+	const {balanceHash, getBalance} = useWallet();
 	const {address, onConnect} = useWeb3();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 
@@ -129,28 +128,18 @@ export function TokenAmountWrapper({
 	});
 
 	/**********************************************************************************************
-	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
-	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
-	 ** We will use classic hash function to create a hash from the balances object.
-	 *********************************************************************************************/
-	const currentBalanceIdentifier = useMemo(() => {
-		const hash = createUniqueID(serialize(balances));
-		return hash;
-	}, [balances]);
-
-	/**********************************************************************************************
 	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
-	 ** from the useWallet hook to retrieve the balance. We are using currentBalanceIdentifier as a
+	 ** from the useWallet hook to retrieve the balance. We are using balanceHash as a
 	 ** dependency to trigger the useEffect hook when the balances object changes.
 	 *********************************************************************************************/
 	const balanceOfAsset = useMemo(() => {
-		currentBalanceIdentifier;
+		acknowledge(balanceHash);
 		const value = getBalance({
 			address: configuration?.tokenToSpend.token?.address || zeroAddress,
 			chainID: vault.chainID
 		});
 		return value;
-	}, [getBalance, configuration?.tokenToSpend, vault.chainID, currentBalanceIdentifier]);
+	}, [getBalance, configuration?.tokenToSpend, vault.chainID, balanceHash]);
 
 	/**********************************************************************************************
 	 ** BalanceInShares converts the asset balance to the balance in shares. We use it when the
@@ -158,7 +147,7 @@ export function TokenAmountWrapper({
 	 ** and display this to the user instead of hard to understand shares.
 	 *********************************************************************************************/
 	const balanceInShares = useMemo(() => {
-		currentBalanceIdentifier;
+		acknowledge(balanceHash);
 		const value = getBalance({
 			address: configuration?.tokenToSpend.token?.address || zeroAddress,
 			chainID: vault.chainID
@@ -166,7 +155,7 @@ export function TokenAmountWrapper({
 		const pps = vaultPricePerShare;
 		return toNormalizedBN(value.raw * toBigInt(pps), vault.decimals * 2);
 	}, [
-		currentBalanceIdentifier,
+		balanceHash,
 		getBalance,
 		configuration?.tokenToSpend.token?.address,
 		vault.chainID,

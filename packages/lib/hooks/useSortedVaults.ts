@@ -1,10 +1,9 @@
 import {useMemo} from 'react';
 import {useQueryState} from 'nuqs';
-import {serialize} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {numberSort} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
-import {createUniqueID} from '@lib/utils/tools.identifiers';
+import {acknowledge} from '@lib/utils/tools';
 
 import type {TDict, TNDict, TNormalizedBN, TSortDirection} from '@builtbymom/web3/types';
 import type {TVaultsSortBy} from '@lib/utils/types';
@@ -18,7 +17,7 @@ type TSortedVaults = {
 	onSortDirection: (sortDirection: TSortDirection) => void;
 };
 export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<TNormalizedBN>>): TSortedVaults => {
-	const {balances, getBalance} = useWallet();
+	const {balanceHash, getBalance} = useWallet();
 	const {pricingHash} = usePrices();
 	const [sortDirection, set_sortDirection] = useQueryState('sortDirection', {defaultValue: '', shallow: true});
 	const [sortBy, set_sortBy] = useQueryState('sortBy', {
@@ -26,16 +25,6 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 		shallow: true,
 		clearOnDefault: true
 	});
-
-	/**********************************************************************************************
-	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
-	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
-	 ** We will use classic hash function to create a hash from the balances object.
-	 *********************************************************************************************/
-	const currentBalanceIdentifier = useMemo(() => {
-		const hash = createUniqueID(serialize(balances));
-		return hash;
-	}, [balances]);
 
 	/**********************************************************************************************
 	 ** The sortedByBalance memoized value will return the vaults sorted by APR.
@@ -87,8 +76,7 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 	 ** @returns TYDaemonVaults - The sorted vaults.
 	 *********************************************************************************************/
 	const sortedByBalance = useMemo((): TYDaemonVaults => {
-		pricingHash;
-		currentBalanceIdentifier;
+		acknowledge(pricingHash, balanceHash);
 		if (!sortBy || sortBy !== 'balance') {
 			return vaults;
 		}
@@ -108,7 +96,7 @@ export const useSortedVaults = (vaults: TYDaemonVaults, allPrices: TNDict<TDict<
 					});
 				})
 			: [];
-	}, [pricingHash, currentBalanceIdentifier, sortBy, vaults, allPrices, getBalance, sortDirection]);
+	}, [pricingHash, balanceHash, sortBy, vaults, allPrices, getBalance, sortDirection]);
 
 	/**********************************************************************************************
 	 ** The sortedVaults memoized value will return the sorted vaults based on the sortBy value,
