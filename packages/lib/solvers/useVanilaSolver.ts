@@ -20,6 +20,9 @@ export const useVanilaSolver = (
 	const {provider, address, isWalletSafe} = useWeb3();
 	const {configuration} = useManageVaults() as {configuration: TAssertedVaultsConfiguration};
 	const {onRefresh} = useWallet();
+	const isSolverEnabled =
+		(!isZapNeededForDeposit && configuration.action === 'DEPOSIT') ||
+		(!isZapNeededForWithdraw && configuration.action === 'WITHDRAW');
 
 	/**********************************************************************************************
 	 ** The isV3Vault hook is used to determine if the current vault is a V3 vault. It's very
@@ -61,7 +64,8 @@ export const useVanilaSolver = (
 		owner: toAddress(address),
 		amountToApprove: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
 		shouldUsePermit: isV3Vault && isAddress(yRouter),
-		deadline: 60
+		deadline: 60,
+		disabled: !isSolverEnabled
 	});
 
 	/**********************************************************************************************
@@ -80,6 +84,7 @@ export const useVanilaSolver = (
 		vault: toAddress(configuration?.vault?.address),
 		owner: toAddress(address),
 		amountToDeposit: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
+		disabled: !isSolverEnabled,
 		...(isV3Vault
 			? {
 					version: 'ERC-4626',
@@ -109,6 +114,7 @@ export const useVanilaSolver = (
 		vault: toAddress(configuration?.vault?.address),
 		owner: toAddress(address),
 		amountToWithdraw: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
+		disabled: !isSolverEnabled,
 		...(isV3Vault ? {version: 'ERC-4626', minOutSlippage: 1n, redeemTolerance: 1n} : {version: 'LEGACY'})
 	});
 
@@ -140,7 +146,7 @@ export const useVanilaSolver = (
 	 ** amount or the token to spend.
 	 *********************************************************************************************/
 	useAsyncTrigger(async (): Promise<void> => {
-		if (!configuration?.action) {
+		if (!configuration?.action || !isSolverEnabled) {
 			return;
 		}
 		if (configuration.action === 'DEPOSIT' && isZapNeededForDeposit) {
@@ -149,7 +155,7 @@ export const useVanilaSolver = (
 		if (configuration.action === 'WITHDRAW' && isZapNeededForWithdraw) {
 			return;
 		}
-	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw]);
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, isSolverEnabled]);
 
 	/**********************************************************************************************
 	 ** Trigger a deposit web3 action, simply trying to deposit `amount` tokens to

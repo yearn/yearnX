@@ -12,7 +12,7 @@ import {usePopularTokens} from '@lib/contexts/usePopularTokens';
 import {useSolver} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
-import {acknowledge} from '@lib/utils/tools';
+import {acknowledge, getDifference} from '@lib/utils/tools';
 
 import {IconChevron} from '../icons/IconChevron';
 import {IconCross} from '../icons/IconCross';
@@ -36,7 +36,7 @@ type TWithdrawModalProps = {
 	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
 };
 
-function InputAmountComponent(props: {isReady: boolean; vaultBalance: TNormalizedBN}): ReactElement {
+function InputAmountComponent(props: {isReady: boolean; availableBalance: TNormalizedBN}): ReactElement {
 	const {configuration, dispatchConfiguration} = useManageVaults();
 
 	if (!props.isReady) {
@@ -110,7 +110,7 @@ function InputAmountComponent(props: {isReady: boolean; vaultBalance: TNormalize
 					</div>
 					<button
 						onClick={() =>
-							dispatchConfiguration({type: 'SET_AMOUNT_TO_SPEND', payload: props.vaultBalance})
+							dispatchConfiguration({type: 'SET_AMOUNT_TO_SPEND', payload: props.availableBalance})
 						}
 						disabled={false}
 						className={
@@ -122,16 +122,18 @@ function InputAmountComponent(props: {isReady: boolean; vaultBalance: TNormalize
 			</div>
 			<div className={'mt-1 flex w-full justify-start'}>
 				<button
-					onClick={() => dispatchConfiguration({type: 'SET_AMOUNT_TO_SPEND', payload: props.vaultBalance})}
+					onClick={() =>
+						dispatchConfiguration({type: 'SET_AMOUNT_TO_SPEND', payload: props.availableBalance})
+					}
 					className={'text-regularText text-right text-xs text-opacity-40'}>
-					{`Available: ${props.vaultBalance.normalized} ${configuration?.vault?.token.symbol}`}
+					{`Available: ${props.availableBalance.normalized} ${configuration?.vault?.token.symbol}`}
 				</button>
 			</div>
 		</Fragment>
 	);
 }
 
-function OutputComponent(props: {isReady: boolean; vaultBalance: TNormalizedBN}): ReactElement {
+function OutputComponent(props: {isReady: boolean; availableBalance: TNormalizedBN}): ReactElement {
 	const {address} = useWeb3();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const [isSelectorOpen, set_isSelectorOpen] = useState(false);
@@ -163,9 +165,9 @@ function OutputComponent(props: {isReady: boolean; vaultBalance: TNormalizedBN})
 			...configuration.vault.token,
 			chainID: configuration.vault.chainID,
 			value: 0,
-			balance: props.vaultBalance
+			balance: props.availableBalance
 		};
-	}, [balanceHash, configuration?.vault?.token, configuration?.vault?.chainID, props.vaultBalance]);
+	}, [balanceHash, configuration?.vault?.token, configuration?.vault?.chainID, props.availableBalance]);
 
 	/**********************************************************************************************
 	 ** useEffect hook to set the list of all available tokens when certain conditions are met.
@@ -181,7 +183,26 @@ function OutputComponent(props: {isReady: boolean; vaultBalance: TNormalizedBN})
 		if (allAvailableTokens.length > 0) {
 			return;
 		}
-		set_allAvailableTokens([vaultToken, ...tokensOnCurrentChain]);
+		const popularWithBalance = [];
+		const popularWithoutBalance = [];
+		for (const token of tokensOnCurrentChain) {
+			if (token.balance.raw > 0n) {
+				popularWithBalance.push(token);
+			} else {
+				popularWithoutBalance.push(token);
+			}
+		}
+
+		const withUnderlyingTokens = [vaultToken, ...popularWithBalance, ...popularWithoutBalance];
+
+		const unique: TToken[] = [];
+		for (const item of withUnderlyingTokens) {
+			if (!unique.some(token => token.address === item.address && token.chainID === item.chainID)) {
+				unique.push(item);
+			}
+		}
+
+		set_allAvailableTokens(unique);
 	}, [tokensOnCurrentChain, vaultToken, allAvailableTokens]);
 
 	/**********************************************************************************************
@@ -192,19 +213,24 @@ function OutputComponent(props: {isReady: boolean; vaultBalance: TNormalizedBN})
 	 *********************************************************************************************/
 	const searchFilteredTokens = useMemo((): TToken[] => {
 		const cloned = [...new Set(allAvailableTokens)];
-		const filtered = cloned.filter(token => {
-			const lowercaseValue = searchValue.toLowerCase();
-			return (
-				token.name.toLowerCase().includes(lowercaseValue) || token.symbol.toLowerCase().includes(lowercaseValue)
-			);
-		});
-		const noDuplicates: TToken[] = [];
-		for (const token of filtered) {
-			if (!noDuplicates.some(t => t.address === token.address)) {
-				noDuplicates.push(token);
-			}
+		if (!searchValue) {
+			return cloned;
 		}
-		return noDuplicates;
+		const searchFor = searchValue.toLowerCase();
+		const sorted = cloned
+			.map(item => ({
+				item,
+				exactness: item.name.toLowerCase() === searchFor || item.symbol.toLowerCase() === searchFor ? 1 : 0,
+				diffName: getDifference(item.name.toLowerCase(), searchFor),
+				diffSymbol: getDifference(item.symbol.toLowerCase(), searchFor)
+			}))
+			.sort(
+				(a, b) =>
+					b.exactness - a.exactness || Math.min(a.diffName, a.diffSymbol) - Math.min(b.diffName, b.diffSymbol)
+			)
+			.map(sortedItem => sortedItem.item);
+
+		return sorted;
 	}, [allAvailableTokens, searchValue]);
 
 	/**********************************************************************************************
@@ -283,7 +309,7 @@ function OutputComponent(props: {isReady: boolean; vaultBalance: TNormalizedBN})
 
 function ButtonComponent(props: {
 	isReady: boolean;
-	vaultBalance: TNormalizedBN;
+	availableBalance: TNormalizedBN;
 	onClose: VoidFunction;
 	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
 }): ReactElement {
@@ -383,7 +409,7 @@ function ButtonComponent(props: {
 		!props.isReady ||
 		!configuration?.tokenToSpend.amount ||
 		configuration?.tokenToSpend.amount.raw === 0n ||
-		(configuration?.tokenToSpend.amount && configuration?.tokenToSpend.amount?.raw > props.vaultBalance.raw);
+		(configuration?.tokenToSpend.amount && configuration?.tokenToSpend.amount?.raw > props.availableBalance.raw);
 
 	return (
 		<Button
@@ -417,46 +443,54 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	 ** This is prefered from the `getBalance` hook as it's more precise.
 	 **
 	 ** @params void
-	 ** @returns vaultBalance: TNormalizedBN - The balance of the user in the vault.
+	 ** @returns availableBalance: TNormalizedBN - The balance of the user in the vault.
 	 *********************************************************************************************/
-	const vaultBalance = useMemo(() => {
-		return toNormalizedBN(vaultBalanceOf, configuration?.vault?.token?.decimals ?? 18);
-	}, [vaultBalanceOf, configuration?.vault?.token?.decimals]);
+	const availableBalance = useMemo(() => {
+		return toNormalizedBN(vaultBalanceOf, configuration?.tokenToSpend?.token?.decimals ?? 18);
+	}, [vaultBalanceOf, configuration?.tokenToSpend?.token?.decimals]);
 
 	/**********************************************************************************************
 	 ** This useEffect is used to set the withdraw configuration. It's called every time the vault
 	 ** changes, or once we are getting the balance of the vault.
 	 *********************************************************************************************/
 	useEffect(() => {
-		dispatchConfiguration({
-			type: 'SET_WITHDRAW',
-			payload: {
-				vault: props.vault,
-				toReceive: {
-					token: {
-						address: props.vault.token.address,
-						symbol: props.vault.token.symbol,
-						name: props.vault.token.name,
-						decimals: props.vault.token.decimals,
-						chainID: props.vault.chainID,
-						value: 0
+		console.warn(configuration.action);
+		if (configuration.action !== 'WITHDRAW') {
+			dispatchConfiguration({
+				type: 'SET_WITHDRAW',
+				payload: {
+					vault: props.vault,
+					toReceive: {
+						token: {
+							address: props.vault.token.address,
+							symbol: props.vault.token.symbol,
+							name: props.vault.token.name,
+							decimals: props.vault.token.decimals,
+							chainID: props.vault.chainID,
+							value: 0
+						},
+						amount: availableBalance
 					},
-					amount: vaultBalance
-				},
-				toSpend: {
-					token: {
-						address: props.vault.token.address,
-						name: props.vault.token.name,
-						symbol: props.vault.token.symbol,
-						decimals: props.vault.token.decimals,
-						chainID: props.vault.chainID,
-						value: 0
-					},
-					amount: vaultBalance
+					toSpend: {
+						token: {
+							address: props.vault.address,
+							name: props.vault.name,
+							symbol: props.vault.symbol,
+							decimals: props.vault.decimals,
+							chainID: props.vault.chainID,
+							value: 0
+						},
+						amount: availableBalance
+					}
 				}
-			}
-		});
-	}, [dispatchConfiguration, props.vault, vaultBalance]);
+			});
+		} else {
+			dispatchConfiguration({
+				type: 'SET_AMOUNT_TO_SPEND',
+				payload: availableBalance
+			});
+		}
+	}, [configuration.action, dispatchConfiguration, props.vault, availableBalance]);
 
 	return (
 		<ModalWrapper
@@ -489,7 +523,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 					/>
 					<InputAmountComponent
 						isReady={isReady}
-						vaultBalance={vaultBalance}
+						availableBalance={availableBalance}
 					/>
 				</Fragment>
 
@@ -500,13 +534,13 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 
 					<OutputComponent
 						isReady={isReady}
-						vaultBalance={vaultBalance}
+						availableBalance={availableBalance}
 					/>
 				</Fragment>
 
 				<ButtonComponent
 					isReady={isReady}
-					vaultBalance={vaultBalance}
+					availableBalance={availableBalance}
 					onClose={props.onClose}
 					openSuccessModal={props.openSuccessModal}
 				/>

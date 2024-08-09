@@ -1,6 +1,7 @@
-import {useCallback, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import toast from 'react-hot-toast';
 import {BaseError, isHex, zeroAddress} from 'viem';
+import {useReadContract} from 'wagmi';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useApprove} from '@builtbymom/web3/hooks/useApprove';
@@ -12,6 +13,7 @@ import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {getPortalsApproval, getPortalsTx, getQuote, PORTALS_NETWORK} from '@lib/utils/api.portals';
 import {isValidPortalsErrorObject} from '@lib/utils/isValidPortalsErrorObject';
 import {getApproveTransaction} from '@lib/utils/tools.gnosis';
+import {VAULT_ABI} from '@lib/utils/vault.abi';
 import {sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
 
 import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
@@ -35,11 +37,135 @@ export const usePortalsSolver = (
 	const [canZap, set_canZap] = useState(true);
 	const [approveCtx, set_approveCtx] = useState<TPortalsApproval>();
 	const slippage = 0.1;
+	const isSolverEnabled =
+		(isZapNeededForDeposit && configuration.action === 'DEPOSIT') ||
+		(isZapNeededForWithdraw && configuration.action === 'WITHDRAW');
 
 	/**********************************************************************************************
-	 * TODO: Add comment to explain how it works
+	 ** The isV3Vault hook is used to determine if the current vault is a V3 vault. It's very
+	 ** important to know if the vault is a V3 vault because the deposit and withdraw functions
+	 ** are different for V3 vaults, and only V3 vaults support the permit signature.
+	 **
+	 ** @returns isV3Vault: boolean - Whether the vault is a V3 vault or not.
+	 *********************************************************************************************/
+	const isV3Vault = useMemo(() => configuration?.vault?.version.split('.')?.[0] === '3', [configuration?.vault]);
+
+	/**********************************************************************************************
+	 ** If we are working with a withdraw, there are a few things we need to know:
+	 ** As we are working with the UNDERLYING value, and we are spending the SHARE of the vault,
+	 ** we need to convert the share to the underlying value and perform check based on that.
+	 ** For V2 vaults, it's just linked to the Price Per Share, but for V3 vaults, this is
+	 ** evolving with every blocks, and so a bunch of calculations are needed.
+	 **
+	 ** @returns shareOf: bigint - The number of shares the user has in the vault (v3)
+	 ** @returns balanceOf: bigint - The value of underlying corresponding to the shares (v3)
+	 ** @returns amountToWithdraw: bigint - The amount of shares to withdraw, converted from the
+	 **          user's input (configuration?.tokenToSpend.amount?.raw) (v3)
+	 ** @returns pricePerShare: bigint - The price per share of the vault (v2)
+	 *********************************************************************************************/
+	const {data: shareOf} = useReadContract({
+		address: configuration.vault?.address,
+		abi: VAULT_ABI,
+		functionName: 'balanceOf',
+		args: [toAddress(address)],
+		chainId: configuration.vault?.chainID,
+		query: {
+			enabled: !isZeroAddress(address) && configuration.action === 'WITHDRAW' && isSolverEnabled
+		}
+	});
+	const {data: balanceOf} = useReadContract({
+		address: configuration.vault?.address,
+		abi: VAULT_ABI,
+		functionName: 'convertToAssets',
+		args: [toBigInt(shareOf)],
+		chainId: configuration.vault?.chainID,
+		query: {
+			enabled:
+				Boolean(configuration.vault) &&
+				Boolean(configuration.tokenToSpend.token) &&
+				shareOf !== undefined &&
+				!isZeroAddress(address) &&
+				isV3Vault &&
+				configuration.action === 'WITHDRAW' &&
+				isSolverEnabled
+		}
+	});
+	const {data: amountToWithdraw} = useReadContract({
+		address: configuration.vault?.address,
+		abi: VAULT_ABI,
+		functionName: 'convertToShares',
+		args: [toBigInt(configuration?.tokenToSpend.amount?.raw)],
+		chainId: configuration.vault?.chainID,
+		query: {
+			enabled:
+				Boolean(configuration.vault) &&
+				Boolean(configuration.tokenToSpend.token) &&
+				isV3Vault &&
+				configuration.action === 'WITHDRAW' &&
+				isSolverEnabled
+		}
+	});
+	const {data: pricePerShare} = useReadContract({
+		address: configuration.vault?.address,
+		abi: VAULT_ABI,
+		chainId: configuration.vault?.chainID,
+		functionName: 'pricePerShare',
+		args: [],
+		query: {
+			enabled:
+				Boolean(configuration.vault) && configuration.action === 'WITHDRAW' && !isV3Vault && isSolverEnabled
+		}
+	});
+
+	/**********************************************************************************************
+	 ** Due to the ever-changing nature of your share in the V3 vaults, the amount may change
+	 ** between the time you request the quote and the time you actually perform the transaction.
+	 ** To mitigate this, we check if the user is asking to withdraw at least 99% of their share
+	 ** in the vault. If they are, we consider they want to zap all their balance.
+	 **
+	 ** @returns isZapingBalance: boolean - Whether the user is asking to zap all their balance or
+	 **          not.
+	 *********************************************************************************************/
+	const isZapingBalance = useMemo(() => {
+		const amount = toBigInt(configuration.tokenToSpend.amount?.raw);
+		const tolerance = (toBigInt(shareOf) * 1n) / 10000n; // 1% of the balance
+		const isAskingToZapAll = toBigInt(shareOf) - amount <= tolerance;
+		return isAskingToZapAll;
+	}, [configuration.tokenToSpend.amount?.raw, shareOf]);
+
+	/**********************************************************************************************
+	 ** The useApprove hook is used to approve the token to spend for the vault. This is used to
+	 ** allow the vault to spend the token on behalf of the user. This is required for the deposit
+	 ** function to work.
+	 **
+	 ** @returns isApproved: boolean - Whether the token is approved or not.
+	 ** @returns isApproving: boolean - Whether the approval is in progress.
+	 ** @returns onApprove: () => void - Function to approve the token.
+	 ** @returns amountApproved: bigint - The amount approved.
+	 ** @returns permitSignature: TPermitSignature - The permit signature.
+	 ** @returns onClearPermit: () => void - Function to clear the permit signature.
+	 *********************************************************************************************/
+	const {isApproved, isApproving, onApprove, amountApproved, permitSignature, onClearPermit} = useApprove({
+		provider,
+		chainID: configuration?.vault?.chainID || 0,
+		tokenToApprove: toAddress(configuration?.tokenToSpend.token?.address),
+		spender: toAddress(approveCtx?.context.spender || zeroAddress),
+		owner: toAddress(address),
+		amountToApprove: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
+		shouldUsePermit: approveCtx?.context.canPermit || false,
+		deadline: 60,
+		disabled: !isSolverEnabled
+	});
+
+	/**********************************************************************************************
+	 * Find the approve context to find the approve spender
+	 * TODO: improve comment
 	 *********************************************************************************************/
 	useAsyncTrigger(async (): Promise<void> => {
+		if (!isSolverEnabled) {
+			set_approveCtx(undefined);
+			return;
+		}
 		if (isEthAddress(configuration?.tokenToSpend.token?.address)) {
 			set_approveCtx(undefined);
 			return;
@@ -70,27 +196,12 @@ export const usePortalsSolver = (
 		set_approveCtx(approval);
 	}, [
 		address,
+		isSolverEnabled,
 		approveCtx?.context.target,
 		configuration?.tokenToSpend?.amount?.raw,
 		configuration?.tokenToSpend.token,
 		configuration?.vault?.address
 	]);
-
-	/**********************************************************************************************
-	 ** The useApprove hook is used to approve the token to spend for the vault. This is used to
-	 ** allow the vault to spend the token on behalf of the user. This is required for the deposit
-	 ** function to work.
-	 *********************************************************************************************/
-	const {isApproved, isApproving, onApprove, amountApproved, permitSignature, onClearPermit} = useApprove({
-		provider,
-		chainID: configuration?.vault?.chainID || 0,
-		tokenToApprove: toAddress(configuration?.tokenToSpend.token?.address),
-		spender: toAddress(approveCtx?.context.spender || zeroAddress),
-		owner: toAddress(address),
-		amountToApprove: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
-		shouldUsePermit: approveCtx?.context.canPermit || false,
-		deadline: 60
-	});
 
 	/**********************************************************************************************
 	 * TODO: Add comment to explain how it works
@@ -108,18 +219,35 @@ export const usePortalsSolver = (
 			return null;
 		}
 
-		const outputToken =
-			action === 'DEPOSIT' ? configuration.vault.address : configuration.tokenToReceive.token?.address;
-		const request: TInitSolverArgs = {
-			chainID: Number(configuration?.tokenToSpend.token?.chainID),
-			version: configuration?.vault.version,
-			from: toAddress(address),
-			inputToken: toAddress(configuration?.tokenToSpend.token?.address),
-			outputToken: toAddress(outputToken),
-			inputAmount: configuration?.tokenToSpend.amount?.raw ?? 0n,
-			isDepositing: true,
-			stakingPoolAddress: undefined
-		};
+		let request: TInitSolverArgs = {} as TInitSolverArgs;
+		if (action === 'DEPOSIT') {
+			request = {
+				chainID: Number(configuration?.tokenToSpend.token?.chainID),
+				version: configuration?.vault.version,
+				from: toAddress(address),
+				inputToken: toAddress(configuration?.tokenToSpend.token?.address),
+				outputToken: toAddress(configuration.vault.address),
+				inputAmount: toBigInt(configuration?.tokenToSpend.amount?.raw),
+				isDepositing: true,
+				stakingPoolAddress: undefined
+			};
+		} else {
+			const initialAmount = toBigInt(configuration?.tokenToSpend.amount?.raw);
+			const decimals = configuration?.tokenToSpend.token?.decimals || 18;
+			const amountToUse = isV3Vault
+				? toBigInt(isZapingBalance ? shareOf : amountToWithdraw)
+				: toBigInt((initialAmount / toBigInt(pricePerShare)) * 10n ** toBigInt(decimals));
+			request = {
+				chainID: Number(configuration?.tokenToSpend.token?.chainID),
+				version: configuration?.vault.version,
+				from: toAddress(address),
+				inputToken: toAddress(configuration?.tokenToSpend.token?.address),
+				outputToken: toAddress(configuration.tokenToReceive.token?.address),
+				inputAmount: amountToUse,
+				isDepositing: true,
+				stakingPoolAddress: undefined
+			};
+		}
 
 		set_isFetchingQuote(true);
 		const {result, error} = await getQuote(request, slippage);
@@ -137,14 +265,7 @@ export const usePortalsSolver = (
 		set_isFetchingQuote(false);
 
 		return result;
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		address,
-		configuration?.tokenToReceive.amount?.normalized,
-		configuration?.tokenToSpend.token?.address,
-		configuration?.tokenToReceive.token?.address,
-		configuration?.tokenToSpend.amount?.normalized
-	]);
+	}, [configuration, address, isV3Vault, isZapingBalance, shareOf, amountToWithdraw, pricePerShare]);
 
 	/**********************************************************************************************
 	 ** SWR hook to get the expected out for a given in/out pair with a specific amount. This hook
@@ -153,7 +274,7 @@ export const usePortalsSolver = (
 	 ** amount or the token to spend.
 	 *********************************************************************************************/
 	useAsyncTrigger(async (): Promise<void> => {
-		if (!configuration?.action) {
+		if (!configuration?.action || !isSolverEnabled) {
 			return;
 		}
 		if (configuration.action === 'DEPOSIT' && !isZapNeededForDeposit) {
@@ -170,7 +291,7 @@ export const usePortalsSolver = (
 		}
 		set_depositStatus(defaultTxStatus);
 		set_withdrawStatus(defaultTxStatus);
-	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote]);
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveQuote, isSolverEnabled]);
 
 	/**********************************************************************************************
 	 * TODO: Add comment to explain how it works
@@ -184,7 +305,15 @@ export const usePortalsSolver = (
 
 		const tokenToSpend = configuration?.tokenToSpend.token;
 		const tokenToReceive = configuration?.tokenToReceive.token;
-		const amountToSpend = configuration?.tokenToSpend.amount;
+		let amountToSpend = configuration?.tokenToSpend.amount?.raw;
+
+		if (configuration.action !== 'DEPOSIT') {
+			const initialAmount = toBigInt(configuration?.tokenToSpend.amount?.raw);
+			const decimals = configuration?.tokenToSpend.token?.decimals || 18;
+			amountToSpend = isV3Vault
+				? toBigInt(isZapingBalance ? shareOf : amountToWithdraw)
+				: toBigInt((initialAmount / toBigInt(pricePerShare)) * 10n ** toBigInt(decimals));
+		}
 
 		let inputToken = tokenToSpend.address;
 		const outputToken = configuration?.action === 'DEPOSIT' ? configuration?.vault.address : tokenToReceive.address;
@@ -198,7 +327,7 @@ export const usePortalsSolver = (
 				sender: toAddress(address),
 				inputToken: `${network}:${toAddress(inputToken)}`,
 				outputToken: `${network}:${toAddress(outputToken)}`,
-				inputAmount: toBigInt(amountToSpend?.raw).toString(),
+				inputAmount: toBigInt(amountToSpend).toString(),
 				slippageTolerancePercentage: slippage.toString(),
 				validate: isWalletSafe ? 'false' : 'true'
 			}
@@ -259,12 +388,17 @@ export const usePortalsSolver = (
 		provider,
 		latestQuote,
 		configuration?.tokenToSpend.token,
-		configuration?.tokenToSpend.amount,
+		configuration?.tokenToSpend.amount?.raw,
 		configuration?.tokenToReceive.token,
 		configuration?.vault,
-		configuration?.action,
+		configuration.action,
 		address,
 		isWalletSafe,
+		isV3Vault,
+		isZapingBalance,
+		shareOf,
+		amountToWithdraw,
+		pricePerShare,
 		sdk.txs,
 		onRefresh
 	]);
@@ -282,9 +416,17 @@ export const usePortalsSolver = (
 			assert(configuration?.tokenToReceive.token, 'Token to Receiver is not set');
 			assert(configuration?.vault, 'Output token is not set');
 			const tokenToSpend = configuration?.tokenToSpend.token;
-			const amountToSpend = configuration?.tokenToSpend.amount;
 			const tokenToReceive = configuration?.tokenToReceive.token;
 			const vault = configuration?.vault;
+			let amountToSpend = configuration?.tokenToSpend.amount?.raw;
+
+			if (action !== 'DEPOSIT') {
+				const initialAmount = toBigInt(configuration?.tokenToSpend.amount?.raw);
+				const decimals = configuration?.tokenToSpend.token?.decimals || 18;
+				amountToSpend = isV3Vault
+					? toBigInt(isZapingBalance ? shareOf : amountToWithdraw)
+					: toBigInt((initialAmount / toBigInt(pricePerShare)) * 10n ** toBigInt(decimals));
+			}
 
 			try {
 				const wProvider = await toWagmiProvider(provider);
@@ -310,7 +452,7 @@ export const usePortalsSolver = (
 						sender: toAddress(address),
 						inputToken: `${network}:${toAddress(inputToken)}`,
 						outputToken: `${network}:${toAddress(outputToken)}`,
-						inputAmount: toBigInt(amountToSpend?.raw).toString(),
+						inputAmount: toBigInt(amountToSpend).toString(),
 						slippageTolerancePercentage: slippage.toString(),
 						validate: isWalletSafe ? 'false' : 'true',
 						permitSignature: permitSignature?.signature || undefined,
@@ -402,17 +544,22 @@ export const usePortalsSolver = (
 		},
 		[
 			address,
+			amountToWithdraw,
 			configuration?.tokenToReceive.token,
-			configuration?.tokenToSpend.amount,
+			configuration?.tokenToSpend.amount?.raw,
 			configuration?.tokenToSpend.token,
 			configuration?.vault,
+			isV3Vault,
 			isWalletSafe,
+			isZapingBalance,
 			latestQuote,
 			onClearPermit,
 			onRefresh,
 			permitSignature?.deadline,
 			permitSignature?.signature,
-			provider
+			pricePerShare,
+			provider,
+			shareOf
 		]
 	);
 
@@ -458,6 +605,6 @@ export const usePortalsSolver = (
 		isFetchingQuote,
 		quote: latestQuote || null,
 		maxWithdraw: 0n,
-		vaultBalanceOf: 0n
+		vaultBalanceOf: toBigInt(balanceOf)
 	};
 };

@@ -27,3 +27,10 @@ export function acknowledge(..._args: unknown[]): void {
 	// linting errors.
 	// Also should help fixing Warning: Cannot update a component while rendering a different component error.
 }
+
+export function getDifference(item: string, searchTerm: string): number {
+	if (item.startsWith(searchTerm)) {
+		return item.length - searchTerm.length; // Difference is the extra characters beyond the search term
+	}
+	return item.length + searchTerm.length; // Large difference if not starting with searchTerm
+}
