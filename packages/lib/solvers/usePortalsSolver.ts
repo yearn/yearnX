@@ -452,10 +452,12 @@ export const usePortalsSolver = (
 		permitSignature,
 		onApprove,
 		onDeposit: onExecuteDeposit,
-		isWithdrawing: withdrawStatus.pending,
 		onWithdraw: onExecuteWithdraw,
+		isWithdrawing: withdrawStatus.pending,
 		canZap,
 		isFetchingQuote,
-		quote: latestQuote || null
+		quote: latestQuote || null,
+		maxWithdraw: 0n,
+		vaultBalanceOf: 0n
 	};
 };

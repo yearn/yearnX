@@ -1,9 +1,9 @@
-import {Fragment, useCallback, useMemo} from 'react';
+import {Fragment, useCallback, useEffect, useMemo} from 'react';
 import {usePlausible} from 'next-plausible';
+import {motion} from 'framer-motion';
+import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl} from '@builtbymom/web3/utils';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
-import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
@@ -11,6 +11,7 @@ import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
 import {useAccountModal} from '@rainbow-me/rainbowkit';
 
 import {IconCross} from '../icons/IconCross';
+import {ModalWrapper} from './ModalWrapper';
 import {TokenAmountWrapper} from './TokenAmountInput';
 import {VaultLink} from './VaultLink';
 
@@ -28,8 +29,9 @@ type TDepositModalProps = {
 	totalProfit?: string;
 };
 
-export function DepositModal(props: TDepositModalProps): ReactElement {
+export function DepositModalContent(props: TDepositModalProps): ReactElement {
 	const plausible = usePlausible();
+	const {getBalance} = useWallet();
 	const {address, isWalletSafe} = useWeb3();
 	const {openAccountModal} = useAccountModal();
 	const {configuration, dispatchConfiguration} = useManageVaults();
@@ -156,71 +158,81 @@ export function DepositModal(props: TDepositModalProps): ReactElement {
 		quote
 	]);
 
+	/**********************************************************************************************
+	 ** useEffect hook that will trigger the dispatchConfiguration call when the deposit modal is
+	 ** open. It will set the deposit action and the vault token as default to be deposited.
+	 ** This effect is triggered by the isDepositModalOpen value being true, which is set thanks
+	 ** to the useQueryState hook.
+	 *********************************************************************************************/
+	useEffect(() => {
+		dispatchConfiguration({
+			type: 'SET_DEPOSIT',
+			payload: {
+				vault: props.vault,
+				toSpend: {
+					token: {
+						address: props.vault.token.address,
+						name: props.vault.token.name,
+						symbol: props.vault.token.symbol,
+						decimals: props.vault.token.decimals,
+						chainID: props.vault.chainID,
+						value: 0
+					},
+					amount: getBalance({address: props.vault.token.address, chainID: props.vault.chainID})
+				}
+			}
+		});
+	}, [dispatchConfiguration, getBalance, props.vault]);
+
 	return (
-		<Transition
-			show={props.isOpen}
-			as={Fragment}>
-			<Dialog
-				as={'div'}
-				className={'relative z-[1000] flex h-screen w-screen items-center justify-center'}
-				onClose={props.onClose}>
-				<TransitionChild
-					as={Fragment}
-					enter={'ease-out duration-200'}
-					enterFrom={'opacity-0'}
-					enterTo={'opacity-100'}
-					leave={'ease-in duration-200'}
-					leaveFrom={'opacity-100'}
-					leaveTo={'opacity-0'}>
-					<div
-						onClick={() => props.onClose()}
-						className={'fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity'}
+		<ModalWrapper
+			isOpen={props.isOpen}
+			onClose={props.onClose}>
+			<motion.div
+				initial={{scale: 0.95, opacity: 0}}
+				animate={{scale: 1, opacity: 1}}
+				transition={{
+					duration: 0.2,
+					ease: 'easeInOut'
+				}}
+				className={'bg-background relative rounded-2xl p-10 md:min-w-[640px]'}>
+				<button
+					onClick={() => props.onClose()}
+					className={
+						'hover:bg-regularText/15 absolute right-5 top-5 -m-2 rounded-full p-2 transition-colors'
+					}>
+					<IconCross className={'text-regularText size-4'} />
+				</button>
+
+				<div className={'mb-4 flex w-full justify-start'}>
+					<p className={'text-lg font-bold'}>{'Deposit'}</p>
+				</div>
+
+				<VaultLink
+					vault={props.vault}
+					yearnfiLink={props.yearnfiLink}
+				/>
+				<div className={'flex w-full flex-col items-start gap-y-1'}>
+					<TokenAmountWrapper
+						vault={props.vault}
+						buttonTitle={getButtonTitle}
+						isPerformingAction={isBusy}
+						onActionClick={onAction}
+						isDisabled={!isValid && Boolean(address)}
+						set_tokenToUse={(token, amount) =>
+							dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {token, amount}})
+						}
+						totalProfit={props.totalProfit}
 					/>
-				</TransitionChild>
-
-				<TransitionChild
-					as={Fragment}
-					enter={'ease-out duration-300'}
-					enterFrom={'opacity-0'}
-					enterTo={'opacity-100'}
-					leave={'ease-in duration-200'}
-					leaveFrom={'opacity-100'}
-					leaveTo={'opacity-0'}>
-					<div className={cl('fixed -translate-y-1/2 top-1/2 p-4 text-center sm:items-center sm:p-0')}>
-						<div className={'bg-background relative rounded-2xl p-10 md:min-w-[640px]'}>
-							<button
-								onClick={() => props.onClose()}
-								className={
-									'hover:bg-regularText/15 absolute right-5 top-5 -m-2 rounded-full p-2 transition-colors'
-								}>
-								<IconCross className={'text-regularText size-4'} />
-							</button>
-
-							<div className={'mb-4 flex w-full justify-start'}>
-								<p className={'text-lg font-bold'}>{'Deposit'}</p>
-							</div>
-
-							<VaultLink
-								vault={props.vault}
-								yearnfiLink={props.yearnfiLink}
-							/>
-							<div className={'flex w-full flex-col items-start gap-y-1'}>
-								<TokenAmountWrapper
-									vault={props.vault}
-									buttonTitle={getButtonTitle}
-									isPerformingAction={isBusy}
-									onActionClick={onAction}
-									isDisabled={!isValid && Boolean(address)}
-									set_tokenToUse={(token, amount) =>
-										dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {token, amount}})
-									}
-									totalProfit={props.totalProfit}
-								/>
-							</div>
-						</div>
-					</div>
-				</TransitionChild>
-			</Dialog>
-		</Transition>
+				</div>
+			</motion.div>
+		</ModalWrapper>
 	);
+}
+
+export function DepositModal(props: TDepositModalProps): ReactElement {
+	if (!props.isOpen) {
+		return <Fragment />;
+	}
+	return <DepositModalContent {...props} />;
 }

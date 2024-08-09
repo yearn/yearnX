@@ -38,5 +38,6 @@ export type TTokenAmountInputElement = {
 	UUID: string;
 };
 
-export type TTokenToUse = Partial<{token: TToken; amount: TNormalizedBN}>;
-export type TAssertedTokenToUse = {token: TToken; amount: TNormalizedBN};
+export type TTokenNoBalance = Omit<TToken, 'balance'>;
+export type TTokenToUse = Partial<{token: TTokenNoBalance; amount: TNormalizedBN}>;
+export type TAssertedTokenToUse = {token: TTokenNoBalance; amount: TNormalizedBN};

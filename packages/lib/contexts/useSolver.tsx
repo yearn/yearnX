@@ -16,18 +16,19 @@ import type {TPortalsEstimate} from '@lib/utils/api.portals';
 export type TSolverContextBase = {
 	isApproved: boolean;
 	isApproving: boolean;
-	canDeposit: boolean;
 	isDepositing: boolean;
 	isWithdrawing: boolean;
+	isFetchingQuote: boolean;
+	canDeposit: boolean;
+	canZap: boolean;
 	allowance: bigint;
+	maxWithdraw: bigint;
+	vaultBalanceOf: bigint;
 	permitSignature?: TPermitSignature;
+	quote: TPortalsEstimate | null;
 	onApprove: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
 	onDeposit: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
 	onWithdraw: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
-
-	canZap: boolean;
-	isFetchingQuote: boolean;
-	quote: TPortalsEstimate | null;
 };
 
 /**
@@ -38,12 +39,14 @@ export type TSolverContextBase = {
 const SolverContext = createContext<TSolverContextBase>({
 	isApproved: false,
 	isApproving: false,
-	canDeposit: false,
 	isDepositing: false,
 	isWithdrawing: false,
-	canZap: false,
 	isFetchingQuote: false,
+	canDeposit: false,
+	canZap: false,
 	allowance: 0n,
+	maxWithdraw: 0n,
+	vaultBalanceOf: 0n,
 	quote: null,
 	onApprove: async (): Promise<boolean> => false,
 	onDeposit: async (): Promise<boolean> => false,

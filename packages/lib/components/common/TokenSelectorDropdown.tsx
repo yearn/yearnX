@@ -1,4 +1,4 @@
-import {type ReactElement, type RefObject, useCallback, useMemo} from 'react';
+import {Fragment, type ReactElement, type RefObject, useCallback, useMemo} from 'react';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {cl, formatAmount, toBigInt, truncateHex} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
@@ -78,7 +78,7 @@ export const TokenSelectorDropdown = ({
 	const tokensToDisplay = useMemo(() => tokens.slice(0, 25), [tokens]);
 
 	return (
-		<>
+		<Fragment>
 			{isOpen && (
 				<div
 					ref={selectorRef}
@@ -150,6 +150,6 @@ export const TokenSelectorDropdown = ({
 					</div>
 				</div>
 			)}
-		</>
+		</Fragment>
 	);
 };

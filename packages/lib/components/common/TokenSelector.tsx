@@ -51,6 +51,7 @@ export function TokenSelector({
 	useEffect((): void => {
 		acknowledge(balanceHash);
 		if (!configuration.vault) {
+			console.warn('configuration.vault is not defined');
 			return;
 		}
 		const allPopularTokens = listTokens(chainID);

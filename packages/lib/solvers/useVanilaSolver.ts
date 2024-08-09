@@ -1,14 +1,13 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useMemo} from 'react';
 import {isAddress} from 'viem';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useApprove} from '@builtbymom/web3/hooks/useApprove';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {useVaultDeposit} from '@builtbymom/web3/hooks/useDeposit';
-import {assert, ETH_TOKEN_ADDRESS, toAddress, toBigInt} from '@builtbymom/web3/utils';
-import {defaultTxStatus} from '@builtbymom/web3/utils/wagmi';
+import {useVaultWithdraw} from '@builtbymom/web3/hooks/useWithdraw';
+import {ETH_TOKEN_ADDRESS, toAddress, toBigInt} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {redeemV3Shares, withdrawShares} from '@lib/utils/actions';
 import {CHAINS} from '@lib/utils/tools.chains';
 
 import type {TAssertedVaultsConfiguration} from '@lib/contexts/useManageVaults';
@@ -21,7 +20,6 @@ export const useVanilaSolver = (
 	const {provider, address, isWalletSafe} = useWeb3();
 	const {configuration} = useManageVaults() as {configuration: TAssertedVaultsConfiguration};
 	const {onRefresh} = useWallet();
-	const [withdrawStatus, set_withdrawStatus] = useState(defaultTxStatus);
 
 	/**********************************************************************************************
 	 ** The isV3Vault hook is used to determine if the current vault is a V3 vault. It's very
@@ -74,7 +72,6 @@ export const useVanilaSolver = (
 	 **			 balance checks are done here).
 	 ** @returns isDepositing: boolean - Whether the deposit is in progress.
 	 ** @returns onDeposit: () => void - Function to deposit the token.
-	 ** @returns expectedOut: bigint - The expected amount of the token to receive.
 	 ** @returns maxDepositForUser: bigint - The maximum amount the user can deposit.
 	 *********************************************************************************************/
 	const {canDeposit, isDepositing, onDeposit} = useVaultDeposit({
@@ -94,6 +91,25 @@ export const useVanilaSolver = (
 					}
 				}
 			: {version: 'LEGACY'})
+	});
+
+	/**********************************************************************************************
+	 ** The useVaultWithdraw hook is used to withdraw the token from the vault. It supports both V3
+	 ** and legacy.
+	 **
+	 ** @returns maxWithdrawForUser: bigint - The maximum amount that can be withdrawn by the user.
+	 **          This is exprimed in underlying token, so this means this is a shortcut for
+	 **          `vault.convertToAsset(vault.balanceOf(owner))`.
+	 ** @returns isWithdrawing: boolean - If the approval is in progress.
+	 ** @returns onWithdraw: () => void - Function to withdraw the token.
+	 *********************************************************************************************/
+	const {isWithdrawing, onWithdraw, maxWithdrawForUser, balanceOf} = useVaultWithdraw({
+		chainID: configuration?.vault?.chainID || 0,
+		tokenToWithdraw: toAddress(configuration?.tokenToSpend.token?.address),
+		vault: toAddress(configuration?.vault?.address),
+		owner: toAddress(address),
+		amountToWithdraw: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
+		...(isV3Vault ? {version: 'ERC-4626', minOutSlippage: 1n, redeemTolerance: 1n} : {version: 'LEGACY'})
 	});
 
 	/**********************************************************************************************
@@ -133,7 +149,6 @@ export const useVanilaSolver = (
 		if (configuration.action === 'WITHDRAW' && isZapNeededForWithdraw) {
 			return;
 		}
-		set_withdrawStatus(defaultTxStatus);
 	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw]);
 
 	/**********************************************************************************************
@@ -143,7 +158,9 @@ export const useVanilaSolver = (
 	const onExecuteDeposit = useCallback(async (): Promise<boolean> => {
 		const isSuccess = await onDeposit();
 		onClearPermit();
-		onRefreshBalances(configuration as TAssertedVaultsConfiguration);
+		if (isSuccess) {
+			onRefreshBalances(configuration as TAssertedVaultsConfiguration);
+		}
 		return isSuccess;
 	}, [configuration, onClearPermit, onDeposit, onRefreshBalances]);
 
@@ -151,53 +168,27 @@ export const useVanilaSolver = (
 	 ** Trigger a withdraw web3 action using the vault contract to take back some underlying token
 	 ** from this specific vault.
 	 *********************************************************************************************/
-	const onExecuteWithdraw = useCallback(
-		async (onSuccess?: () => void): Promise<boolean> => {
-			assert(configuration?.tokenToReceive?.token, 'Output token is not set');
-			assert(configuration?.tokenToReceive?.amount?.display, 'Input amount is not set');
-			assert(configuration.vault, 'Vault is not set');
-			const config = configuration as TAssertedVaultsConfiguration;
-
-			set_withdrawStatus({...defaultTxStatus, pending: true});
-
-			let result;
-			if (isV3Vault) {
-				result = await redeemV3Shares({
-					connector: provider,
-					chainID: config.vault.chainID,
-					contractAddress: config.vault.address,
-					amount: config.tokenToReceive.amount.raw
-				});
-			} else {
-				result = await withdrawShares({
-					connector: provider,
-					chainID: config.vault.chainID,
-					contractAddress: config.vault.address,
-					amount: config.tokenToReceive.amount.raw
-				});
-			}
-			onRefreshBalances(config);
-			result.isSuccessful ? onSuccess?.() : null;
-			set_withdrawStatus({...defaultTxStatus, success: result.isSuccessful});
-			return result.isSuccessful;
-		},
-		[configuration, isV3Vault, onRefreshBalances, provider]
-	);
+	const onExecuteWithdraw = useCallback(async (): Promise<boolean> => {
+		const isSuccess = await onWithdraw();
+		if (isSuccess) {
+			onRefreshBalances(configuration as TAssertedVaultsConfiguration);
+		}
+		return isSuccess;
+	}, [configuration, onRefreshBalances, onWithdraw]);
 
 	return {
 		isApproved,
 		isApproving,
-		canDeposit: canDeposit && (isApproved || isWalletSafe),
 		isDepositing,
+		isWithdrawing: isWithdrawing,
+		canDeposit: canDeposit && (isApproved || isWalletSafe),
 		allowance: amountApproved,
 		permitSignature,
 		onApprove,
 		onDeposit: onExecuteDeposit,
-
-		/**Withdraw part */
-		isWithdrawing: withdrawStatus.pending,
 		onWithdraw: onExecuteWithdraw,
-
+		maxWithdraw: maxWithdrawForUser,
+		vaultBalanceOf: balanceOf,
 		canZap: true, //Not used in vanilla solver
 		isFetchingQuote: false,
 		quote: null

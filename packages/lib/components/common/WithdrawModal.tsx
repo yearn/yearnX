@@ -1,12 +1,12 @@
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {usePlausible} from 'next-plausible';
 import InputNumber from 'rc-input-number';
-import {useOnClickOutside} from 'usehooks-ts';
+import {useOnClickOutside, useTimeout} from 'usehooks-ts';
+import {motion} from 'framer-motion';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, fromNormalized, isAddress, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
+import {cl, fromNormalized, isAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
-import {Dialog, Transition, TransitionChild} from '@headlessui/react';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePopularTokens} from '@lib/contexts/usePopularTokens';
 import {useSolver} from '@lib/contexts/useSolver';
@@ -16,14 +16,14 @@ import {acknowledge} from '@lib/utils/tools';
 
 import {IconChevron} from '../icons/IconChevron';
 import {IconCross} from '../icons/IconCross';
-import {IconSpinner} from '../icons/IconSpinner';
 import {Button} from './Button';
 import {ImageWithFallback} from './ImageWithFallback';
+import {ModalWrapper} from './ModalWrapper';
 import {TokenSelectorDropdown} from './TokenSelectorDropdown';
 import {VaultLink} from './VaultLink';
 
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
-import type {TToken} from '@builtbymom/web3/types';
+import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TSuccessModal} from './VaultItem';
 
@@ -36,9 +36,103 @@ type TWithdrawModalProps = {
 	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
 };
 
-function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
-	const plausible = usePlausible();
-	const {address, onConnect} = useWeb3();
+function InputAmountComponent(props: {isReady: boolean; vaultBalance: TNormalizedBN}): ReactElement {
+	const {configuration, dispatchConfiguration} = useManageVaults();
+
+	if (!props.isReady) {
+		return (
+			<Fragment>
+				<div className={'flex flex-col gap-y-1'}>
+					<label
+						className={cl(
+							'z-20 !h-16 relative transition-all border border-regularText/15',
+							'flex flex-row items-center cursor-text',
+							'focus:placeholder:text-regularText/40 placeholder:transition-colors',
+							'py-2 px-4 group border-regularText/15 bg-regularText/5 rounded-lg'
+						)}>
+						<div className={'relative w-full pr-2'}>
+							<div className={'bg-regularText/15 h-10 w-2/3 animate-pulse rounded-lg'} />
+						</div>
+						<button
+							disabled
+							className={cl(
+								'border-regularText/15 bg-regularText/5 text-regularText',
+								'cursor-not-allowed rounded-lg border p-2'
+							)}>
+							{'Max'}
+						</button>
+					</label>
+				</div>
+				<div className={'mt-1 flex w-full justify-start'}>
+					<button
+						disabled
+						className={'text-regularText cursor-not-allowed text-right text-xs text-opacity-40'}>
+						{'Available: -'}
+					</button>
+				</div>
+			</Fragment>
+		);
+	}
+
+	return (
+		<Fragment>
+			<div className={'flex flex-col gap-y-1'}>
+				<label
+					className={cl(
+						'z-20 !h-16 relative transition-all border border-regularText/15',
+						'flex flex-row items-center cursor-text',
+						'focus:placeholder:text-regularText/40 placeholder:transition-colors',
+						'py-2 px-4 group border-regularText/15 bg-regularText/5 rounded-lg'
+					)}>
+					<div className={'relative w-full pr-2'}>
+						<InputNumber
+							prefixCls={cl(
+								'w-full h-full focus:border-none p-0 rounded-lg border-none bg-transparent text-xl transition-colors',
+								'placeholder:text-regularText/20 focus:placeholder:text-regularText/30',
+								'placeholder:transition-colors !h-16 !ring-0 !ring-offset-0'
+							)}
+							min={0}
+							step={0.1}
+							decimalSeparator={'.'}
+							placeholder={'0.00'}
+							controls={false}
+							value={configuration?.tokenToSpend?.amount?.normalized}
+							onChange={value => {
+								const decimals = configuration?.tokenToSpend.token?.decimals;
+								dispatchConfiguration({
+									type: 'SET_TOKEN_TO_SPEND',
+									payload: {
+										amount: toNormalizedBN(fromNormalized(value ?? '', decimals), decimals ?? 18)
+									}
+								});
+							}}
+						/>
+					</div>
+					<button
+						onClick={() =>
+							dispatchConfiguration({type: 'SET_AMOUNT_TO_SPEND', payload: props.vaultBalance})
+						}
+						disabled={false}
+						className={
+							'border-regularText/15 bg-regularText/5 text-regularText rounded-lg border p-2 disabled:cursor-not-allowed'
+						}>
+						{'Max'}
+					</button>
+				</label>
+			</div>
+			<div className={'mt-1 flex w-full justify-start'}>
+				<button
+					onClick={() => dispatchConfiguration({type: 'SET_AMOUNT_TO_SPEND', payload: props.vaultBalance})}
+					className={'text-regularText text-right text-xs text-opacity-40'}>
+					{`Available: ${props.vaultBalance.normalized} ${configuration?.vault?.token.symbol}`}
+				</button>
+			</div>
+		</Fragment>
+	);
+}
+
+function OutputComponent(props: {isReady: boolean; vaultBalance: TNormalizedBN}): ReactElement {
+	const {address} = useWeb3();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const [isSelectorOpen, set_isSelectorOpen] = useState(false);
 	const [searchValue, set_searchValue] = useState('');
@@ -48,8 +142,8 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	const toggleButtonRef = useRef(null);
 	const tokensOnCurrentChain = listTokens(configuration?.vault?.chainID);
 	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
-	const {onWithdraw, quote, isFetchingQuote, isWithdrawing, canZap, onApprove, isApproved, isApproving} = useSolver();
-	const {balanceHash, getBalance} = useWallet();
+	const {quote, isFetchingQuote, canZap} = useSolver();
+	const {balanceHash} = useWallet();
 
 	useOnClickOutside([selectorRef, toggleButtonRef], () => set_isSelectorOpen(false));
 
@@ -64,16 +158,14 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 		if (!configuration?.vault?.token) {
 			return undefined;
 		}
+
 		return {
 			...configuration.vault.token,
 			chainID: configuration.vault.chainID,
 			value: 0,
-			balance: getBalance({
-				chainID: configuration.vault.chainID,
-				address: toAddress(configuration.vault.token.address)
-			})
+			balance: props.vaultBalance
 		};
-	}, [configuration?.vault?.chainID, configuration?.vault?.token, balanceHash]);
+	}, [balanceHash, configuration?.vault?.token, configuration?.vault?.chainID, props.vaultBalance]);
 
 	/**********************************************************************************************
 	 ** useEffect hook to set the list of all available tokens when certain conditions are met.
@@ -116,6 +208,92 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	}, [allAvailableTokens, searchValue]);
 
 	/**********************************************************************************************
+	 ** isDisabled is a boolean that determines whether the output component is disabled. Mostly
+	 ** for styling purposes.
+	 *********************************************************************************************/
+	const isDisabled = (!canZap && !isFetchingQuote) || toBigInt(configuration?.tokenToSpend.amount?.raw) === 0n;
+
+	return (
+		<div className={'mb-5'}>
+			<div className={'w-full'}>
+				<Button
+					isBusy={false}
+					isDisabled={!address}
+					ref={toggleButtonRef}
+					onClick={() => set_isSelectorOpen(prev => !prev)}
+					className={cl(
+						'relative flex !h-16 w-full items-center justify-between',
+						'border-regularText/15 bg-regularText/5 gap-x-1',
+						'rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
+					)}>
+					<div className={'flex w-full items-center gap-x-2'}>
+						<ImageWithFallback
+							src={`https://assets.smold.app/tokens/${configuration?.vault?.chainID}/${configuration?.tokenToReceive.token?.address}/logo-128.png`}
+							alt={configuration?.tokenToReceive.token?.address || 'address'}
+							width={32}
+							height={32}
+							className={isDisabled ? 'opacity-40' : ''}
+						/>
+						<div className={cl('flex gap-x-1 w-full', isDisabled ? 'text-regularText/40' : '')}>
+							{isFetchingQuote || !props.isReady ? (
+								<div className={'bg-regularText/15 h-6 w-2/3 animate-pulse rounded-lg'} />
+							) : (
+								<Fragment>
+									<span>
+										{!isZapNeededForWithdraw
+											? configuration?.tokenToSpend.amount?.normalized
+											: formatBigIntForDisplay(
+													BigInt(quote?.minOutputAmount ?? ''),
+													quote?.outputTokenDecimals ?? 18,
+													{maximumFractionDigits: 10}
+												)}
+									</span>
+									<span>{configuration?.tokenToReceive.token?.symbol}</span>
+								</Fragment>
+							)}
+						</div>
+					</div>
+					<IconChevron className={'text-regularText size-6'} />
+				</Button>
+			</div>
+
+			<TokenSelectorDropdown
+				isOpen={isSelectorOpen}
+				set_isOpen={set_isSelectorOpen}
+				set_tokenToUse={token =>
+					dispatchConfiguration({
+						type: 'SET_TOKEN_TO_RECEIVE',
+						payload: {
+							token,
+							amount: toNormalizedBN(
+								BigInt(quote?.minOutputAmount ?? ''),
+								quote?.outputTokenDecimals ?? 18
+							)
+						}
+					})
+				}
+				searchValue={searchValue}
+				set_searchValue={set_searchValue}
+				tokens={searchFilteredTokens}
+				selectorRef={selectorRef}
+			/>
+		</div>
+	);
+}
+
+function ButtonComponent(props: {
+	isReady: boolean;
+	vaultBalance: TNormalizedBN;
+	onClose: VoidFunction;
+	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
+}): ReactElement {
+	const plausible = usePlausible();
+	const {address, onConnect} = useWeb3();
+	const {configuration} = useManageVaults();
+	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
+	const {onWithdraw, quote, isFetchingQuote, isWithdrawing, canZap, onApprove, isApproved, isApproving} = useSolver();
+
+	/**********************************************************************************************
 	 ** onAction is a callback that decides what to do on button click. If wallet isn't connected,
 	 ** button opens Wallet connect modal. If wallet's connected, but token isn't approved, is
 	 ** calls approve contract. And if everything's ready, it calls onWithdraw function,
@@ -130,11 +308,12 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 			onApprove?.();
 			return;
 		}
-		return onWithdraw(() => {
+		const isSuccess = await onWithdraw();
+		if (isSuccess) {
 			plausible(PLAUSIBLE_EVENTS.WITHDRAW, {
 				props: {
-					vaultAddress: props.vault.address,
-					vaultSymbol: props.vault.symbol,
+					vaultAddress: configuration.vault?.address,
+					vaultSymbol: configuration.vault?.symbol,
 					amountToWithdraw: configuration.tokenToSpend.amount?.display,
 					tokenAddress: configuration.tokenToReceive.token?.address,
 					tokenSymbol: configuration.tokenToReceive.token?.symbol,
@@ -166,7 +345,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 					</div>
 				)
 			});
-		});
+		}
 	}, [
 		address,
 		configuration?.tokenToReceive?.token?.symbol,
@@ -180,21 +359,6 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 		quote?.minOutputAmount,
 		quote?.outputTokenDecimals
 	]);
-
-	/**********************************************************************************************
-	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
-	 ** from the useWallet hook to retrieve the balance. We are using balanceHash as a dependency
-	 ** to trigger the useEffect hook when the balances object changes.
-	 *********************************************************************************************/
-	const balance = useMemo(() => {
-		acknowledge(balanceHash);
-		const value =
-			getBalance({
-				address: toAddress(configuration?.vault?.address),
-				chainID: Number(configuration?.vault?.chainID)
-			}).normalized || 0;
-		return value;
-	}, [getBalance, configuration?.vault?.address, configuration?.vault?.chainID, balanceHash]);
 
 	/**********************************************************************************************
 	 ** buttonTitle for withdraw only button depends - on wallet(if wallet isn't connected, button
@@ -216,233 +380,138 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	}, [address, canZap, isFetchingQuote, isApproved, isZapNeededForWithdraw]);
 
 	const isWithdrawDisable =
+		!props.isReady ||
 		!configuration?.tokenToSpend.amount ||
 		configuration?.tokenToSpend.amount.raw === 0n ||
-		(configuration?.tokenToSpend.amount && configuration?.tokenToSpend.amount?.normalized > balance);
+		(configuration?.tokenToSpend.amount && configuration?.tokenToSpend.amount?.raw > props.vaultBalance.raw);
 
 	return (
-		<Transition
-			show={props.isOpen}
-			as={Fragment}>
-			<Dialog
-				as={'div'}
-				className={'relative z-[1000] flex h-screen w-screen items-center justify-center'}
-				onClose={props.onClose}>
-				<TransitionChild
-					as={Fragment}
-					enter={'ease-out duration-200'}
-					enterFrom={'opacity-0'}
-					enterTo={'opacity-100'}
-					leave={'ease-in duration-200'}
-					leaveFrom={'opacity-100'}
-					leaveTo={'opacity-0'}>
-					<div
-						onClick={() => props.onClose()}
-						className={'fixed inset-0 bg-black/20 backdrop-blur-sm transition-opacity'}
+		<Button
+			onClick={onAction}
+			isBusy={isFetchingQuote || isWithdrawing || isApproving}
+			isDisabled={isWithdrawDisable}
+			spinnerClassName={'text-background size-4 animate-spin'}
+			className={cl(
+				'text-black flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText md:px-[34.5px] py-5 font-bold',
+				'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed !h-12'
+			)}>
+			{buttonTitle}
+		</Button>
+	);
+}
+
+function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
+	const {configuration, dispatchConfiguration} = useManageVaults();
+	const {vaultBalanceOf} = useSolver();
+	const [isReady, set_isReady] = useState(false);
+
+	/**********************************************************************************************
+	 ** We are using a little timeout so the app feels more responsive. We set isReady to true
+	 ** after 500ms. Before that, we just display a bunch of skeletons.
+	 *********************************************************************************************/
+	useTimeout(() => set_isReady(true), 500);
+
+	/**********************************************************************************************
+	 ** The useWithdraw hook returns the balanceOf the user in term of assets (underlying). This
+	 ** value is exprimed in bigint and should be normalized for our usage.
+	 ** This is prefered from the `getBalance` hook as it's more precise.
+	 **
+	 ** @params void
+	 ** @returns vaultBalance: TNormalizedBN - The balance of the user in the vault.
+	 *********************************************************************************************/
+	const vaultBalance = useMemo(() => {
+		return toNormalizedBN(vaultBalanceOf, configuration?.vault?.token?.decimals ?? 18);
+	}, [vaultBalanceOf, configuration?.vault?.token?.decimals]);
+
+	/**********************************************************************************************
+	 ** This useEffect is used to set the withdraw configuration. It's called every time the vault
+	 ** changes, or once we are getting the balance of the vault.
+	 *********************************************************************************************/
+	useEffect(() => {
+		dispatchConfiguration({
+			type: 'SET_WITHDRAW',
+			payload: {
+				vault: props.vault,
+				toReceive: {
+					token: {
+						address: props.vault.token.address,
+						symbol: props.vault.token.symbol,
+						name: props.vault.token.name,
+						decimals: props.vault.token.decimals,
+						chainID: props.vault.chainID,
+						value: 0
+					},
+					amount: vaultBalance
+				},
+				toSpend: {
+					token: {
+						address: props.vault.token.address,
+						name: props.vault.token.name,
+						symbol: props.vault.token.symbol,
+						decimals: props.vault.token.decimals,
+						chainID: props.vault.chainID,
+						value: 0
+					},
+					amount: vaultBalance
+				}
+			}
+		});
+	}, [dispatchConfiguration, props.vault, vaultBalance]);
+
+	return (
+		<ModalWrapper
+			isOpen={props.isOpen}
+			onClose={props.onClose}>
+			<motion.div
+				initial={{scale: 0.95, opacity: 0}}
+				animate={{scale: 1, opacity: 1}}
+				transition={{
+					duration: 0.2,
+					ease: 'easeInOut'
+				}}
+				className={'bg-background relative rounded-2xl p-10 md:min-w-[640px]'}>
+				<button
+					onClick={() => props.onClose()}
+					className={
+						'hover:bg-regularText/15 absolute right-5 top-5 -m-2 rounded-full p-2 transition-colors'
+					}>
+					<IconCross className={'size-4'} />
+				</button>
+
+				<div className={'mb-4 flex w-full justify-start text-xl'}>
+					<p className={'text-lg font-bold'}>{'Withdraw'}</p>
+				</div>
+
+				<Fragment>
+					<VaultLink
+						vault={props.vault}
+						yearnfiLink={props.yearnfiLink}
 					/>
-				</TransitionChild>
+					<InputAmountComponent
+						isReady={isReady}
+						vaultBalance={vaultBalance}
+					/>
+				</Fragment>
 
-				<TransitionChild
-					as={Fragment}
-					enter={'ease-out duration-300'}
-					enterFrom={'opacity-0'}
-					enterTo={'opacity-100'}
-					leave={'ease-in duration-200'}
-					leaveFrom={'opacity-100'}
-					leaveTo={'opacity-0'}>
-					<div className={cl('fixed -translate-y-1/3 top-1/3 p-4 text-center sm:items-center sm:p-0')}>
-						<div className={'bg-background relative rounded-2xl p-10 md:min-w-[640px]'}>
-							<button
-								onClick={() => props.onClose()}
-								className={
-									'hover:bg-regularText/15 absolute right-5 top-5 -m-2 rounded-full p-2 transition-colors'
-								}>
-								<IconCross className={'size-4'} />
-							</button>
-
-							<div className={'mb-4 flex w-full justify-start text-xl'}>
-								<p className={'text-lg font-bold'}>{'Withdraw'}</p>
-							</div>
-
-							<VaultLink
-								vault={props.vault}
-								yearnfiLink={props.yearnfiLink}
-							/>
-
-							<div className={'flex flex-col gap-y-1'}>
-								<label
-									className={cl(
-										'z-20 !h-16 relative transition-all border border-regularText/15',
-										'flex flex-row items-center cursor-text',
-										'focus:placeholder:text-regularText/40 placeholder:transition-colors',
-										'py-2 px-4 group border-regularText/15 bg-regularText/5 rounded-lg'
-									)}>
-									<div className={'relative w-full pr-2'}>
-										<InputNumber
-											prefixCls={cl(
-												'w-full h-full focus:border-none p-0 rounded-lg border-none bg-transparent text-xl transition-colors',
-												'placeholder:text-regularText/20 focus:placeholder:text-regularText/30',
-												'placeholder:transition-colors !h-16 !ring-0 !ring-offset-0'
-											)}
-											min={0}
-											step={0.1}
-											decimalSeparator={'.'}
-											placeholder={'0.00'}
-											controls={false}
-											value={configuration?.tokenToSpend?.amount?.normalized}
-											onChange={value => {
-												const decimals = configuration?.tokenToSpend.token?.decimals;
-
-												dispatchConfiguration({
-													type: 'SET_TOKEN_TO_SPEND',
-													payload: {
-														amount: toNormalizedBN(
-															fromNormalized(value ?? '', decimals),
-															decimals ?? 18
-														)
-													}
-												});
-											}}
-										/>
-									</div>
-									<button
-										onClick={() =>
-											dispatchConfiguration({
-												type: 'SET_TOKEN_TO_SPEND',
-												payload: {
-													amount: toNormalizedBN(
-														fromNormalized(
-															balance,
-															configuration?.tokenToSpend?.token?.decimals
-														),
-														configuration?.tokenToSpend?.token?.decimals ?? 18
-													)
-												}
-											})
-										}
-										disabled={false}
-										className={
-											'border-regularText/15 bg-regularText/5 text-regularText rounded-lg border p-2 disabled:cursor-not-allowed'
-										}>
-										{'Max'}
-									</button>
-								</label>
-							</div>
-							<div className={'mt-1 flex w-full justify-start'}>
-								<button
-									onClick={() =>
-										dispatchConfiguration({
-											type: 'SET_TOKEN_TO_SPEND',
-											payload: {
-												amount: toNormalizedBN(
-													fromNormalized(
-														balance,
-														configuration?.tokenToSpend?.token?.decimals
-													),
-													configuration?.tokenToSpend?.token?.decimals ?? 18
-												)
-											}
-										})
-									}
-									className={'text-regularText text-right text-xs text-opacity-40'}>
-									{`Available: ${balance} ${configuration?.vault?.token.symbol}`}
-								</button>
-							</div>
-							<div className={'mb-4 mt-10 flex w-full justify-start'}>
-								<p className={'text-lg font-bold'}>{'Receive'}</p>
-							</div>
-
-							<div className={'mb-5'}>
-								<div className={'w-full'}>
-									<Button
-										isBusy={false}
-										isDisabled={!address}
-										ref={toggleButtonRef}
-										onClick={() => set_isSelectorOpen(prev => !prev)}
-										className={
-											'border-regularText/15 bg-regularText/5 relative flex !h-16 w-full items-center justify-between gap-x-1 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
-										}>
-										<div className={'flex w-full items-center gap-x-2'}>
-											<ImageWithFallback
-												src={`https://assets.smold.app/tokens/${configuration?.vault?.chainID}/${configuration?.tokenToReceive.token?.address}/logo-128.png`}
-												alt={configuration?.tokenToReceive.token?.address || 'address'}
-												width={32}
-												height={32}
-												className={
-													(!canZap && !isFetchingQuote) ||
-													toBigInt(configuration?.tokenToSpend.amount?.raw) === 0n
-														? 'opacity-40'
-														: ''
-												}
-											/>
-											<div
-												className={cl(
-													'flex gap-x-1',
-													(!canZap && !isFetchingQuote) ||
-														toBigInt(configuration?.tokenToSpend.amount?.raw) === 0n
-														? 'text-regularText/40'
-														: ''
-												)}>
-												{isFetchingQuote ? (
-													<IconSpinner className={'text-accentText size-4 animate-spin'} />
-												) : (
-													<>
-														<span>
-															{!isZapNeededForWithdraw
-																? configuration?.tokenToSpend.amount?.normalized
-																: formatBigIntForDisplay(
-																		BigInt(quote?.minOutputAmount ?? ''),
-																		quote?.outputTokenDecimals ?? 18,
-																		{maximumFractionDigits: 10}
-																	)}
-														</span>
-														<span>{configuration?.tokenToReceive.token?.symbol}</span>
-													</>
-												)}
-											</div>
-										</div>
-										<IconChevron className={'text-regularText size-6'} />
-									</Button>
-								</div>
-
-								<TokenSelectorDropdown
-									isOpen={isSelectorOpen}
-									set_isOpen={set_isSelectorOpen}
-									set_tokenToUse={token =>
-										dispatchConfiguration({
-											type: 'SET_TOKEN_TO_RECEIVE',
-											payload: {
-												token,
-												amount: toNormalizedBN(
-													BigInt(quote?.minOutputAmount ?? ''),
-													quote?.outputTokenDecimals ?? 18
-												)
-											}
-										})
-									}
-									searchValue={searchValue}
-									set_searchValue={set_searchValue}
-									tokens={searchFilteredTokens}
-									selectorRef={selectorRef}
-								/>
-							</div>
-
-							<Button
-								onClick={onAction}
-								isBusy={isFetchingQuote || isWithdrawing || isApproving}
-								isDisabled={isWithdrawDisable}
-								spinnerClassName={'text-background size-4 animate-spin'}
-								className={cl(
-									'text-black flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText md:px-[34.5px] py-5 font-bold',
-									'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed !h-12'
-								)}>
-								{buttonTitle}
-							</Button>
-						</div>
+				<Fragment>
+					<div className={'mb-4 mt-10 flex w-full justify-start'}>
+						<p className={'text-lg font-bold'}>{'Receive'}</p>
 					</div>
-				</TransitionChild>
-			</Dialog>
-		</Transition>
+
+					<OutputComponent
+						isReady={isReady}
+						vaultBalance={vaultBalance}
+					/>
+				</Fragment>
+
+				<ButtonComponent
+					isReady={isReady}
+					vaultBalance={vaultBalance}
+					onClose={props.onClose}
+					openSuccessModal={props.openSuccessModal}
+				/>
+			</motion.div>
+		</ModalWrapper>
 	);
 }
 
