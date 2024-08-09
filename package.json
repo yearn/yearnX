@@ -10,7 +10,7 @@
 		"lint": "eslint . --ext .js,.jsx,.ts,.tsx"
 	},
 	"dependencies": {
-		"@builtbymom/web3": "0.0.174",
+		"@builtbymom/web3": "0.0.176",
 		"@closeio/use-abortable-effect": "^1.0.0",
 		"@generationsoftware/hyperstructure-client-js": "^1.12.6",
 		"@generationsoftware/hyperstructure-react-hooks": "^1.16.8",
