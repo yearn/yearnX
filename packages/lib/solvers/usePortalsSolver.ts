@@ -36,7 +36,7 @@ export const usePortalsSolver = (
 	const [isFetchingQuote, set_isFetchingQuote] = useState(false);
 	const [canZap, set_canZap] = useState(true);
 	const [approveCtx, set_approveCtx] = useState<TPortalsApproval>();
-	const slippage = 0.1;
+	const slippage = 0.25;
 	const isSolverEnabled =
 		(isZapNeededForDeposit && configuration.action === 'DEPOSIT') ||
 		(isZapNeededForWithdraw && configuration.action === 'WITHDRAW');
