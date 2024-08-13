@@ -1,8 +1,8 @@
+import {Fragment, type ReactElement} from 'react';
 import Image from 'next/image';
-import {cl} from '@builtbymom/web3/utils';
+import {cl, formatLocalAmount} from '@builtbymom/web3/utils';
 import {Counter} from '@lib/components/common/Counter';
 
-import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
 export const Section3 = ({title, description, bgImage, cards}: TSectionProps): ReactElement => (
@@ -45,20 +45,32 @@ export const Section3 = ({title, description, bgImage, cards}: TSectionProps): R
 			className={
 				'bg-primary text-accentText grid w-full grid-cols-1 gap-y-12 rounded-2xl p-6 md:grid-cols-3 md:gap-x-6 md:px-10 md:py-16'
 			}>
-			{cards?.map(card => (
-				<div key={card.value}>
-					{card.isReady && (
-						<p className={'mb-4 text-lg font-bold uppercase leading-[22px] md:mb-0'}>{card.title}</p>
-					)}
-					{card.isReady && (
+			{cards?.map((card, index) => (
+				<div key={index}>
+					<p className={'mb-4 text-lg font-bold uppercase leading-[22px] md:mb-0'}>{card.title}</p>
+					{card.isReady ? (
 						<div className={'text-3xl font-bold lg:text-7xl'}>
-							<Counter
-								value={card.value}
-								decimals={card.decimals ?? 0}
-								decimalsToDisplay={[2, 4, 6, 8]}
-								idealDecimals={2}
-							/>
+							{card.currency === 'USD' && card.value > 100_000 ? (
+								formatLocalAmount(card.value, 4, '$', {
+									displayDigits: 2,
+									maximumFractionDigits: 2,
+									minimumFractionDigits: 2,
+									shouldCompactValue: true
+								})
+							) : (
+								<Fragment>
+									<Counter
+										value={card.value}
+										decimals={card.decimals ?? 0}
+										decimalsToDisplay={[2, 4, 6, 8]}
+										idealDecimals={2}
+									/>
+									{card.currency}
+								</Fragment>
+							)}
 						</div>
+					) : (
+						<span className={'bg-regularText/20 mt-2.5 inline-block h-14 w-3/4 animate-pulse rounded-md'} />
 					)}
 				</div>
 			))}

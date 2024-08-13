@@ -13,7 +13,7 @@ type TSectionProps = {
 	bgImage?: string;
 	cards?: {
 		title: string;
-		currency: string;
+		currency?: string;
 		value: number;
 		decimals: number;
 		isReady: boolean;
