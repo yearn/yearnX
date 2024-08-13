@@ -15,12 +15,23 @@ import {VaultsListHead} from './VaultsListHead';
 
 import type {TDict, TNDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
+import type {TAPRType} from '@lib/utils/types';
 
 type TVaultListProps = {
 	vaults: TYDaemonVaults;
 	isLoading: boolean;
-	headerTabs: {value: string; label: string; isSortable: boolean}[];
+	options?: {
+		aprType: TAPRType;
+	};
 };
+
+const HEADER_TABS = [
+	{value: 'vault', label: 'Vault', isSortable: false},
+	{value: 'apr', label: 'APR', isSortable: true},
+	{value: 'deposits', label: 'TVL', isSortable: true},
+	{value: 'balance', label: 'My Balance', isSortable: true},
+	{value: 'manage', label: 'Manage', isSortable: false}
+];
 
 export const VaultList = (props: TVaultListProps): ReactElement => {
 	const [searchValue, set_searchValue] = useQueryState('search', {defaultValue: '', shallow: true});
@@ -61,7 +72,7 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 		searchValue ? filteredVaults : props.vaults
 	);
 
-	const sort = useSortedVaults(vaults, allPrices);
+	const sort = useSortedVaults(vaults, allPrices, props.options);
 
 	/**********************************************************************************************
 	 ** Generates the layout based on the current props and state.
@@ -82,6 +93,7 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 							key={vault.address}
 							vault={vault}
 							price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
+							options={props.options}
 						/>
 					))}
 				</div>
@@ -106,7 +118,7 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 					set_searchValue={set_searchValue}
 				/>
 				<VaultsListHead
-					items={props.headerTabs}
+					items={HEADER_TABS}
 					sortBy={sort.sortBy}
 					sortDirection={sort.sortDirection}
 					onSortBy={sort.onSortBy}

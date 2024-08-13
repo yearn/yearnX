@@ -1,16 +1,11 @@
+import type {TAPRType} from '@lib/utils/types';
+
 export const PROJECT_TITLE = 'Yearn x Velodrome';
 export const PROJECT_DESCRIPTION = '';
 export const VARIANT_TO_USE = 3;
 export const VAULT_FILTER = 'velodrome';
 export const VAULTS_PER_PAGE = 20;
-
-export const HEADER_TABS = [
-	{value: 'vault', label: 'Vault', isSortable: false},
-	{value: 'apr', label: 'APR', isSortable: true},
-	{value: 'deposits', label: 'TVL', isSortable: true},
-	{value: 'balance', label: 'My Balance', isSortable: true},
-	{value: 'manage', label: 'Manage', isSortable: false}
-];
+export const APR_TYPE: TAPRType = 'HISTORICAL';
 
 export const COLORS = {
 	button: '#EE2524', // The main color of the button

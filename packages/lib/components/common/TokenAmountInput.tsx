@@ -103,16 +103,9 @@ type TTokenAmountWrapperProps = {
 	buttonTitle: string;
 	set_tokenToUse: (token: TToken, amount: TNormalizedBN) => void;
 	totalProfit?: string;
+	apr: number;
 };
-export function TokenAmountWrapper({
-	vault,
-	isPerformingAction,
-	onActionClick,
-	isDisabled,
-	buttonTitle,
-	set_tokenToUse,
-	totalProfit
-}: TTokenAmountWrapperProps): ReactElement {
+export function TokenAmountWrapper(props: TTokenAmountWrapperProps): ReactElement {
 	const {balanceHash, getBalance} = useWallet();
 	const {address, onConnect} = useWeb3();
 	const {configuration, dispatchConfiguration} = useManageVaults();
@@ -122,9 +115,9 @@ export function TokenAmountWrapper({
 	 *********************************************************************************************/
 	const {data: vaultPricePerShare} = useReadContract({
 		abi: VAULT_ABI,
-		address: vault.address,
+		address: props.vault.address,
 		functionName: 'pricePerShare',
-		chainId: vault.chainID
+		chainId: props.vault.chainID
 	});
 
 	/**********************************************************************************************
@@ -136,10 +129,10 @@ export function TokenAmountWrapper({
 		acknowledge(balanceHash);
 		const value = getBalance({
 			address: configuration?.tokenToSpend.token?.address || zeroAddress,
-			chainID: vault.chainID
+			chainID: props.vault.chainID
 		});
 		return value;
-	}, [getBalance, configuration?.tokenToSpend, vault.chainID, balanceHash]);
+	}, [getBalance, configuration?.tokenToSpend, props.vault.chainID, balanceHash]);
 
 	/**********************************************************************************************
 	 ** BalanceInShares converts the asset balance to the balance in shares. We use it when the
@@ -150,16 +143,16 @@ export function TokenAmountWrapper({
 		acknowledge(balanceHash);
 		const value = getBalance({
 			address: configuration?.tokenToSpend.token?.address || zeroAddress,
-			chainID: vault.chainID
+			chainID: props.vault.chainID
 		});
 		const pps = vaultPricePerShare;
-		return toNormalizedBN(value.raw * toBigInt(pps), vault.decimals * 2);
+		return toNormalizedBN(value.raw * toBigInt(pps), props.vault.decimals * 2);
 	}, [
 		balanceHash,
 		getBalance,
 		configuration?.tokenToSpend.token?.address,
-		vault.chainID,
-		vault.decimals,
+		props.vault.chainID,
+		props.vault.decimals,
 		vaultPricePerShare
 	]);
 
@@ -169,11 +162,11 @@ export function TokenAmountWrapper({
 	 ** from the vault, we will use the balance in shares.
 	 *********************************************************************************************/
 	const balanceToUse = useMemo(() => {
-		if (configuration?.tokenToSpend.token?.address === vault.address) {
+		if (configuration?.tokenToSpend.token?.address === props.vault.address) {
 			return balanceInShares;
 		}
 		return balanceOfAsset;
-	}, [configuration?.tokenToSpend.token?.address, vault.address, balanceOfAsset, balanceInShares]);
+	}, [configuration?.tokenToSpend.token?.address, props.vault.address, balanceOfAsset, balanceInShares]);
 
 	/**********************************************************************************************
 	 ** AssetName is the name of the asset that we will display to the user. If the user is
@@ -181,15 +174,15 @@ export function TokenAmountWrapper({
 	 ** from the vault, we will use the asset symbol.
 	 *********************************************************************************************/
 	const assetName = useMemo(() => {
-		if (configuration?.tokenToSpend.token?.address === vault.address) {
-			return vault.token.symbol;
+		if (configuration?.tokenToSpend.token?.address === props.vault.address) {
+			return props.vault.token.symbol;
 		}
 		return configuration?.tokenToSpend.token?.symbol;
 	}, [
 		configuration?.tokenToSpend.token?.address,
 		configuration?.tokenToSpend.token?.symbol,
-		vault.address,
-		vault.token.symbol
+		props.vault.address,
+		props.vault.token.symbol
 	]);
 
 	/**********************************************************************************************
@@ -201,15 +194,15 @@ export function TokenAmountWrapper({
 		configuration?.tokenToSpend.amount.raw === 0n ||
 		(configuration?.tokenToSpend.amount &&
 			configuration?.tokenToSpend.amount?.normalized > balanceToUse.normalized) ||
-		isDisabled ||
+		props.isDisabled ||
 		balanceToUse.normalized < configuration?.tokenToSpend.amount.normalized;
 
 	return (
 		<div className={'flex w-full flex-col items-start gap-y-2'}>
 			<div className={'flex w-full flex-col gap-y-1'}>
 				<TokenAmountInput
-					chainID={vault.chainID}
-					isPerformingAction={isPerformingAction}
+					chainID={props.vault.chainID}
+					isPerformingAction={props.isPerformingAction}
 					onChangeValue={(val?: TNormalizedBN) => {
 						dispatchConfiguration({
 							type: 'SET_TOKEN_TO_SPEND',
@@ -219,9 +212,9 @@ export function TokenAmountWrapper({
 					onMaxClick={() =>
 						dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {amount: balanceToUse}})
 					}
-					onActionClick={onActionClick}
+					onActionClick={props.onActionClick}
 					isButtonDisabled={isButtonDisabled}
-					set_tokenToUse={set_tokenToUse}
+					set_tokenToUse={props.set_tokenToUse}
 				/>
 			</div>
 			<button
@@ -233,26 +226,26 @@ export function TokenAmountWrapper({
 			<div className={'my-10 flex w-full justify-between'}>
 				<div>
 					<span className={'mr-1'}>{'APY:'}</span>
-					<span className={'font-bold'}>{toPercent(vault.apr.netAPR)}</span>
+					<span className={'font-bold'}>{toPercent(props.apr)}</span>
 				</div>
 				{Boolean(configuration?.tokenToSpend.amount?.normalized) && (
 					<span className={'text-base'}>
 						{'+ '}
-						{totalProfit}
+						{props.totalProfit}
 						{' over 1y'}
 					</span>
 				)}
 			</div>
 			<Button
-				onClick={address ? onActionClick : onConnect}
-				isBusy={isPerformingAction}
+				onClick={address ? props.onActionClick : onConnect}
+				isBusy={props.isPerformingAction}
 				isDisabled={!address ? false : isButtonDisabled}
 				spinnerClassName={'text-black size-6 animate-spin'}
 				className={cl(
 					'text-black flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText md:px-[34.5px] py-5 font-bold',
 					'disabled:bg-regularText/10 disabled:text-regularText/30 disabled:cursor-not-allowed !h-12'
 				)}>
-				{buttonTitle}
+				{props.buttonTitle}
 			</Button>
 		</div>
 	);

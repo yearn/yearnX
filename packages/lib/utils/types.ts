@@ -41,3 +41,4 @@ export type TTokenAmountInputElement = {
 export type TTokenNoBalance = Omit<TToken, 'balance'>;
 export type TTokenToUse = Partial<{token: TTokenNoBalance; amount: TNormalizedBN}>;
 export type TAssertedTokenToUse = {token: TTokenNoBalance; amount: TNormalizedBN};
+export type TAPRType = 'HISTORICAL' | 'ESTIMATED';

@@ -26,17 +26,21 @@ import {WithdrawModal} from './WithdrawModal';
 
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TAPRType} from '@lib/utils/types';
 
 type TVaultItem = {
 	vault: TYDaemonVault;
 	price: TNormalizedBN;
+	options?: {
+		aprType: TAPRType;
+	};
 };
 export type TSuccessModal = {
 	isOpen: boolean;
 	description: ReactElement | null;
 };
 
-export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
+export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => {
 	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
 	const {pricingHash, getPrice} = usePrices();
@@ -47,6 +51,18 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const isDepositModalOpen = selectedAction === 'DEPOSIT' && selectedVault === vault.address;
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
+
+	/**********************************************************************************************
+	 ** APRToUse returns the current APR to display based on the app options.
+	 ** @param {TAPRType} options.aprType - The APR type to display (HISTORICAL OR ESTIMATED)
+	 ** @returns {number} - The APR to display.
+	 *********************************************************************************************/
+	const APRToUse = useMemo(() => {
+		if (!options?.aprType) {
+			return vault.apr.netAPR;
+		}
+		return options.aprType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
+	}, [vault.apr, options?.aprType]);
 
 	/**********************************************************************************************
 	 ** useEffect hook to retrieve and memoize prices for the vault token.
@@ -112,7 +128,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const totalProfit = useMemo(() => {
 		const price = vaultPrice.normalized ?? 0;
 		return `$${formatLocalAmount(
-			Number(configuration?.tokenToSpend.amount?.normalized) * vault.apr.netAPR * price +
+			Number(configuration?.tokenToSpend.amount?.normalized) * APRToUse * price +
 				Number(configuration?.tokenToSpend.amount?.normalized) * price,
 			4,
 			'$',
@@ -123,7 +139,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				shouldCompactValue: true
 			}
 		)}`;
-	}, [configuration?.tokenToSpend.amount?.normalized, vault.apr.netAPR, vaultPrice.normalized]);
+	}, [configuration?.tokenToSpend.amount?.normalized, APRToUse, vaultPrice.normalized]);
 
 	/**********************************************************************************************
 	 ** onDepositClick is a callback that sets "DEPOSIT" (and it opens deposit modal) to reducer
@@ -172,6 +188,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				hasBalanceForVault={balance > 0}
 				openSuccessModal={set_successModal}
 				totalProfit={totalProfit}
+				apr={APRToUse}
 			/>
 			<WithdrawModal
 				isOpen={isWithdrawModalOpen}
@@ -212,7 +229,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 				</Link>
 				<div className={'font-number flex items-center justify-end'}>
 					<div className={'text-right font-mono font-semibold'}>
-						{toPercent(vault.apr.netAPR)}
+						{toPercent(APRToUse)}
 						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
 					</div>
 				</div>
@@ -284,7 +301,7 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 					<div className={'flex items-center gap-x-2 text-sm'}>
 						<p>{'APR'}</p>
 					</div>
-					<div>{formatPercent(vault.apr.netAPR)}</div>
+					<div>{formatPercent(APRToUse)}</div>
 				</div>
 
 				<div className={'flex w-full justify-between'}>

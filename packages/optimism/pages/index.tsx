@@ -6,7 +6,7 @@ import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
-import {HEADER_TABS, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
+import {APR_TYPE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 
 import type {GetServerSideProps} from 'next';
 
@@ -36,7 +36,9 @@ export default function Index(): ReactElement {
 			<VaultList
 				vaults={vaultsValues}
 				isLoading={isLoading}
-				headerTabs={HEADER_TABS}
+				options={{
+					aprType: APR_TYPE
+				}}
 			/>
 
 			<Footer

@@ -6,7 +6,7 @@ import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
-import {HEADER_TABS, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
+import {APR_TYPE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
@@ -34,7 +34,9 @@ export default function Index(): ReactElement {
 			<VaultList
 				vaults={vaultsValues}
 				isLoading={isLoading}
-				headerTabs={HEADER_TABS}
+				options={{
+					aprType: APR_TYPE
+				}}
 			/>
 
 			<Footer
