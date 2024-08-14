@@ -64,6 +64,7 @@ module.exports = {
 				'3xl': ['32px', '40px'],
 				'4xl': ['40px', '56px'],
 				'7xl': ['64px', '72px'],
+				'8xl': ['90px', '90px'],
 				'9xl': '128px'
 			},
 			opacity: {

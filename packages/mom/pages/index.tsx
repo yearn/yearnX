@@ -18,7 +18,10 @@ export default function Index(): ReactElement {
 		const aprs = vaultsValues.map(
 			vault => (APR_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
 		);
-		return Math.max(...aprs);
+		if (aprs.length > 0) {
+			return Math.max(...aprs);
+		}
+		return 0;
 	}, [vaultsValues]);
 
 	return (

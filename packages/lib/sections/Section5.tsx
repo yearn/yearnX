@@ -20,6 +20,7 @@ export const Section5 = ({bgImage, title, description}: TSectionProps): ReactEle
 				<div
 					className={cl(
 						'col-span-12 md:col-span-6 lg:col-span-5',
+						'w-fit',
 						'bg-table flex h-full flex-col justify-between p-10 rounded-2xl'
 					)}>
 					<div
