@@ -19,7 +19,7 @@ export const Section2 = ({title, bgImage, cards}: TSectionProps): ReactElement =
 				<div className={'bg-table'}>
 					<div
 						className={
-							'leading-4xl lg:leading-7xl text-regularText mb-4 whitespace-break-spaces text-4xl font-black md:mb-0 lg:text-7xl'
+							'leading-4xl lg:leading-7xl text-regularText lg-text:text-7xl mb-4 whitespace-break-spaces text-4xl font-black uppercase md:mb-0'
 						}>
 						{title}
 					</div>

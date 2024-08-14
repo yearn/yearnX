@@ -21,10 +21,8 @@ export default function Index(): ReactElement {
 			<Section
 				variant={VARIANT_TO_USE}
 				bgImage={'/bg.jpg'}
-				title={'YEARN PARTNER VAULTS'}
-				description={
-					'Several lines description. Several lines description. Several lines description. Several lines description. '
-				}
+				title={'Pendle Auto-rolling Vaults'}
+				description={'The best Pendle yields, with auto-rolling functionality.'}
 			/>
 			<VaultList
 				vaults={vaultsValues}

@@ -22,7 +22,10 @@ export const Section5 = ({bgImage, title, description}: TSectionProps): ReactEle
 						'col-span-12 md:col-span-6 lg:col-span-5',
 						'bg-table flex h-full flex-col justify-between p-10 rounded-2xl'
 					)}>
-					<div className={'leading-4xl lg:leading-7xl text-regularText text-4xl font-black lg:text-7xl'}>
+					<div
+						className={
+							'leading-4xl lg:leading-7xl text-regularText lg-text:text-7xl text-4xl font-black uppercase'
+						}>
 						{title}
 					</div>
 					<div className={'w-full rounded-2xl'}>

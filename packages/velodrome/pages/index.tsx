@@ -21,10 +21,8 @@ export default function Index(): ReactElement {
 			<Section
 				variant={VARIANT_TO_USE}
 				bgImage={'/bg.png'}
-				title={'YEARN PARTNER VAULTS'}
-				description={
-					'Several lines description. Several lines description. Several lines description. Several lines description. '
-				}
+				title={'Velodrome Vaults'}
+				description={'Get the best risk adjusted Velodrome yields, with Yearn.'}
 				cards={[
 					{title: 'Grand prize', currency: 'ETH', value: 192, decimals: 2, isReady: true},
 					{title: 'Grand prize', currency: 'ETH', value: 111, decimals: 2, isReady: true},
