@@ -13,7 +13,7 @@ type TSectionProps = {
 	bgImage?: string;
 	cards?: {
 		title: string;
-		currency: string;
+		currency?: string;
 		value: number;
 		decimals: number;
 		isReady: boolean;
@@ -53,6 +53,7 @@ export function Section({variant, title, description, bgImage, cards}: TSectionP
 					title={title}
 					description={description}
 					bgImage={bgImage}
+					cards={cards}
 				/>
 			);
 		case 5:

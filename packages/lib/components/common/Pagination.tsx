@@ -1,41 +1,18 @@
-import {type ReactElement, useCallback} from 'react';
+import {type ReactElement} from 'react';
 import ReactPaginate from 'react-paginate';
-import {useRouter} from 'next/router';
 import {cl} from '@builtbymom/web3/utils';
 
 import {IconArrowLeft} from '../icons/IconArrowLeft';
 
-import type {ParsedUrlQueryInput} from 'querystring';
-
 type TPaginationProps = {
 	currentPage: number;
 	amountOfPages: number;
-	nextPage: () => void;
-	prevPage: () => void;
-	handlePageClick?: (page: number) => void;
+	goToNextPage: () => void;
+	goToPrevPage: () => void;
+	goToPage: (pageNumber: number) => void;
 };
 export const Pagination = (props: TPaginationProps): ReactElement => {
-	const {currentPage, nextPage, prevPage, amountOfPages} = props;
-	const router = useRouter();
-
-	/**********************************************************************************************
-	 ** When the user clicks on a page number, the page number is updated in the URL query string.
-	 ** If the page number is 1, the page number is removed from the URL query string.
-	 *********************************************************************************************/
-	const onPageClick = useCallback(
-		(num: number): void => {
-			const currentRouterArguments = router.query;
-			let query: ParsedUrlQueryInput = {...currentRouterArguments};
-			if (num === 1) {
-				delete currentRouterArguments.page;
-				query = {...currentRouterArguments};
-			} else {
-				query = {...currentRouterArguments, page: num};
-			}
-			router.push({pathname: router.pathname, query}, undefined, {shallow: true, scroll: true});
-		},
-		[router]
-	);
+	const {currentPage, goToNextPage, goToPrevPage, goToPage, amountOfPages} = props;
 
 	return (
 		<>
@@ -49,7 +26,7 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 							pageRangeDisplayed={2}
 							previousLabel={
 								<button
-									onClick={prevPage}
+									onClick={goToPrevPage}
 									disabled={currentPage === 1}
 									className={cl(
 										'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-regularText/15',
@@ -61,7 +38,7 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 							}
 							nextLabel={
 								<button
-									onClick={nextPage}
+									onClick={goToNextPage}
 									disabled={currentPage === amountOfPages}
 									className={cl(
 										'mb-2 rounded-lg p-2 md:p-3 outline-1 outline-regularText/15',
@@ -71,11 +48,7 @@ export const Pagination = (props: TPaginationProps): ReactElement => {
 									<IconArrowLeft className={'size-5 rotate-180'} />
 								</button>
 							}
-							onPageChange={({selected}) => {
-								return props.handlePageClick
-									? props.handlePageClick(selected + 1)
-									: onPageClick(selected + 1);
-							}}
+							onPageChange={({selected}) => goToPage(selected + 1)}
 							pageLabelBuilder={page => (
 								<button
 									className={cl(

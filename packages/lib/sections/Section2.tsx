@@ -19,7 +19,7 @@ export const Section2 = ({title, bgImage, cards}: TSectionProps): ReactElement =
 				<div className={'bg-table'}>
 					<div
 						className={
-							'leading-4xl lg:leading-7xl text-regularText mb-4 whitespace-break-spaces text-4xl font-black md:mb-0 lg:text-7xl'
+							'leading-4xl lg:leading-7xl text-regularText lg-text:text-7xl mb-4 whitespace-break-spaces text-4xl font-black uppercase md:mb-0'
 						}>
 						{title}
 					</div>
@@ -51,7 +51,11 @@ export const Section2 = ({title, bgImage, cards}: TSectionProps): ReactElement =
 					</div>
 				</div>
 			</div>
-			<div className={cl('col-span-12 md:col-span-7', 'size-full overflow-hidden rounded-t-2xl md:rounded-2xl')}>
+			<div
+				className={cl(
+					'col-span-12 md:col-span-7',
+					'size-full overflow-hidden rounded-t-2xl md:rounded-2xl md:min-h-[528px] md:max-h-[528px]'
+				)}>
 				<Image
 					src={bgImage ?? '/bg-placeholder.png'}
 					priority

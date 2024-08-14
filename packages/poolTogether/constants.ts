@@ -1,16 +1,11 @@
+import type {TAPRType} from '@lib/utils/types';
+
 export const PROJECT_TITLE = 'Yearn x PoolTogether';
 export const PROJECT_DESCRIPTION = 'Feeling lucky Anon?';
 export const VAULT_FILTER = 'pooltogether';
-export const VARIANT_TO_USE = 2;
+export const VARIANT_TO_USE = 4;
 export const VAULTS_PER_PAGE = 20;
-
-export const HEADER_TABS = [
-	{value: 'vault', label: 'Vault', isSortable: false},
-	{value: 'apr', label: 'APR', isSortable: true},
-	{value: 'deposits', label: 'TVL', isSortable: true},
-	{value: 'balance', label: 'My Balance', isSortable: true},
-	{value: 'manage', label: 'Manage', isSortable: false}
-];
+export const APR_TYPE: TAPRType = 'HISTORICAL';
 
 export const COLORS = {
 	button: '#C521D4', // The main color of the button

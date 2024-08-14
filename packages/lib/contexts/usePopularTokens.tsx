@@ -1,12 +1,11 @@
 import {createContext, useCallback, useContext, useMemo, useState} from 'react';
-import {serialize} from 'wagmi';
 import axios from 'axios';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
 import {ETH_TOKEN_ADDRESS, toAddress, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {getNetwork} from '@builtbymom/web3/utils/wagmi';
-import {createUniqueID} from '@lib/utils/tools.identifiers';
+import {acknowledge} from '@lib/utils/tools';
 import {useDeepCompareEffect} from '@react-hookz/web';
 
 import type {AxiosResponse} from 'axios';
@@ -28,21 +27,11 @@ const POPULAR_LIST_URI = 'https://raw.githubusercontent.com/smoldapp/tokenLists/
 const PopularTokensContext = createContext<TPopularTokensProps>(defaultProps);
 export const WithPopularTokens = ({children}: {children: ReactElement}): ReactElement => {
 	const {chainID} = useWeb3();
-	const {balances, getBalance} = useWallet();
+	const {balances, balanceHash, getBalance} = useWallet();
 	const [listsURI, set_listsURI] = useState<string[]>([POPULAR_LIST_URI]);
 	const [allTokens, set_allTokens] = useState<TNDict<TDict<TToken>>>({});
 	const [tokenList, set_tokenList] = useState<TNDict<TDict<TToken>>>({});
 	const hashList = useMemo((): string => listsURI.join(','), [listsURI]);
-
-	/**********************************************************************************************
-	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
-	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
-	 ** We will use classic hash function to create a hash from the balances object.
-	 *********************************************************************************************/
-	const currentIdentifier = useMemo(() => {
-		const hash = createUniqueID(serialize(balances));
-		return hash;
-	}, [balances]);
 
 	/************************************************************************************
 	 ** This is the main function that will be called when the component mounts and
@@ -124,10 +113,11 @@ export const WithPopularTokens = ({children}: {children: ReactElement}): ReactEl
 
 	/**********************************************************************************************
 	 ** This function will be used to get the list of tokens with or without balance. It will be
-	 ** triggered when the allTokens or getBalance or isCustomToken or currentIdentifier changes.
+	 ** triggered when the allTokens or getBalance or isCustomToken or balanceHash changes.
 	 *********************************************************************************************/
 	const listTokens = useCallback(
 		(_chainID?: number): TToken[] => {
+			acknowledge(balanceHash);
 			if (_chainID === undefined) {
 				_chainID = chainID;
 			}
@@ -166,8 +156,7 @@ export const WithPopularTokens = ({children}: {children: ReactElement}): ReactEl
 			}
 			return noDuplicates;
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[allTokens, getBalance, currentIdentifier, chainID]
+		[balanceHash, chainID, allTokens, getBalance, balances]
 	);
 
 	return (

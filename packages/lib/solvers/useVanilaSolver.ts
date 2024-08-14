@@ -1,98 +1,123 @@
-import {useCallback, useMemo, useRef, useState} from 'react';
-import {encodeFunctionData, erc20Abi} from 'viem';
+import {useCallback, useMemo} from 'react';
+import {isAddress} from 'viem';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
+import {useApprove} from '@builtbymom/web3/hooks/useApprove';
 import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
-import {
-	assert,
-	ETH_TOKEN_ADDRESS,
-	isAddress,
-	toAddress,
-	toBigInt,
-	toNormalizedBN,
-	zeroNormalizedBN
-} from '@builtbymom/web3/utils';
-import {defaultTxStatus, retrieveConfig} from '@builtbymom/web3/utils/wagmi';
+import {useVaultDeposit} from '@builtbymom/web3/hooks/useDeposit';
+import {useVaultWithdraw} from '@builtbymom/web3/hooks/useWithdraw';
+import {ETH_TOKEN_ADDRESS, toAddress, toBigInt} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {isSupportingPermit, signPermit} from '@lib/hooks/usePermit';
-import {approveERC20, deposit, depositViaRouter, redeemV3Shares, withdrawShares} from '@lib/utils/actions';
-import {allowanceKey} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
-import {YEARN_4626_ROUTER_ABI} from '@lib/utils/vaultRouter.abi.ts';
-import {readContract} from '@wagmi/core';
 
-import type {TDict, TNormalizedBN} from '@builtbymom/web3/types';
-import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
 import type {TAssertedVaultsConfiguration} from '@lib/contexts/useManageVaults';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
-import type {TPermitSignature} from '@lib/hooks/usePermit.types';
 
 export const useVanilaSolver = (
 	isZapNeededForDeposit: boolean,
 	isZapNeededForWithdraw: boolean
 ): TSolverContextBase => {
-	const {configuration} = useManageVaults();
-	const {provider, address} = useWeb3();
+	const {provider, address, isWalletSafe} = useWeb3();
+	const {configuration} = useManageVaults() as {configuration: TAssertedVaultsConfiguration};
 	const {onRefresh} = useWallet();
-	const [isFetchingAllowance, set_isFetchingAllowance] = useState(false);
-	const [approvalStatus, set_approvalStatus] = useState(defaultTxStatus);
-	const [depositStatus, set_depositStatus] = useState(defaultTxStatus);
-	const [withdrawStatus, set_withdrawStatus] = useState(defaultTxStatus);
-	const [allowance, set_allowance] = useState<TNormalizedBN>(zeroNormalizedBN);
-	const [permitSignature, set_permitSignature] = useState<TPermitSignature | undefined>(undefined);
-	const existingAllowances = useRef<TDict<TNormalizedBN>>({});
-	const spendAmount = configuration?.tokenToSpend.amount?.raw ?? 0n;
-	const isAboveAllowance = allowance.raw >= spendAmount;
+	const isSolverEnabled =
+		(!isZapNeededForDeposit && configuration.action === 'DEPOSIT') ||
+		(!isZapNeededForWithdraw && configuration.action === 'WITHDRAW');
 
 	/**********************************************************************************************
 	 ** The isV3Vault hook is used to determine if the current vault is a V3 vault. It's very
 	 ** important to know if the vault is a V3 vault because the deposit and withdraw functions
 	 ** are different for V3 vaults, and only V3 vaults support the permit signature.
+	 **
+	 ** @returns isV3Vault: boolean - Whether the vault is a V3 vault or not.
 	 *********************************************************************************************/
 	const isV3Vault = useMemo(() => configuration?.vault?.version.split('.')?.[0] === '3', [configuration?.vault]);
 
 	/**********************************************************************************************
-	 ** Retrieve the allowance for the token to be used by the solver. This will
-	 ** be used to determine if the user should approve the token or not.
+	 ** The yRouter hook is used to get the yearn router address for the current chain. If so, we
+	 ** can use the permit signature flow for the deposit function.
+	 **
+	 ** @returns yRouter: TAddress - The yearn router address for the current chain.
 	 *********************************************************************************************/
-	const onRetrieveAllowance = useCallback(
-		async (shouldForceRefetch?: boolean): Promise<TNormalizedBN> => {
-			if (
-				!configuration?.tokenToSpend.token ||
-				configuration?.tokenToSpend.amount === zeroNormalizedBN ||
-				!configuration?.vault ||
-				!provider ||
-				configuration?.tokenToSpend.token.address === ETH_TOKEN_ADDRESS
-			) {
-				return zeroNormalizedBN;
-			}
-
-			const key = allowanceKey(
-				configuration?.vault.chainID,
-				toAddress(configuration?.tokenToSpend.token.address),
-				toAddress(configuration?.vault.address),
-				toAddress(address)
-			);
-			if (existingAllowances.current[key] && !shouldForceRefetch) {
-				return existingAllowances.current[key];
-			}
-
-			set_isFetchingAllowance(true);
-			const allowance = await readContract(retrieveConfig(), {
-				chainId: Number(configuration?.vault.chainID),
-				abi: erc20Abi,
-				address: toAddress(configuration?.tokenToSpend?.token.address),
-				functionName: 'allowance',
-				args: [toAddress(address), toAddress(configuration?.vault.address)]
-			});
-
-			set_isFetchingAllowance(false);
-
-			existingAllowances.current[key] = toNormalizedBN(allowance, configuration?.tokenToSpend?.token.decimals);
-			return existingAllowances.current[key];
-		},
-		[address, configuration?.tokenToSpend.amount, configuration?.tokenToSpend.token, configuration?.vault, provider]
+	const yRouter = useMemo(
+		() => toAddress(CHAINS[configuration?.vault?.chainID]?.yearnRouterAddress),
+		[configuration?.vault]
 	);
+
+	/**********************************************************************************************
+	 ** The useApprove hook is used to approve the token to spend for the vault. This is used to
+	 ** allow the vault to spend the token on behalf of the user. This is required for the deposit
+	 ** function to work.
+	 **
+	 ** @returns isApproved: boolean - Whether the token is approved or not.
+	 ** @returns isApproving: boolean - Whether the approval is in progress.
+	 ** @returns onApprove: () => void - Function to approve the token.
+	 ** @returns amountApproved: bigint - The amount approved.
+	 ** @returns permitSignature: TPermitSignature - The permit signature.
+	 ** @returns onClearPermit: () => void - Function to clear the permit signature.
+	 *********************************************************************************************/
+	const {isApproved, isApproving, onApprove, amountApproved, permitSignature, onClearPermit} = useApprove({
+		provider,
+		chainID: configuration?.vault?.chainID || 0,
+		tokenToApprove: toAddress(configuration?.tokenToSpend.token?.address),
+		spender: isV3Vault && isAddress(yRouter) ? yRouter : toAddress(configuration?.vault?.address),
+		owner: toAddress(address),
+		amountToApprove: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
+		shouldUsePermit: isV3Vault && isAddress(yRouter),
+		deadline: 60,
+		disabled: !isSolverEnabled
+	});
+
+	/**********************************************************************************************
+	 ** The useVaultDeposit hook is used to deposit the token to the vault. It supports both V3
+	 ** and legacy vaults and will work with the yRouters if a signature is provided.
+	 **
+	 ** @returns canDeposit: boolean - Whether the user can deposit the token (no allowance or
+	 **			 balance checks are done here).
+	 ** @returns isDepositing: boolean - Whether the deposit is in progress.
+	 ** @returns onDeposit: () => void - Function to deposit the token.
+	 ** @returns maxDepositForUser: bigint - The maximum amount the user can deposit.
+	 *********************************************************************************************/
+	const {canDeposit, isDepositing, onDeposit} = useVaultDeposit({
+		chainID: configuration?.vault?.chainID || 0,
+		tokenToDeposit: toAddress(configuration?.tokenToSpend.token?.address),
+		vault: toAddress(configuration?.vault?.address),
+		owner: toAddress(address),
+		amountToDeposit: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
+		disabled: !isSolverEnabled,
+		...(isV3Vault
+			? {
+					version: 'ERC-4626',
+					options: {
+						useRouter: isAddress(toAddress(CHAINS[configuration?.vault?.chainID].yearnRouterAddress)),
+						routerAddress: toAddress(CHAINS[configuration?.vault?.chainID].yearnRouterAddress),
+						minOutSlippage: 10n,
+						permitSignature
+					}
+				}
+			: {version: 'LEGACY'})
+	});
+
+	/**********************************************************************************************
+	 ** The useVaultWithdraw hook is used to withdraw the token from the vault. It supports both V3
+	 ** and legacy.
+	 **
+	 ** @returns maxWithdrawForUser: bigint - The maximum amount that can be withdrawn by the user.
+	 **          This is exprimed in underlying token, so this means this is a shortcut for
+	 **          `vault.convertToAsset(vault.balanceOf(owner))`.
+	 ** @returns isWithdrawing: boolean - If the approval is in progress.
+	 ** @returns onWithdraw: () => void - Function to withdraw the token.
+	 *********************************************************************************************/
+	const {isWithdrawing, onWithdraw, maxWithdrawForUser, balanceOf} = useVaultWithdraw({
+		chainID: configuration?.vault?.chainID || 0,
+		tokenToWithdraw: toAddress(configuration?.tokenToSpend.token?.address),
+		vault: toAddress(configuration?.vault?.address),
+		owner: toAddress(address),
+		amountToWithdraw: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
+		disabled: !isSolverEnabled,
+		redeemTolerance: 1n,
+		...(isV3Vault ? {version: 'ERC-4626', minOutSlippage: 1n} : {version: 'LEGACY'})
+	});
 
 	/**********************************************************************************************
 	 ** The onRefreshBalances function is used to refresh the balances of the user after an action
@@ -122,7 +147,7 @@ export const useVanilaSolver = (
 	 ** amount or the token to spend.
 	 *********************************************************************************************/
 	useAsyncTrigger(async (): Promise<void> => {
-		if (!configuration?.action) {
+		if (!configuration?.action || !isSolverEnabled) {
 			return;
 		}
 		if (configuration.action === 'DEPOSIT' && isZapNeededForDeposit) {
@@ -131,184 +156,46 @@ export const useVanilaSolver = (
 		if (configuration.action === 'WITHDRAW' && isZapNeededForWithdraw) {
 			return;
 		}
-		set_permitSignature(undefined);
-		set_approvalStatus(defaultTxStatus);
-		set_depositStatus(defaultTxStatus);
-		set_withdrawStatus(defaultTxStatus);
-		set_allowance(await onRetrieveAllowance(false));
-	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, onRetrieveAllowance]);
-
-	/**********************************************************************************************
-	 ** Trigger an approve web3 action, simply trying to approve `amount` tokens
-	 ** to be used by the final vault, in charge of depositing the tokens.
-	 ** This approve can not be triggered if the wallet is not active
-	 ** (not connected) or if the tx is still pending.
-	 *********************************************************************************************/
-	const onApprove = useCallback(
-		async (onSuccess?: () => void): Promise<void> => {
-			assert(configuration?.tokenToSpend.token, 'Input token is not set');
-			assert(configuration?.vault, 'Output token is not set');
-			const config = configuration as TAssertedVaultsConfiguration;
-
-			const shouldUsePermit = await isSupportingPermit({
-				contractAddress: config.tokenToSpend.token.address,
-				chainID: config.vault.chainID
-			});
-			if (shouldUsePermit && isV3Vault && isAddress(CHAINS[config.vault.chainID].yearnRouterAddress)) {
-				set_approvalStatus({...defaultTxStatus, pending: true});
-				const signature = await signPermit({
-					contractAddress: config.tokenToSpend.token.address,
-					ownerAddress: toAddress(address),
-					spenderAddress: toAddress(CHAINS[configuration.vault.chainID].yearnRouterAddress),
-					value: config.tokenToSpend.amount?.raw || 0n,
-					deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 60), // 60 minutes
-					chainID: config.vault.chainID
-				});
-
-				set_approvalStatus({...defaultTxStatus, success: !!signature});
-				if (!signature) {
-					set_permitSignature(undefined);
-					set_allowance(zeroNormalizedBN);
-				} else {
-					set_allowance(config.tokenToSpend.amount || zeroNormalizedBN);
-					set_permitSignature(signature);
-				}
-			} else {
-				const result = await approveERC20({
-					connector: provider,
-					chainID: config.vault.chainID,
-					contractAddress: config.tokenToSpend.token.address,
-					spenderAddress: config.vault.address,
-					amount: config.tokenToSpend.amount?.raw || 0n,
-					statusHandler: set_approvalStatus
-				});
-				set_allowance(await onRetrieveAllowance(true));
-				if (result.isSuccessful) {
-					onSuccess?.();
-				} else {
-					set_permitSignature(undefined);
-					set_allowance(zeroNormalizedBN);
-				}
-			}
-		},
-		[configuration, address, provider, onRetrieveAllowance, isV3Vault]
-	);
+	}, [configuration.action, isZapNeededForDeposit, isZapNeededForWithdraw, isSolverEnabled]);
 
 	/**********************************************************************************************
 	 ** Trigger a deposit web3 action, simply trying to deposit `amount` tokens to
 	 ** the selected vault.
 	 *********************************************************************************************/
-	const onExecuteDeposit = useCallback(
-		async (onSuccess: () => void): Promise<void> => {
-			assert(configuration?.vault?.address, 'Output token is not set');
-			assert(configuration?.tokenToSpend?.token?.address, 'Input amount is not set');
-			const config = configuration as TAssertedVaultsConfiguration;
-			set_depositStatus({...defaultTxStatus, pending: true});
-
-			let result: TTxResponse | undefined = undefined;
-			if (permitSignature) {
-				result = await depositViaRouter({
-					connector: provider,
-					statusHandler: set_depositStatus,
-					chainID: config.vault?.chainID,
-					contractAddress: toAddress(CHAINS[configuration.vault.chainID].yearnRouterAddress),
-					amount: toBigInt(config.tokenToSpend.amount.raw),
-					token: toAddress(config.tokenToSpend.token.address),
-					vault: toAddress(config.vault.address),
-					permitCalldata: encodeFunctionData({
-						abi: YEARN_4626_ROUTER_ABI,
-						functionName: 'selfPermit',
-						args: [
-							toAddress(config.tokenToSpend.token.address),
-							toBigInt(config.tokenToSpend.amount.raw),
-							permitSignature.deadline,
-							permitSignature.v,
-							permitSignature.r,
-							permitSignature.s
-						]
-					})
-				});
-			} else {
-				result = await deposit({
-					connector: provider,
-					chainID: config.vault.chainID,
-					contractAddress: toAddress(config.vault.address),
-					amount: toBigInt(config.tokenToSpend.amount.raw),
-					statusHandler: set_depositStatus
-				});
-			}
-
-			onRefreshBalances(config);
-			onRetrieveAllowance(true);
-			if (result.isSuccessful) {
-				onSuccess?.();
-			} else {
-				if (permitSignature) {
-					set_permitSignature(undefined);
-					set_allowance(zeroNormalizedBN);
-				}
-			}
-			set_depositStatus({...defaultTxStatus, success: result.isSuccessful});
-		},
-		[configuration, onRefreshBalances, onRetrieveAllowance, permitSignature, provider]
-	);
+	const onExecuteDeposit = useCallback(async (): Promise<boolean> => {
+		const isSuccess = await onDeposit();
+		onClearPermit();
+		if (isSuccess) {
+			onRefreshBalances(configuration as TAssertedVaultsConfiguration);
+		}
+		return isSuccess;
+	}, [configuration, onClearPermit, onDeposit, onRefreshBalances]);
 
 	/*********************************************************************************************
 	 ** Trigger a withdraw web3 action using the vault contract to take back some underlying token
 	 ** from this specific vault.
 	 *********************************************************************************************/
-	const onExecuteWithdraw = useCallback(
-		async (onSuccess?: () => void): Promise<void> => {
-			assert(configuration?.tokenToReceive?.token, 'Output token is not set');
-			assert(configuration?.tokenToReceive?.amount?.display, 'Input amount is not set');
-			assert(configuration.vault, 'Vault is not set');
-			const config = configuration as TAssertedVaultsConfiguration;
-
-			set_withdrawStatus({...defaultTxStatus, pending: true});
-
-			let result;
-			if (isV3Vault) {
-				result = await redeemV3Shares({
-					connector: provider,
-					chainID: config.vault.chainID,
-					contractAddress: config.vault.address,
-					amount: config.tokenToReceive.amount.raw
-				});
-			} else {
-				result = await withdrawShares({
-					connector: provider,
-					chainID: config.vault.chainID,
-					contractAddress: config.vault.token.address,
-					amount: config.tokenToReceive.amount.raw
-				});
-			}
-			onRefreshBalances(config);
-			result.isSuccessful ? onSuccess?.() : null;
-			set_withdrawStatus({...defaultTxStatus, success: result.isSuccessful});
-		},
-		[configuration, isV3Vault, onRefreshBalances, provider]
-	);
+	const onExecuteWithdraw = useCallback(async (): Promise<boolean> => {
+		const isSuccess = await onWithdraw();
+		if (isSuccess) {
+			onRefreshBalances(configuration as TAssertedVaultsConfiguration);
+		}
+		return isSuccess;
+	}, [configuration, onRefreshBalances, onWithdraw]);
 
 	return {
-		/** Deposit part */
-		depositStatus,
-		set_depositStatus,
-		onExecuteDeposit,
-
-		/**Withdraw part */
-		withdrawStatus,
-		onExecuteWithdraw,
-		set_withdrawStatus,
-
-		/** Approval part */
-		approvalStatus,
-		allowance,
+		isApproved,
+		isApproving,
+		isDepositing,
+		isWithdrawing: isWithdrawing,
+		canDeposit: canDeposit && (isApproved || isWalletSafe),
+		allowance: amountApproved,
 		permitSignature,
-		isFetchingAllowance,
-		isApproved: isAboveAllowance,
-		isDisabled: !approvalStatus.none,
 		onApprove,
-
+		onDeposit: onExecuteDeposit,
+		onWithdraw: onExecuteWithdraw,
+		maxWithdraw: maxWithdrawForUser,
+		vaultBalanceOf: balanceOf,
 		canZap: true, //Not used in vanilla solver
 		isFetchingQuote: false,
 		quote: null

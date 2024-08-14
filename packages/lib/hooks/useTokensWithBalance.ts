@@ -1,11 +1,10 @@
-import {useCallback, useMemo, useState} from 'react';
-import {serialize} from 'wagmi';
+import {useCallback, useState} from 'react';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
 import {ETH_TOKEN_ADDRESS, toAddress, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {getNetwork} from '@builtbymom/web3/utils/wagmi';
-import {createUniqueID} from '@lib/utils/tools.identifiers';
+import {acknowledge} from '@lib/utils/tools';
 import {useDeepCompareEffect} from '@react-hookz/web';
 
 import type {TChainTokens, TDict, TNDict, TToken} from '@builtbymom/web3/types';
@@ -20,19 +19,9 @@ export function useTokensWithBalance(): {
 	onRefresh: () => Promise<TChainTokens>;
 } {
 	const {chainID} = useWeb3();
-	const {balances, getBalance, isLoading, isLoadingOnCurrentChain, isLoadingOnChain, onRefresh} = useWallet();
+	const {balanceHash, getBalance, isLoading, isLoadingOnCurrentChain, isLoadingOnChain, onRefresh} = useWallet();
 	const [allTokens, set_allTokens] = useState<TNDict<TDict<TToken>>>({});
 	const {tokenLists, isCustomToken} = useTokenList();
-
-	/**********************************************************************************************
-	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
-	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
-	 ** We will use classic hash function to create a hash from the balances object.
-	 *********************************************************************************************/
-	const currentIdentifier = useMemo(() => {
-		const hash = createUniqueID(serialize(balances));
-		return hash;
-	}, [balances]);
 
 	/**********************************************************************************************
 	 ** This useEffect hook will be triggered when the currentNetworkTokenList or safeChainID
@@ -71,11 +60,11 @@ export function useTokensWithBalance(): {
 
 	/**********************************************************************************************
 	 ** This function will be used to get the list of tokens with balance. It will be triggered
-	 ** when the allTokens or getBalance or isCustomToken or currentIdentifier changes.
+	 ** when the allTokens or getBalance or isCustomToken or balanceHash changes.
 	 *********************************************************************************************/
 	const listTokensWithBalance = useCallback(
 		(_chainID?: number): TToken[] => {
-			currentIdentifier; // Only used to trigger the useEffect hook
+			acknowledge(balanceHash);
 			if (_chainID === undefined) {
 				_chainID = chainID;
 			}
@@ -96,16 +85,16 @@ export function useTokensWithBalance(): {
 			}
 			return withBalance;
 		},
-		[allTokens, getBalance, isCustomToken, currentIdentifier, chainID]
+		[allTokens, getBalance, isCustomToken, balanceHash, chainID]
 	);
 
 	/**********************************************************************************************
 	 ** This function will be used to get the list of tokens with or without balance. It will be
-	 ** triggered when the allTokens or getBalance or isCustomToken or currentIdentifier changes.
+	 ** triggered when the allTokens or getBalance or isCustomToken or balanceHash changes.
 	 *********************************************************************************************/
 	const listTokens = useCallback(
 		(_chainID?: number): TToken[] => {
-			currentIdentifier; // Only used to trigger the useEffect hook
+			acknowledge(balanceHash);
 			if (_chainID === undefined) {
 				_chainID = chainID;
 			}
@@ -123,17 +112,16 @@ export function useTokensWithBalance(): {
 			}
 			return withBalance;
 		},
-		[allTokens, getBalance, currentIdentifier, chainID]
+		[allTokens, getBalance, balanceHash, chainID]
 	);
 
 	/**********************************************************************************************
 	 ** The listAllTokensWithBalance is similar to the listTokensWithBalance function, but it will
 	 ** return all tokens from all networks. It will be triggered when the allTokens or getBalance
-	 ** or currentIdentifier changes.
+	 ** or balanceHash changes.
 	 *********************************************************************************************/
 	const listAllTokensWithBalance = useCallback((): TToken[] => {
-		currentIdentifier; // Only used to trigger the useEffect hook
-
+		acknowledge(balanceHash);
 		const withBalance = [];
 		for (const eachNetwork of Object.values(allTokens)) {
 			for (const dest of Object.values(eachNetwork)) {
@@ -145,7 +133,7 @@ export function useTokensWithBalance(): {
 			}
 		}
 		return withBalance;
-	}, [allTokens, getBalance, isCustomToken, currentIdentifier]);
+	}, [allTokens, getBalance, isCustomToken, balanceHash]);
 
 	return {
 		listAllTokensWithBalance,

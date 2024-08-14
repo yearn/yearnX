@@ -1,11 +1,11 @@
 import {type ReactElement, useCallback} from 'react';
-import {useRouter, useSearchParams} from 'next/navigation';
 import {cl} from '@builtbymom/web3/utils';
 
 import {IconSort} from '../icons/IconSort';
 
 import type {TSortDirection} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
+import type {TVaultsSortBy} from '@lib/utils/types';
 
 type TVaultsListHeadProps = {
 	items: {
@@ -13,35 +13,34 @@ type TVaultsListHeadProps = {
 		isSortable: boolean;
 		value: string;
 	}[];
-	sortBy: string;
-	sortDirection: string;
+	sortBy: TVaultsSortBy;
+	sortDirection: TSortDirection;
+	onSortBy: (sortBy: TVaultsSortBy) => void;
+	onSortDirection: (sortDirection: TSortDirection) => void;
 	vaults: TYDaemonVaults;
 };
 
 export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const currentPage = searchParams.get('page') ?? 1;
-
 	/**********************************************************************************************
 	 ** This toggleSortDirection function changes sort direction between asc, desc and 'no-sort'.
 	 *********************************************************************************************/
 	const toggleSortDirection = useCallback(
-		(newSortBy: string): TSortDirection => {
+		(newSortBy: TVaultsSortBy): void => {
+			props.onSortBy(newSortBy);
 			if (props.sortBy === newSortBy) {
 				if (props.sortDirection === '') {
-					return 'desc';
+					return props.onSortDirection('desc');
 				}
 				if (props.sortDirection === 'desc') {
-					return 'asc';
+					return props.onSortDirection('asc');
 				}
 				if (props.sortDirection === 'asc') {
-					return '';
+					return props.onSortDirection(null);
 				}
 			}
-			return 'desc';
+			return props.onSortDirection('desc');
 		},
-		[props.sortBy, props.sortDirection]
+		[props]
 	);
 	/**********************************************************************************************
 	 ** This renderSortIcons function returns the correct icon, according to current sort state.
@@ -84,11 +83,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 			{props.items.map(item =>
 				item.isSortable ? (
 					<button
-						onClick={() =>
-							router.push(
-								`?page=${currentPage}&sortDirection=${toggleSortDirection(item.value)}&sortBy=${item.value}`
-							)
-						}
+						onClick={() => toggleSortDirection(item.value as TVaultsSortBy)}
 						className={cl(
 							'flex w-full items-center gap-x-2',
 							item.value === 'deposits' || item.value === 'balance' || item.value === 'apr'

@@ -1,10 +1,11 @@
-import {type ReactElement, useMemo, useState} from 'react';
+import {type ReactElement, useEffect, useMemo, useState} from 'react';
+import {useQueryState} from 'nuqs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
 import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
-import {useDebounce} from '@lib/hooks/useDebounce';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
+import {acknowledge} from '@lib/utils/tools';
 
 import {Pagination} from './Pagination';
 import {Skeleton} from './Skeleton';
@@ -12,29 +13,41 @@ import {VaultItem} from './VaultItem';
 import {VaultSearch} from './VaultSearch';
 import {VaultsListHead} from './VaultsListHead';
 
-import type {TToken} from '@builtbymom/web3/types';
+import type {TDict, TNDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
+import type {TAPRType} from '@lib/utils/types';
 
 type TVaultListProps = {
 	vaults: TYDaemonVaults;
 	isLoading: boolean;
-	headerTabs: {value: string; label: string; isSortable: boolean}[];
+	options?: {
+		aprType: TAPRType;
+	};
 };
 
+const HEADER_TABS = [
+	{value: 'vault', label: 'Vault', isSortable: false},
+	{value: 'apr', label: 'APR', isSortable: true},
+	{value: 'deposits', label: 'TVL', isSortable: true},
+	{value: 'balance', label: 'My Balance', isSortable: true},
+	{value: 'manage', label: 'Manage', isSortable: false}
+];
+
 export const VaultList = (props: TVaultListProps): ReactElement => {
+	const [searchValue, set_searchValue] = useQueryState('search', {defaultValue: '', shallow: true});
 	const {getPrices, pricingHash} = usePrices();
-	const [searchValue, set_searchValue] = useState('');
-	const {debouncedValue} = useDebounce(searchValue, 400);
+	const [allPrices, set_allPrices] = useState<TNDict<TDict<TNormalizedBN>>>({});
 
 	/**********************************************************************************************
-	 ** useMemo hook to retrieve and memoize prices for all tokens associated with the vaults.
+	 ** useEffect hook to retrieve and memoize prices for all tokens associated with the vaults.
 	 ** - Constructs an array of tokens from `props.vaults` containing chain IDs and addresses.
 	 ** - Uses `getPrices` to fetch prices for these tokens.
 	 *********************************************************************************************/
-	const allPrices = useMemo(() => {
+	useEffect(() => {
+		acknowledge(pricingHash);
 		const allTokens = props.vaults.map(vault => ({chainID: vault.chainID, address: vault.address}));
-		return getPrices(allTokens as TToken[]);
-	}, [props.vaults, getPrices, pricingHash]); // eslint-disable-line react-hooks/exhaustive-deps
+		set_allPrices(getPrices(allTokens as TToken[]));
+	}, [pricingHash, props.vaults, getPrices]);
 
 	/**********************************************************************************************
 	 ** useMemo hook to filter vaults based on a debounced search value.
@@ -43,7 +56,7 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 	 *********************************************************************************************/
 	const filteredVaults = useMemo(() => {
 		const filteredVaults = props.vaults?.filter(vault => {
-			const lowercaseValue = debouncedValue.toLowerCase();
+			const lowercaseValue = searchValue.toLowerCase();
 			return (
 				vault.name.toLowerCase().includes(lowercaseValue) ||
 				vault.address.toLowerCase().includes(lowercaseValue) ||
@@ -52,14 +65,14 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 		});
 
 		return filteredVaults;
-	}, [debouncedValue, props.vaults]);
+	}, [searchValue, props.vaults]);
 
-	const {vaults, nextPage, prevPage, currentPage, amountOfPages} = useVaultsPagination(
+	const {vaults, goToNextPage, goToPrevPage, goToPage, currentPage, amountOfPages} = useVaultsPagination(
 		VAULTS_PER_PAGE,
-		debouncedValue ? filteredVaults : props.vaults
+		searchValue ? filteredVaults : props.vaults
 	);
 
-	const {sortBy, sortDirection, sortedVaults} = useSortedVaults(vaults, allPrices);
+	const sort = useSortedVaults(vaults, allPrices, props.options);
 
 	/**********************************************************************************************
 	 ** Generates the layout based on the current props and state.
@@ -72,14 +85,15 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 			return <Skeleton />;
 		}
 
-		if (sortedVaults?.length) {
+		if (sort.sortedVaults?.length) {
 			return (
 				<div className={'flex flex-col gap-y-3'}>
-					{sortedVaults.map(vault => (
+					{sort.sortedVaults.map(vault => (
 						<VaultItem
 							key={vault.address}
 							vault={vault}
 							price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
+							options={props.options}
 						/>
 					))}
 				</div>
@@ -104,9 +118,11 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 					set_searchValue={set_searchValue}
 				/>
 				<VaultsListHead
-					items={props.headerTabs}
-					sortBy={sortBy}
-					sortDirection={sortDirection}
+					items={HEADER_TABS}
+					sortBy={sort.sortBy}
+					sortDirection={sort.sortDirection}
+					onSortBy={sort.onSortBy}
+					onSortDirection={sort.onSortDirection}
 					vaults={props.vaults}
 				/>
 
@@ -115,8 +131,9 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 
 			<Pagination
 				currentPage={currentPage}
-				nextPage={nextPage}
-				prevPage={prevPage}
+				goToNextPage={goToNextPage}
+				goToPrevPage={goToPrevPage}
+				goToPage={goToPage}
 				amountOfPages={amountOfPages}
 			/>
 		</div>

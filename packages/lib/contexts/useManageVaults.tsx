@@ -4,18 +4,18 @@ import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {optionalRenderProps} from '@lib/utils/optionalRenderProps';
 
 import type {Dispatch, ReactElement} from 'react';
-import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TOptionalRenderProps} from '@lib/utils/optionalRenderProps';
 import type {TAssertedTokenToUse, TTokenToUse} from '@lib/utils/types';
 
-type TPartialToken = Partial<{token: TToken; amount: TNormalizedBN}>;
 type TVaultsActions =
-	| {type: 'SET_TOKEN_TO_SPEND'; payload: TPartialToken}
-	| {type: 'SET_TOKEN_TO_RECEIVE'; payload: TPartialToken}
+	| {type: 'SET_TOKEN_TO_SPEND'; payload: TTokenToUse}
+	| {type: 'SET_AMOUNT_TO_SPEND'; payload: TNormalizedBN}
+	| {type: 'SET_TOKEN_TO_RECEIVE'; payload: TTokenToUse}
 	| {type: 'SET_VAULT'; payload: TYDaemonVault}
-	| {type: 'SET_DEPOSIT'; payload: {toSpend: TPartialToken; vault: TYDaemonVault}}
-	| {type: 'SET_WITHDRAW'; payload: {toSpend: TPartialToken; toReceive: TPartialToken; vault: TYDaemonVault}}
+	| {type: 'SET_DEPOSIT'; payload: {toSpend: TTokenToUse; vault: TYDaemonVault}}
+	| {type: 'SET_WITHDRAW'; payload: {toSpend: TTokenToUse; toReceive: TTokenToUse; vault: TYDaemonVault}}
 	| {type: 'RESET'};
 
 export type TVaultsConfiguration = {
@@ -47,8 +47,7 @@ const defaultProps: TVaults = {
 				name: '',
 				symbol: '',
 				decimals: 0,
-				value: 0,
-				balance: zeroNormalizedBN
+				value: 0
 			},
 			amount: zeroNormalizedBN
 		},
@@ -59,8 +58,7 @@ const defaultProps: TVaults = {
 				name: '',
 				symbol: '',
 				decimals: 0,
-				value: 0,
-				balance: zeroNormalizedBN
+				value: 0
 			},
 			amount: zeroNormalizedBN
 		},
@@ -83,6 +81,12 @@ export const VaultsContextApp = ({children}: {children: TOptionalRenderProps<TVa
 				return {
 					...state,
 					tokenToSpend: {...state?.tokenToSpend, ...action.payload}
+				};
+			}
+			case 'SET_AMOUNT_TO_SPEND': {
+				return {
+					...state,
+					tokenToSpend: {...state?.tokenToSpend, amount: action.payload}
 				};
 			}
 			case 'SET_TOKEN_TO_RECEIVE': {

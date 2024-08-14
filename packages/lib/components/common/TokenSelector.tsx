@@ -1,11 +1,10 @@
-import {type ReactElement, type RefObject, useEffect, useMemo, useState} from 'react';
-import {serialize} from 'wagmi';
+import {type ReactElement, type RefObject, useEffect, useState} from 'react';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
 import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {toAddress} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePopularTokens} from '@lib/contexts/usePopularTokens';
-import {createUniqueID} from '@lib/utils/tools.identifiers';
+import {acknowledge} from '@lib/utils/tools';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {IconChevron} from '../icons/IconChevron';
@@ -40,26 +39,17 @@ export function TokenSelector({
 }: TChainSelectorProps): ReactElement {
 	const {listTokens} = usePopularTokens();
 	const {address} = useWeb3();
-	const {balances, getBalance} = useWallet();
+	const {balanceHash, getBalance} = useWallet();
 	const [searchValue, set_searchValue] = useState('');
 	const {configuration} = useManageVaults();
 	const [tokensToUse, set_tokensToUse] = useState<TToken[]>([]);
-
-	/**********************************************************************************************
-	 ** Balances is an object with multiple level of depth. We want to create a unique hash from
-	 ** it to know when it changes. This new hash will be used to trigger the useEffect hook.
-	 ** We will use classic hash function to create a hash from the balances object.
-	 *********************************************************************************************/
-	const currentBalanceIdentifier = useMemo(() => {
-		const hash = createUniqueID(serialize(balances));
-		return hash;
-	}, [balances]);
 
 	/**********************************************************************************************
 	 ** Create the list of tokens that might be possible to deposit, prepending the vault token and
 	 ** filtering out duplicates.
 	 *********************************************************************************************/
 	useEffect((): void => {
+		acknowledge(balanceHash);
 		if (!configuration.vault) {
 			return;
 		}
@@ -85,8 +75,7 @@ export function TokenSelector({
 			}
 		}
 		set_tokensToUse(noDuplicates);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [chainID, listTokens, configuration?.vault, currentBalanceIdentifier]);
+	}, [chainID, listTokens, configuration.vault, balanceHash, getBalance]);
 
 	/**********************************************************************************************
 	 ** Filter tokens on the current chain based on a search value.
