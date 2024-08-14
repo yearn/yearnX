@@ -25,7 +25,7 @@ function MyApp(props: AppProps): ReactElement {
 					titleColor={'#FFFFFF'}
 					themeColor={'#000000'}
 					description={
-						'Ape Stronger Together. Yearn partners with the best in the industry to bring you the best yield farming strategies.'
+						'The best risk adjusted yields in DeFi, on the best protocols in crypto. Yearn X takes you straight to Yearn Vaults from some of the most popular crypto ecosystems.'
 					}
 					og={'https://yearn.space/og.png'}
 					uri={'https://yearn.space'}
