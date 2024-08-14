@@ -454,7 +454,6 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 	 ** changes, or once we are getting the balance of the vault.
 	 *********************************************************************************************/
 	useEffect(() => {
-		console.warn(configuration.action);
 		if (configuration.action !== 'WITHDRAW') {
 			dispatchConfiguration({
 				type: 'SET_WITHDRAW',
