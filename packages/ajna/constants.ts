@@ -1,7 +1,7 @@
 import type {TAPRType} from '@lib/utils/types';
 
-export const PROJECT_TITLE = 'Yearn x AJNA';
-export const PROJECT_DESCRIPTION = '';
+export const PROJECT_TITLE = 'Yearn x Ajna';
+export const PROJECT_DESCRIPTION = 'Get the best Ajna yields, with Yearn.';
 export const VARIANT_TO_USE = 5;
 export const VAULT_FILTER = 'ajna';
 export const VAULTS_PER_PAGE = 20;

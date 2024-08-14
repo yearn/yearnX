@@ -12,7 +12,10 @@ export const Section4 = ({bgImage, title, description}: TSectionProps): ReactEle
 			</div>
 		</div>
 		<div className={'bg-table flex flex-col justify-between rounded-2xl p-6 lg:p-10'}>
-			<div className={'lg:leading-7xl text-regularText text-4xl font-black leading-[48px] lg:text-7xl'}>
+			<div
+				className={
+					'lg:leading-7xl text-regularText lg-text:text-7xl text-4xl font-black uppercase leading-[48px]'
+				}>
 				{title}
 			</div>
 			<p className={'text-lg'}>{description}</p>

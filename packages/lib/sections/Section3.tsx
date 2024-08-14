@@ -19,7 +19,7 @@ export const Section3 = ({title, description, bgImage, cards}: TSectionProps): R
 					)}>
 					<div
 						className={
-							'md:leading-4xl md:leading-7xl text-regularText mb-4 text-4xl font-black leading-[48px] md:mb-0 lg:text-7xl'
+							'md:leading-4xl md:leading-7xl text-regularText lg-text:text-7xl mb-4 text-4xl font-black uppercase leading-[48px] md:mb-0'
 						}>
 						{title}
 					</div>

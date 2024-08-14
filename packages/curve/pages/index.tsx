@@ -36,10 +36,8 @@ export default function Index(): ReactElement {
 			<Section
 				variant={VARIANT_TO_USE}
 				bgImage={'/bg.png'}
-				title={'YEARN PARTNER VAULTS'}
-				description={
-					'Several lines description. Several lines description. Several lines description. Several lines description. '
-				}
+				title={'Curve Vaults'}
+				description={'Get the best risk adjusted Curve yields, with Yearn.'}
 				cards={[
 					{title: 'TVL', currency: 'USD', value: sumOfTVL, decimals: 0, isReady: sumOfTVL > 0},
 					{title: 'APR up to', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0},

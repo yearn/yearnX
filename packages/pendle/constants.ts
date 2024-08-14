@@ -1,7 +1,7 @@
 import type {TAPRType} from '@lib/utils/types';
 
 export const PROJECT_TITLE = 'Yearn x Pendle';
-export const PROJECT_DESCRIPTION = 'Feeling lucky Penle Anon?';
+export const PROJECT_DESCRIPTION = 'Auto-rolling Pendle Vaults, from Yearn.';
 export const VARIANT_TO_USE = 1;
 export const VAULT_FILTER = 'pendle';
 export const VAULTS_PER_PAGE = 20;

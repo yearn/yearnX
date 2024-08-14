@@ -13,42 +13,42 @@ export const PARTNERS_PER_PAGE = 16;
 export const PARTNERS: TPartners = [
 	{
 		name: 'Yearn X Aerodrome',
-		description: 'Take a flight with the Yearn X Aerodrome Vaults',
+		description: 'Liftoff for great yields, with Aerodrome on Yearn.',
 		icon: 'https://aerodrome.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v2',
 		url: 'https://aerodrome.yearn.space'
 	},
 	{
 		name: 'Yearn X Ajna',
-		description: 'Embrace the yield with no Oracles with Yearn X Ajna Vaults',
+		description: 'No oracles, no governance, just great yields.',
 		icon: 'https://ajna.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v2',
 		url: 'https://ajna.yearn.space'
 	},
 	{
 		name: 'Yearn X Curve',
-		description: 'Discover the fanciest yVaults with Curve',
+		description: "If it's on Curve, you'll get the best max boosted yields with Yearn.",
 		icon: 'https://curve.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v2',
 		url: 'https://curve.yearn.space'
 	},
 	{
 		name: 'Yearn X Pendle',
-		description: 'Hop on the Yield Express with the Yearn X Pendle Vaults',
+		description: 'The best Pendle yields with auto-rolling tech.',
 		icon: 'https://pendle.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v2',
 		url: 'https://pendle.yearn.space'
 	},
 	{
 		name: 'Yearn X PoolTogether',
-		description: 'Feeling lucky Anon?',
+		description: 'Feeling lucky Anon? Win mega yield payouts with prize Vaults.',
 		icon: 'https://pooltogether.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v2',
 		url: 'https://pooltogether.yearn.space'
 	},
 	{
 		name: 'Yearn X Velodrome',
-		description: 'Earn the yellow jersey or Yield with the Yearn X Velodrome Vaults',
+		description: 'Wear the yield yellow jersey with Velodrome.',
 		icon: 'https://velodrome.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v2',
 		url: 'https://velodrome.yearn.space'
