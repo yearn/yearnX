@@ -51,7 +51,11 @@ export const Section2 = ({title, bgImage, cards}: TSectionProps): ReactElement =
 					</div>
 				</div>
 			</div>
-			<div className={cl('col-span-12 md:col-span-7', 'size-full overflow-hidden rounded-t-2xl md:rounded-2xl')}>
+			<div
+				className={cl(
+					'col-span-12 md:col-span-7',
+					'size-full overflow-hidden rounded-t-2xl md:rounded-2xl md:min-h-[528px] md:max-h-[528px]'
+				)}>
 				<Image
 					src={bgImage ?? '/bg-placeholder.png'}
 					priority

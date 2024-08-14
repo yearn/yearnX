@@ -13,9 +13,6 @@ import type {GetServerSideProps} from 'next';
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
-	const numberOfVaults = useMemo(() => vaultsValues.length, [vaultsValues]);
-
-	const sumOfTVL = useMemo(() => vaultsValues.reduce((acc, vault) => acc + vault.tvl.tvl, 0), [vaultsValues]);
 
 	const upToAPR = useMemo(() => {
 		const aprs = vaultsValues.map(
@@ -28,18 +25,14 @@ export default function Index(): ReactElement {
 		<section className={'flex w-full max-w-[1200px] flex-col gap-y-6'}>
 			<DefaultHeader
 				docsLink={''}
-				secondLogoURL={'/partnerLogo.svg'}
+				secondLogoURL={'/partnerLogo.png'}
 			/>
 			<Section
 				variant={VARIANT_TO_USE}
-				bgImage={'/bg.webp'}
-				title={'OPTIMISM VAULTS'}
-				description={'Get the best Optimism yields, with Yearn.'}
-				cards={[
-					{title: 'TVL', currency: 'USD', value: sumOfTVL, decimals: 0, isReady: sumOfTVL > 0},
-					{title: 'APR up to', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0},
-					{title: 'Vaults', value: numberOfVaults, decimals: 0, isReady: numberOfVaults > 0}
-				]}
+				bgImage={'/bg.png'}
+				title={'MOM TESTING SPACE'}
+				description={'Because MOM needs to test thing so you can enjoy and relax. Avoid doing stuff here.'}
+				cards={[{title: 'GM Ratio', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0}]}
 			/>
 			<VaultList
 				vaults={vaultsValues}
