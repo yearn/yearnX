@@ -115,7 +115,8 @@ export const useVanilaSolver = (
 		owner: toAddress(address),
 		amountToWithdraw: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
 		disabled: !isSolverEnabled,
-		...(isV3Vault ? {version: 'ERC-4626', minOutSlippage: 1n, redeemTolerance: 1n} : {version: 'LEGACY'})
+		redeemTolerance: 1n,
+		...(isV3Vault ? {version: 'ERC-4626', minOutSlippage: 1n} : {version: 'LEGACY'})
 	});
 
 	/**********************************************************************************************
