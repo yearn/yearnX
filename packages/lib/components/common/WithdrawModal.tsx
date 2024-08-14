@@ -314,7 +314,7 @@ function ButtonComponent(props: {
 	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
 }): ReactElement {
 	const plausible = usePlausible();
-	const {address, onConnect} = useWeb3();
+	const {address, onConnect, isWalletSafe} = useWeb3();
 	const {configuration} = useManageVaults();
 	const {isZapNeededForWithdraw} = useIsZapNeeded(configuration);
 	const {onWithdraw, quote, isFetchingQuote, isWithdrawing, canZap, onApprove, isApproved, isApproving} = useSolver();
@@ -330,7 +330,7 @@ function ButtonComponent(props: {
 			onConnect();
 			return;
 		}
-		if (!isApproved && isZapNeededForWithdraw) {
+		if (!isApproved && isZapNeededForWithdraw && !isWalletSafe) {
 			onApprove?.();
 			return;
 		}
@@ -374,13 +374,18 @@ function ButtonComponent(props: {
 		}
 	}, [
 		address,
-		configuration?.tokenToReceive?.token?.symbol,
-		configuration?.tokenToSpend.amount?.display,
+		configuration.tokenToReceive.token?.address,
+		configuration.tokenToReceive.token?.symbol,
+		configuration.tokenToSpend.amount?.display,
+		configuration.vault?.address,
+		configuration.vault?.symbol,
 		isApproved,
+		isWalletSafe,
 		isZapNeededForWithdraw,
 		onApprove,
 		onConnect,
 		onWithdraw,
+		plausible,
 		props,
 		quote?.minOutputAmount,
 		quote?.outputTokenDecimals
@@ -399,11 +404,14 @@ function ButtonComponent(props: {
 		if (!canZap && !isFetchingQuote) {
 			return 'Impossible to zap out';
 		}
+		if (isWalletSafe) {
+			return 'Approve and Withdraw';
+		}
 		if (!isApproved && isZapNeededForWithdraw) {
 			return 'Approve';
 		}
 		return 'Withdraw';
-	}, [address, canZap, isFetchingQuote, isApproved, isZapNeededForWithdraw]);
+	}, [address, canZap, isFetchingQuote, isWalletSafe, isApproved, isZapNeededForWithdraw]);
 
 	const isWithdrawDisable =
 		!props.isReady ||
