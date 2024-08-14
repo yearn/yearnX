@@ -296,7 +296,7 @@ export const usePortalsSolver = (
 	/**********************************************************************************************
 	 * TODO: Add comment to explain how it works
 	 *********************************************************************************************/
-	const onDepositForGnosis = useCallback(async (): Promise<boolean> => {
+	const onExecuteForGnosis = useCallback(async (): Promise<boolean> => {
 		assert(provider, 'Provider is not set');
 		assert(latestQuote, 'Quote is not set');
 		assert(configuration?.tokenToSpend.token, 'Token to Spend is not set');
@@ -408,160 +408,157 @@ export const usePortalsSolver = (
 	 * matter the result. It returns a boolean value indicating whether the order was successful or
 	 * not.
 	 *********************************************************************************************/
-	const execute = useCallback(
-		async (action: 'WITHDRAW' | 'DEPOSIT'): Promise<TTxResponse> => {
-			assert(provider, 'Provider is not set');
-			assert(latestQuote, 'Quote is not set');
-			assert(configuration?.tokenToSpend.token, 'Token to Spend is not set');
-			assert(configuration?.tokenToReceive.token, 'Token to Receiver is not set');
-			assert(configuration?.vault, 'Output token is not set');
-			const tokenToSpend = configuration?.tokenToSpend.token;
-			const tokenToReceive = configuration?.tokenToReceive.token;
-			const vault = configuration?.vault;
-			let amountToSpend = configuration?.tokenToSpend.amount?.raw;
+	const execute = useCallback(async (): Promise<TTxResponse> => {
+		assert(provider, 'Provider is not set');
+		assert(latestQuote, 'Quote is not set');
+		assert(configuration?.tokenToSpend.token, 'Token to Spend is not set');
+		assert(configuration?.tokenToReceive.token, 'Token to Receiver is not set');
+		assert(configuration?.vault, 'Output token is not set');
+		const tokenToSpend = configuration?.tokenToSpend.token;
+		const tokenToReceive = configuration?.tokenToReceive.token;
+		const vault = configuration?.vault;
+		let amountToSpend = configuration?.tokenToSpend.amount?.raw;
 
-			if (action !== 'DEPOSIT') {
-				const initialAmount = toBigInt(configuration?.tokenToSpend.amount?.raw);
-				const decimals = configuration?.tokenToSpend.token?.decimals || 18;
-				amountToSpend = isV3Vault
-					? toBigInt(isZapingBalance ? shareOf : amountToWithdraw)
-					: toBigInt((initialAmount / toBigInt(pricePerShare)) * 10n ** toBigInt(decimals));
+		if (configuration?.action !== 'DEPOSIT') {
+			const initialAmount = toBigInt(configuration?.tokenToSpend.amount?.raw);
+			const decimals = configuration?.tokenToSpend.token?.decimals || 18;
+			amountToSpend = isV3Vault
+				? toBigInt(isZapingBalance ? shareOf : amountToWithdraw)
+				: toBigInt((initialAmount / toBigInt(pricePerShare)) * 10n ** toBigInt(decimals));
+		}
+
+		try {
+			const wProvider = await toWagmiProvider(provider);
+
+			/**********************************************************************************
+			 ** Based on the flow of the transaction, we need to set the input token to the
+			 ** token to spend, and the output token to the vault or the token to receive.
+			 *********************************************************************************/
+			let inputToken = tokenToSpend.address;
+			const outputToken = configuration?.action === 'DEPOSIT' ? vault.address : tokenToReceive.address;
+			if (isEthAddress(inputToken)) {
+				inputToken = zeroAddress;
 			}
 
-			try {
-				const wProvider = await toWagmiProvider(provider);
-
-				/**********************************************************************************
-				 ** Based on the flow of the transaction, we need to set the input token to the
-				 ** token to spend, and the output token to the vault or the token to receive.
-				 *********************************************************************************/
-				let inputToken = tokenToSpend.address;
-				const outputToken = action === 'DEPOSIT' ? vault.address : tokenToReceive.address;
-				if (isEthAddress(inputToken)) {
-					inputToken = zeroAddress;
+			/**********************************************************************************
+			 ** We can ask the Portals solver to prepare the transaction for us. We need to
+			 ** provide the sender, input token, output token, input amount, and slippage
+			 ** tolerance.
+			 *********************************************************************************/
+			const network = PORTALS_NETWORK.get(tokenToSpend.chainID);
+			const transaction = await getPortalsTx({
+				params: {
+					sender: toAddress(address),
+					inputToken: `${network}:${toAddress(inputToken)}`,
+					outputToken: `${network}:${toAddress(outputToken)}`,
+					inputAmount: toBigInt(amountToSpend).toString(),
+					slippageTolerancePercentage: slippage.toString(),
+					validate: isWalletSafe ? 'false' : 'true',
+					permitSignature: permitSignature?.signature || undefined,
+					permitDeadline: permitSignature?.deadline ? permitSignature.deadline.toString() : undefined
 				}
+			});
 
-				/**********************************************************************************
-				 ** We can ask the Portals solver to prepare the transaction for us. We need to
-				 ** provide the sender, input token, output token, input amount, and slippage
-				 ** tolerance.
-				 *********************************************************************************/
-				const network = PORTALS_NETWORK.get(tokenToSpend.chainID);
-				const transaction = await getPortalsTx({
-					params: {
-						sender: toAddress(address),
-						inputToken: `${network}:${toAddress(inputToken)}`,
-						outputToken: `${network}:${toAddress(outputToken)}`,
-						inputAmount: toBigInt(amountToSpend).toString(),
-						slippageTolerancePercentage: slippage.toString(),
-						validate: isWalletSafe ? 'false' : 'true',
-						permitSignature: permitSignature?.signature || undefined,
-						permitDeadline: permitSignature?.deadline ? permitSignature.deadline.toString() : undefined
-					}
-				});
+			if (!transaction.result) {
+				throw new Error('Transaction data was not fetched from Portals!');
+			}
+			const {tx} = transaction.result;
+			const {value, to, data, ...rest} = tx;
 
-				if (!transaction.result) {
-					throw new Error('Transaction data was not fetched from Portals!');
-				}
-				const {tx} = transaction.result;
-				const {value, to, data, ...rest} = tx;
-
-				/**********************************************************************************
-				 ** If the user tries to deposit or withdraw from a different chain than the one
-				 ** the token is on, we need to switch the chain before performing the transaction.
-				 *********************************************************************************/
-				if (
-					(action === 'DEPOSIT' && wProvider.chainId !== tokenToSpend.chainID) ||
-					(action === 'WITHDRAW' && wProvider.chainId !== tokenToReceive.chainID)
-				) {
-					try {
-						await switchChain(retrieveConfig(), {
-							chainId: action === 'DEPOSIT' ? tokenToSpend.chainID : Number(tokenToReceive.chainID)
-						});
-					} catch (error) {
-						if (!(error instanceof BaseError)) {
-							return {isSuccessful: false, error};
-						}
-						console.error(error.shortMessage);
-
+			/**********************************************************************************
+			 ** If the user tries to deposit or withdraw from a different chain than the one
+			 ** the token is on, we need to switch the chain before performing the transaction.
+			 *********************************************************************************/
+			if (
+				(configuration?.action === 'DEPOSIT' && wProvider.chainId !== tokenToSpend.chainID) ||
+				(configuration?.action === 'WITHDRAW' && wProvider.chainId !== tokenToReceive.chainID)
+			) {
+				try {
+					await switchChain(retrieveConfig(), {
+						chainId:
+							configuration?.action === 'DEPOSIT' ? tokenToSpend.chainID : Number(tokenToReceive.chainID)
+					});
+				} catch (error) {
+					if (!(error instanceof BaseError)) {
 						return {isSuccessful: false, error};
 					}
-				}
+					console.error(error.shortMessage);
 
-				/**********************************************************************************
-				 ** We assert that the data is in hex format and that the wallet client is set
-				 ** before sending the transaction prepared by the Portals solver.
-				 ** Once it's done and we have the receipt, we need to update the balances of all
-				 ** the tokens involved in the transaction
-				 *********************************************************************************/
-				assert(isHex(data), 'Data is not hex');
-				assert(wProvider.walletClient, 'Wallet client is not set');
-				const hash = await sendTransaction(retrieveConfig(), {
-					value: toBigInt(value ?? 0),
-					to: toAddress(to),
-					data,
-					chainId: tokenToSpend.chainID,
-					// gas: 2000000,
-					...rest
-				});
-				const receipt = await waitForTransactionReceipt(retrieveConfig(), {
-					chainId: wProvider.chainId,
-					hash
-				});
-				if (receipt.status === 'success') {
-					await onRefresh(
-						[
-							{chainID: vault.chainID, address: vault.address},
-							{chainID: vault.chainID, address: vault.token.address},
-							{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
-							{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
-							{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
-						],
-						false,
-						true
-					);
-					return {isSuccessful: true, receipt: receipt};
+					return {isSuccessful: false, error};
 				}
-
-				console.error('Fail to perform transaction');
-				return {isSuccessful: false};
-			} catch (error) {
-				if (isValidPortalsErrorObject(error)) {
-					const errorMessage = error.response.data.message;
-					toast.error(errorMessage);
-					console.error(errorMessage);
-				} else {
-					toast.error(
-						(error as BaseError).shortMessage || 'An error occured while creating your transaction!'
-					);
-					console.error(error);
-				}
-
-				return {isSuccessful: false};
-			} finally {
-				onClearPermit();
 			}
-		},
-		[
-			address,
-			amountToWithdraw,
-			configuration?.tokenToReceive.token,
-			configuration?.tokenToSpend.amount?.raw,
-			configuration?.tokenToSpend.token,
-			configuration?.vault,
-			isV3Vault,
-			isWalletSafe,
-			isZapingBalance,
-			latestQuote,
-			onClearPermit,
-			onRefresh,
-			permitSignature?.deadline,
-			permitSignature?.signature,
-			pricePerShare,
-			provider,
-			shareOf
-		]
-	);
+
+			/**********************************************************************************
+			 ** We assert that the data is in hex format and that the wallet client is set
+			 ** before sending the transaction prepared by the Portals solver.
+			 ** Once it's done and we have the receipt, we need to update the balances of all
+			 ** the tokens involved in the transaction
+			 *********************************************************************************/
+			assert(isHex(data), 'Data is not hex');
+			assert(wProvider.walletClient, 'Wallet client is not set');
+			const hash = await sendTransaction(retrieveConfig(), {
+				value: toBigInt(value ?? 0),
+				to: toAddress(to),
+				data,
+				chainId: tokenToSpend.chainID,
+				// gas: 2000000,
+				...rest
+			});
+			const receipt = await waitForTransactionReceipt(retrieveConfig(), {
+				chainId: wProvider.chainId,
+				hash
+			});
+			if (receipt.status === 'success') {
+				await onRefresh(
+					[
+						{chainID: vault.chainID, address: vault.address},
+						{chainID: vault.chainID, address: vault.token.address},
+						{chainID: tokenToSpend.chainID, address: tokenToSpend.address},
+						{chainID: tokenToReceive.chainID, address: tokenToReceive.address},
+						{chainID: tokenToSpend.chainID, address: ETH_TOKEN_ADDRESS}
+					],
+					false,
+					true
+				);
+				return {isSuccessful: true, receipt: receipt};
+			}
+
+			console.error('Fail to perform transaction');
+			return {isSuccessful: false};
+		} catch (error) {
+			if (isValidPortalsErrorObject(error)) {
+				const errorMessage = error.response.data.message;
+				toast.error(errorMessage);
+				console.error(errorMessage);
+			} else {
+				toast.error((error as BaseError).shortMessage || 'An error occured while creating your transaction!');
+				console.error(error);
+			}
+
+			return {isSuccessful: false};
+		} finally {
+			onClearPermit();
+		}
+	}, [
+		address,
+		amountToWithdraw,
+		configuration?.action,
+		configuration?.tokenToReceive.token,
+		configuration?.tokenToSpend.amount?.raw,
+		configuration?.tokenToSpend.token,
+		configuration?.vault,
+		isV3Vault,
+		isWalletSafe,
+		isZapingBalance,
+		latestQuote,
+		onClearPermit,
+		onRefresh,
+		permitSignature?.deadline,
+		permitSignature?.signature,
+		pricePerShare,
+		provider,
+		shareOf
+	]);
 
 	/**********************************************************************************************
 	 ** This execute function is not an actual deposit/withdraw, but a swap using the Portals
@@ -572,23 +569,27 @@ export const usePortalsSolver = (
 		assert(provider, 'Provider is not set');
 
 		if (isWalletSafe) {
-			return await onDepositForGnosis();
+			return await onExecuteForGnosis();
 		}
 
 		set_depositStatus({...defaultTxStatus, pending: true});
-		const status = await execute('DEPOSIT');
+		const status = await execute();
 		set_depositStatus({...defaultTxStatus, success: status.isSuccessful});
 		return status.isSuccessful;
-	}, [execute, isWalletSafe, onDepositForGnosis, provider]);
+	}, [execute, isWalletSafe, onExecuteForGnosis, provider]);
 
 	const onExecuteWithdraw = useCallback(async (): Promise<boolean> => {
 		assert(provider, 'Provider is not set');
 
+		if (isWalletSafe) {
+			return await onExecuteForGnosis();
+		}
+
 		set_withdrawStatus({...defaultTxStatus, pending: true});
-		const status = await execute('WITHDRAW');
+		const status = await execute();
 		set_withdrawStatus({...defaultTxStatus, success: status.isSuccessful});
 		return status.isSuccessful;
-	}, [execute, provider]);
+	}, [execute, isWalletSafe, onExecuteForGnosis, provider]);
 
 	return {
 		isApproved,

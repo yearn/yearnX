@@ -141,10 +141,10 @@ export const WithPrices = (props: {children: ReactElement; supportedNetworks?: C
 			 ** a batch of 100 tokens per request.
 			 *************************************************************************************/
 			const ydaemonRequests = [];
-			if (missingTokens.length > 100) {
+			if (missingTokens.length > 50) {
 				const tokens = missingTokens.slice();
 				while (tokens.length) {
-					const chunk = tokens.splice(0, 100);
+					const chunk = tokens.splice(0, 50);
 					ydaemonRequests.push(
 						axios.get(`https://ydaemon.yearn.fi/prices/some/${prepareQueryStringForYDaemon(chunk)}`)
 					);

@@ -14,7 +14,7 @@ export const COLORS = {
 	accentText: '#FFFFFF', // The color of the text on the button or the primary color
 	background: '#000000', // The background color of the page
 	table: '#1F1F23', // The background color of the table (front element)
-	primary: '#592DD6', // The primary color of the page
+	primary: '#1763FD', // The primary color of the page
 	secondary: '#1763FD', // The secondary color of the page
 	headerTag: '#26262B' // The color of the header tag [Yearn x Something]
 };

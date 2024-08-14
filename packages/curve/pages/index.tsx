@@ -1,4 +1,4 @@
-import {type ReactElement} from 'react';
+import {type ReactElement, useMemo} from 'react';
 import {DefaultHeader} from '@lib/components/common/DefaultHeader';
 import {Footer} from '@lib/components/common/Footer';
 import {VaultList} from '@lib/components/common/VaultList';
@@ -11,6 +11,21 @@ import {APR_TYPE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
+	// const numberOfVaults = useMemo(() => vaultsValues.length, [vaultsValues]);
+
+	const sumOfTVL = useMemo(() => vaultsValues.reduce((acc, vault) => acc + vault.tvl.tvl, 0), [vaultsValues]);
+
+	const upToAPR = useMemo(() => {
+		const aprs = vaultsValues.map(
+			vault => (APR_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
+		);
+		return Math.max(...aprs);
+	}, [vaultsValues]);
+
+	const upToBoost = useMemo(() => {
+		const aprs = vaultsValues.map(vault => vault.apr.forwardAPR.composite.boost);
+		return Math.max(...aprs);
+	}, [vaultsValues]);
 
 	return (
 		<section className={'flex w-full max-w-[1200px] flex-col gap-y-6'}>
@@ -26,9 +41,15 @@ export default function Index(): ReactElement {
 					'Several lines description. Several lines description. Several lines description. Several lines description. '
 				}
 				cards={[
-					{title: 'Grand prize', currency: 'ETH', value: 192, decimals: 2, isReady: true},
-					{title: 'Grand prize', currency: 'ETH', value: 111, decimals: 2, isReady: true},
-					{title: 'Grand prize', currency: 'ETH', value: 1, decimals: 2, isReady: true}
+					{title: 'TVL', currency: 'USD', value: sumOfTVL, decimals: 0, isReady: sumOfTVL > 0},
+					{title: 'APR up to', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0},
+					{title: 'Boost up to', currency: 'x', value: upToBoost, decimals: 2, isReady: upToAPR > 0}
+					// {
+					// 	title: 'Opportunities',
+					// 	value: numberOfVaults,
+					// 	decimals: 0,
+					// 	isReady: numberOfVaults > 0
+					// }
 				]}
 			/>
 			<VaultList

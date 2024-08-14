@@ -1,8 +1,8 @@
+import {type ReactElement} from 'react';
 import Image from 'next/image';
 import {cl} from '@builtbymom/web3/utils';
 import {Counter} from '@lib/components/common/Counter';
 
-import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
 export const Section3 = ({title, description, bgImage, cards}: TSectionProps): ReactElement => {
