@@ -28,7 +28,7 @@ export default function Home(): ReactElement {
 			<Section
 				variant={VARIANT_TO_USE}
 				bgImage={'/bg.png'}
-				title={'Prize\nVaults'}
+				title={'Yearn Prize Vaults'}
 				description={'Deposit into one of the Prize Vaults to get a chance to win the grand prize!'}
 				cards={[
 					{

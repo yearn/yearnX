@@ -14,7 +14,7 @@ export const Section4 = ({bgImage, title, description, cards}: TSectionProps): R
 		<div className={'md:h-section min-h-section flex flex-col-reverse gap-2 md:grid md:grid-cols-3 md:gap-6'}>
 			<div className={'bg-table flex items-end justify-start rounded-2xl p-6 md:hidden'}>
 				<div>
-					<p>{'Several lines description.'}</p>
+					<p>{description}</p>
 					<p className={'text-4xl font-bold leading-[48px]'}>{'192%'}</p>
 				</div>
 			</div>
