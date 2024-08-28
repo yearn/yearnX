@@ -1,8 +1,8 @@
+import {Fragment, type ReactElement} from 'react';
 import Image from 'next/image';
-import {cl} from '@builtbymom/web3/utils';
+import {cl, formatLocalAmount} from '@builtbymom/web3/utils';
 import {Counter} from '@lib/components/common/Counter';
 
-import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';
 
 export const Section2 = ({title, bgImage, cards}: TSectionProps): ReactElement => {
@@ -30,23 +30,30 @@ export const Section2 = ({title, bgImage, cards}: TSectionProps): ReactElement =
 						<div className={'flex w-full items-end font-mono font-black'}>
 							{cards[0].isReady ? (
 								<div className={'text-3xl lg:text-7xl'}>
-									<Counter
-										value={cards[0].value}
-										decimals={cards[0].decimals ?? 0}
-										decimalsToDisplay={[2, 4, 6, 8]}
-										idealDecimals={2}
-									/>
+									{cards[0].currency === 'USD' && cards[0].value > 100_000 ? (
+										formatLocalAmount(cards[0].value, 4, '$', {
+											displayDigits: 2,
+											maximumFractionDigits: 2,
+											minimumFractionDigits: 2,
+											shouldCompactValue: true
+										})
+									) : (
+										<Fragment>
+											<Counter
+												value={cards[0].value}
+												decimals={cards[0].decimals ?? 0}
+												decimalsToDisplay={[2, 4, 6, 8]}
+												idealDecimals={2}
+											/>
+											{cards[0].currency}
+										</Fragment>
+									)}
 								</div>
 							) : (
 								<span
 									className={'bg-regularText/20 inline-block h-14 w-3/4 animate-pulse rounded-md'}
 								/>
 							)}
-							{cards[0].isReady ? (
-								<span className={'mb-1 pl-2 font-mono text-xl font-bold lg:mb-2'}>
-									{cards[0].currency}
-								</span>
-							) : null}
 						</div>
 					</div>
 				</div>

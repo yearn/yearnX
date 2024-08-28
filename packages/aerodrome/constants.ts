@@ -2,7 +2,7 @@ import type {TAPRType} from '@lib/utils/types';
 
 export const PROJECT_TITLE = 'Yearn x Aerodrome';
 export const PROJECT_DESCRIPTION = 'Get the best Aerodrome yields, with Yearn.';
-export const VARIANT_TO_USE = 1;
+export const VARIANT_TO_USE = 2;
 export const VAULT_FILTER = 'aerodrome';
 export const VAULTS_PER_PAGE = 20;
 export const APR_TYPE: TAPRType = 'HISTORICAL';

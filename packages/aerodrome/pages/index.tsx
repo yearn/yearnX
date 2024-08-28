@@ -12,6 +12,10 @@ export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
 
+	const numberOfVaults = useMemo(() => vaultsValues.length, [vaultsValues]);
+
+	const sumOfTVL = useMemo(() => vaultsValues.reduce((acc, vault) => acc + vault.tvl.tvl, 0), [vaultsValues]);
+
 	const upToAPR = useMemo(() => {
 		const aprs = vaultsValues.map(
 			vault => (APR_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
@@ -33,7 +37,11 @@ export default function Index(): ReactElement {
 				bgImage={'/bg.png'}
 				title={'Aerodrome Vaults'}
 				description={'Get the best risk adjusted Aerodrome yields, with Yearn.'}
-				cards={[{title: 'APR up to', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0}]}
+				cards={[
+					{title: 'TVL', currency: 'USD', value: sumOfTVL, decimals: 0, isReady: sumOfTVL > 0},
+					{title: 'APR up to', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0},
+					{title: 'Vaults', value: numberOfVaults, decimals: 0, isReady: numberOfVaults > 0}
+				]}
 			/>
 			<VaultList
 				vaults={vaultsValues}
