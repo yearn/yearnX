@@ -35,8 +35,8 @@ export default function Index(): ReactElement {
 			<Section
 				variant={VARIANT_TO_USE}
 				bgImage={'/bg.jpg'}
-				title={'Pendle Auto-rolling Vaults'}
-				description={'The best Pendle yields, with auto-rolling functionality.'}
+				title={'Pendle Vaults'}
+				description={'The best Pendle yields, some with auto-rolling functionality!'}
 				cards={[
 					{title: 'TVL', currency: 'USD', value: sumOfTVL, decimals: 0, isReady: sumOfTVL > 0},
 					{title: 'APR up to', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0},
