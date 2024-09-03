@@ -14,8 +14,30 @@ export const Section4 = ({bgImage, title, description, cards}: TSectionProps): R
 		<div className={'md:h-section min-h-section flex flex-col-reverse gap-2 md:grid md:grid-cols-3 md:gap-6'}>
 			<div className={'bg-table flex items-end justify-start rounded-2xl p-6 md:hidden'}>
 				<div>
+					<b className={'block'}>{title}</b>
 					<p>{description}</p>
-					<p className={'text-4xl font-bold leading-[48px]'}>{'192%'}</p>
+					<p className={'text-4xl font-bold leading-[48px]'}>
+						{cards[0].currency === 'USD' && cards[0].value > 100_000 ? (
+							formatLocalAmount(cards[0].value, 4, '$', {
+								displayDigits: 2,
+								maximumFractionDigits: 2,
+								minimumFractionDigits: 2,
+								shouldCompactValue: true
+							})
+						) : (
+							<Fragment>
+								<Counter
+									value={cards[0].value}
+									decimals={cards[0].decimals ?? 0}
+									decimalsToDisplay={[2, 4, 6, 8]}
+									idealDecimals={2}
+								/>
+								<span className={'mb-1 pl-2 font-mono text-xl font-bold lg:mb-2'}>
+									{cards[0].currency}
+								</span>
+							</Fragment>
+						)}
+					</p>
 				</div>
 			</div>
 			<div className={'bg-table flex flex-col justify-between rounded-2xl p-6 lg:p-10'}>

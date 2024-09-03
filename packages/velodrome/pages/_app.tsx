@@ -1,4 +1,5 @@
 import {Fragment, type ReactElement} from 'react';
+import PlausibleProvider from 'next-plausible';
 import {Meta} from '@lib/components/common/Meta';
 import WithContexts from '@lib/contexts/WithContexts';
 
@@ -19,7 +20,16 @@ export default function MyApp(props: AppProps): ReactElement {
 				og={'https://velodrome.yearn.space/og.png'}
 				uri={'https://velodrome.yearn.space'}
 			/>
-			<WithContexts {...props} />
+			<PlausibleProvider
+				domain={'yearn.space'}
+				pageviewProps={{title: PROJECT_TITLE}}
+				scriptProps={{
+					src: '/js/tellmom.js',
+					nonce: PROJECT_TITLE
+				}}
+				enabled={true}>
+				<WithContexts {...props} />
+			</PlausibleProvider>
 		</Fragment>
 	);
 }
