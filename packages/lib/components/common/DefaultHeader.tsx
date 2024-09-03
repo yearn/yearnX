@@ -44,13 +44,13 @@ export function DefaultHeader({docsLink, secondLogoURL}: TDefaultHeader): ReactE
 				</div>
 				<div className={'hidden md:block'}>
 					<Link
-						href={docsLink || ''}
+						href={docsLink || 'https://docs.yearn.fi/'}
 						target={'_blank'}
 						className={'text-regularText mr-6'}>
 						{'Docs'}
 					</Link>
 					<Link
-						href={''}
+						href={'https://x.com/yearnfi'}
 						className={'text-regularText font-[Aeonik] font-bold leading-3'}>
 						{'X'}
 					</Link>

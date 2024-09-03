@@ -25,7 +25,7 @@ export default function Index(): ReactElement {
 	return (
 		<section className={'flex w-full max-w-[1200px] flex-col gap-y-6'}>
 			<DefaultHeader
-				docsLink={''}
+				docsLink={'https://docs.yearn.fi/'}
 				secondLogoURL={'/partnerLogo.svg'}
 			/>
 			<Section
@@ -43,10 +43,7 @@ export default function Index(): ReactElement {
 				}}
 			/>
 
-			<Footer
-				docsLink={''}
-				secondLogoURL={''}
-			/>
+			<Footer docsLink={'https://docs.yearn.fi/'} />
 		</section>
 	);
 }
