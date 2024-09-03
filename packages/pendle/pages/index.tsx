@@ -47,7 +47,8 @@ export default function Index(): ReactElement {
 				vaults={vaultsValues}
 				isLoading={isLoading}
 				options={{
-					aprType: APR_TYPE
+					aprType: APR_TYPE,
+					shouldDisplaySubAPR: true
 				}}
 			/>
 

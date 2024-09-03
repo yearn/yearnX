@@ -33,6 +33,7 @@ type TVaultItem = {
 	price: TNormalizedBN;
 	options?: {
 		aprType: TAPRType;
+		shouldDisplaySubAPR?: boolean;
 	};
 };
 export type TSuccessModal = {
@@ -63,6 +64,26 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		}
 		return options.aprType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
 	}, [vault.apr, options?.aprType]);
+
+	/**********************************************************************************************
+	 ** subAPR returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
+	 ** APRType is set to ESTIMATED
+	 ** @param {Boolean} options.shouldDisplaySubAPR - If we should display that
+	 ** @param {TAPRType} options.aprType - The APR type to display (HISTORICAL OR ESTIMATED)
+	 ** @returns {string} - The subAPR to display with a label
+	 *********************************************************************************************/
+	const subAPR = useMemo(() => {
+		if (!options?.shouldDisplaySubAPR) {
+			return ' ';
+		}
+		if (!options?.aprType) {
+			return `historical ${toPercent(vault.apr.netAPR)}`;
+		}
+		if (options.aprType === 'HISTORICAL') {
+			return `estimated ${toPercent(vault.apr.forwardAPR.netAPR)}`;
+		}
+		return `historical ${toPercent(vault.apr.netAPR)}`;
+	}, [options?.shouldDisplaySubAPR, options?.aprType, vault.apr.netAPR, vault.apr.forwardAPR.netAPR]);
 
 	/**********************************************************************************************
 	 ** useEffect hook to retrieve and memoize prices for the vault token.
@@ -230,7 +251,9 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 				<div className={'font-number flex items-center justify-end'}>
 					<div className={'text-right font-mono font-semibold'}>
 						{toPercent(APRToUse)}
-						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+						<div className={'text-regularText truncate text-right text-xs font-normal text-opacity-40'}>
+							{subAPR}
+						</div>
 					</div>
 				</div>
 
