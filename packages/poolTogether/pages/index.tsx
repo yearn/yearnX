@@ -22,13 +22,13 @@ export default function Home(): ReactElement {
 	return (
 		<section className={'flex w-full max-w-[1200px] flex-col gap-y-6 pb-6'}>
 			<DefaultHeader
-				docsLink={'https://docs.pooltogether.com/welcome/faq'}
+				docsLink={'https://docs.yearn.fi/'}
 				secondLogoURL={'/partnerLogo.png'}
 			/>
 			<Section
 				variant={VARIANT_TO_USE}
 				bgImage={'/bg.png'}
-				title={'Prize\nVaults'}
+				title={'Yearn Prize Vaults'}
 				description={'Deposit into one of the Prize Vaults to get a chance to win the grand prize!'}
 				cards={[
 					{
@@ -49,10 +49,7 @@ export default function Home(): ReactElement {
 				}}
 			/>
 
-			<Footer
-				docsLink={'https://docs.pooltogether.com/welcome/faq'}
-				secondLogoURL={''}
-			/>
+			<Footer docsLink={'https://docs.pooltogether.com/welcome/faq'} />
 		</section>
 	);
 }

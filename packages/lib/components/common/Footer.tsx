@@ -8,7 +8,7 @@ import type {ReactElement} from 'react';
 
 type TFooterProps = {
 	docsLink: string;
-	secondLogoURL: string;
+	secondLogoURL?: string;
 };
 
 export function Footer(props: TFooterProps): ReactElement {
@@ -35,8 +35,16 @@ export function Footer(props: TFooterProps): ReactElement {
 				)}
 			</div>
 			<div className={'flex gap-x-2'}>
-				<Link href={'/'}>{'Docs'}</Link>
-				<Link href={'/'}>{'X'}</Link>
+				<Link
+					target={'_blank'}
+					href={props.docsLink ?? 'https://docs.yearn.fi/'}>
+					{'Docs'}
+				</Link>
+				<Link
+					target={'_blank'}
+					href={'https://x.com/yearnfi'}>
+					{'X'}
+				</Link>
 			</div>
 		</div>
 	);
