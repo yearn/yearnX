@@ -6,7 +6,7 @@ import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
-import {APR_TYPE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
+import {APY_TYPE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 
 import type {GetServerSideProps} from 'next';
 
@@ -14,12 +14,12 @@ export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
 
-	const upToAPR = useMemo(() => {
-		const aprs = vaultsValues.map(
-			vault => (APR_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
+	const upToAPY = useMemo(() => {
+		const apys = vaultsValues.map(
+			vault => (APY_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
 		);
-		if (aprs.length > 0) {
-			return Math.max(...aprs);
+		if (apys.length > 0) {
+			return Math.max(...apys);
 		}
 		return 0;
 	}, [vaultsValues]);
@@ -35,13 +35,13 @@ export default function Index(): ReactElement {
 				bgImage={'/bg.png'}
 				title={'MOM TESTING SPACE'}
 				description={'Because MOM needs to test thing so you can enjoy and relax. Avoid doing stuff here.'}
-				cards={[{title: 'GM Ratio', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0}]}
+				cards={[{title: 'GM Ratio', currency: '%', value: upToAPY, decimals: 2, isReady: upToAPY > 0}]}
 			/>
 			<VaultList
 				vaults={vaultsValues}
 				isLoading={isLoading}
 				options={{
-					aprType: APR_TYPE
+					apyType: APY_TYPE
 				}}
 			/>
 

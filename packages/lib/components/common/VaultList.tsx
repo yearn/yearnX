@@ -15,20 +15,20 @@ import {VaultsListHead} from './VaultsListHead';
 
 import type {TDict, TNDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
-import type {TAPRType} from '@lib/utils/types';
+import type {TAPYType} from '@lib/utils/types';
 
 type TVaultListProps = {
 	vaults: TYDaemonVaults;
 	isLoading: boolean;
 	options?: {
-		aprType: TAPRType;
-		shouldDisplaySubAPR?: boolean;
+		apyType: TAPYType;
+		shouldDisplaySubAPY?: boolean;
 	};
 };
 
 const HEADER_TABS = [
 	{value: 'vault', label: 'Vault', isSortable: false},
-	{value: 'apr', label: 'APR', isSortable: true},
+	{value: 'apy', label: 'APY', isSortable: true},
 	{value: 'deposits', label: 'TVL', isSortable: true},
 	{value: 'balance', label: 'My Balance', isSortable: true},
 	{value: 'manage', label: 'Manage', isSortable: false}

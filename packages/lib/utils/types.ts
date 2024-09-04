@@ -12,7 +12,7 @@ export type TVaultData = {
 	balanceOf: TNormalizedBN;
 };
 
-export type TVaultsSortBy = 'vault' | 'apr' | 'deposits' | 'balance' | null;
+export type TVaultsSortBy = 'vault' | 'apy' | 'deposits' | 'balance' | null;
 
 export type TSectionProps = {
 	bgImage?: string;
@@ -41,4 +41,4 @@ export type TTokenAmountInputElement = {
 export type TTokenNoBalance = Omit<TToken, 'balance'>;
 export type TTokenToUse = Partial<{token: TTokenNoBalance; amount: TNormalizedBN}>;
 export type TAssertedTokenToUse = {token: TTokenNoBalance; amount: TNormalizedBN};
-export type TAPRType = 'HISTORICAL' | 'ESTIMATED';
+export type TAPYType = 'HISTORICAL' | 'ESTIMATED';

@@ -26,14 +26,14 @@ import {WithdrawModal} from './WithdrawModal';
 
 import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
-import type {TAPRType} from '@lib/utils/types';
+import type {TAPYType} from '@lib/utils/types';
 
 type TVaultItem = {
 	vault: TYDaemonVault;
 	price: TNormalizedBN;
 	options?: {
-		aprType: TAPRType;
-		shouldDisplaySubAPR?: boolean;
+		apyType: TAPYType;
+		shouldDisplaySubAPY?: boolean;
 	};
 };
 export type TSuccessModal = {
@@ -54,36 +54,36 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	const {dispatchConfiguration} = useManageVaults();
 
 	/**********************************************************************************************
-	 ** APRToUse returns the current APR to display based on the app options.
-	 ** @param {TAPRType} options.aprType - The APR type to display (HISTORICAL OR ESTIMATED)
-	 ** @returns {number} - The APR to display.
+	 ** APYToUse returns the current APY to display based on the app options.
+	 ** @param {TAPYType} options.apyType - The APY type to display (HISTORICAL OR ESTIMATED)
+	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
-	const APRToUse = useMemo(() => {
-		if (!options?.aprType) {
+	const APYToUse = useMemo(() => {
+		if (!options?.apyType) {
 			return vault.apr.netAPR;
 		}
-		return options.aprType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
-	}, [vault.apr, options?.aprType]);
+		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
+	}, [vault.apr, options?.apyType]);
 
 	/**********************************************************************************************
-	 ** subAPR returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
+	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
 	 ** APRType is set to ESTIMATED
-	 ** @param {Boolean} options.shouldDisplaySubAPR - If we should display that
-	 ** @param {TAPRType} options.aprType - The APR type to display (HISTORICAL OR ESTIMATED)
-	 ** @returns {string} - The subAPR to display with a label
+	 ** @param {Boolean} options.shouldDisplaySubAPY - If we should display that
+	 ** @param {TAPYType} options.apyType - The APR type to display (HISTORICAL OR ESTIMATED)
+	 ** @returns {string} - The subAPY to display with a label
 	 *********************************************************************************************/
-	const subAPR = useMemo(() => {
-		if (!options?.shouldDisplaySubAPR) {
+	const subAPY = useMemo(() => {
+		if (!options?.shouldDisplaySubAPY) {
 			return ' ';
 		}
-		if (!options?.aprType) {
+		if (!options?.apyType) {
 			return `historical ${toPercent(vault.apr.netAPR)}`;
 		}
-		if (options.aprType === 'HISTORICAL') {
+		if (options.apyType === 'HISTORICAL') {
 			return `estimated ${toPercent(vault.apr.forwardAPR.netAPR)}`;
 		}
 		return `historical ${toPercent(vault.apr.netAPR)}`;
-	}, [options?.shouldDisplaySubAPR, options?.aprType, vault.apr.netAPR, vault.apr.forwardAPR.netAPR]);
+	}, [options?.shouldDisplaySubAPY, options?.apyType, vault.apr.netAPR, vault.apr.forwardAPR.netAPR]);
 
 	/**********************************************************************************************
 	 ** useEffect hook to retrieve and memoize prices for the vault token.
@@ -144,12 +144,12 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 
 	/**********************************************************************************************
 	 ** totalProfit is the value the user could potentially get after 1 year of stacking money.
-	 ** We are basically multiply amount the users typed with apr and price of the token.
+	 ** We are basically multiply amount the users typed with apy and price of the token.
 	 *********************************************************************************************/
 	const totalProfit = useMemo(() => {
 		const price = vaultPrice.normalized ?? 0;
 		return `$${formatLocalAmount(
-			Number(configuration?.tokenToSpend.amount?.normalized) * APRToUse * price +
+			Number(configuration?.tokenToSpend.amount?.normalized) * APYToUse * price +
 				Number(configuration?.tokenToSpend.amount?.normalized) * price,
 			4,
 			'$',
@@ -160,7 +160,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 				shouldCompactValue: true
 			}
 		)}`;
-	}, [configuration?.tokenToSpend.amount?.normalized, APRToUse, vaultPrice.normalized]);
+	}, [configuration?.tokenToSpend.amount?.normalized, APYToUse, vaultPrice.normalized]);
 
 	/**********************************************************************************************
 	 ** onDepositClick is a callback that sets "DEPOSIT" (and it opens deposit modal) to reducer
@@ -209,7 +209,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 				hasBalanceForVault={balance > 0}
 				openSuccessModal={set_successModal}
 				totalProfit={totalProfit}
-				apr={APRToUse}
+				apy={APYToUse}
 			/>
 			<WithdrawModal
 				isOpen={isWithdrawModalOpen}
@@ -250,9 +250,9 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 				</Link>
 				<div className={'font-number flex items-center justify-end'}>
 					<div className={'text-right font-mono font-semibold'}>
-						{toPercent(APRToUse)}
+						{toPercent(APYToUse)}
 						<div className={'text-regularText truncate text-right text-xs font-normal text-opacity-40'}>
-							{subAPR}
+							{subAPY}
 						</div>
 					</div>
 				</div>
@@ -322,9 +322,9 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 
 				<div className={'flex w-full justify-between'}>
 					<div className={'flex items-center gap-x-2 text-sm'}>
-						<p>{'APR'}</p>
+						<p>{'APY'}</p>
 					</div>
-					<div>{formatPercent(APRToUse)}</div>
+					<div>{formatPercent(APYToUse)}</div>
 				</div>
 
 				<div className={'flex w-full justify-between'}>

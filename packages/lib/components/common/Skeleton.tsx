@@ -39,7 +39,7 @@ const SkeletonRow = (): ReactElement => (
 
 			<div className={'flex flex-col gap-y-4'}>
 				<div className={'flex w-full justify-between'}>
-					<p>{'APR'}</p>
+					<p>{'APY'}</p>
 					<div className={'bg-regularText/5 w-20 rounded-xl'} />
 				</div>
 				<div className={'flex w-full justify-between'}>

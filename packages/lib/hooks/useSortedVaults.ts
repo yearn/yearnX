@@ -6,7 +6,7 @@ import {usePrices} from '@lib/contexts/usePrices';
 import {acknowledge} from '@lib/utils/tools';
 
 import type {TDict, TNDict, TNormalizedBN, TSortDirection} from '@builtbymom/web3/types';
-import type {TAPRType, TVaultsSortBy} from '@lib/utils/types';
+import type {TAPYType, TVaultsSortBy} from '@lib/utils/types';
 import type {TYDaemonVaults} from './useYearnVaults.types';
 
 type TSortedVaults = {
@@ -20,7 +20,7 @@ export const useSortedVaults = (
 	vaults: TYDaemonVaults,
 	allPrices: TNDict<TDict<TNormalizedBN>>,
 	options?: {
-		aprType: TAPRType;
+		apyType: TAPYType;
 	}
 ): TSortedVaults => {
 	const {balanceHash, getBalance} = useWallet();
@@ -37,25 +37,25 @@ export const useSortedVaults = (
 	});
 
 	/**********************************************************************************************
-	 ** The sortedByBalance memoized value will return the vaults sorted by APR.
+	 ** The sortedByBalance memoized value will return the vaults sorted by APY.
 	 **
 	 ** @params void
 	 ** @returns TYDaemonVaults - The sorted vaults.
 	 *********************************************************************************************/
-	const sortedByAPR = useMemo((): TYDaemonVaults => {
-		if (sortBy !== 'apr') {
+	const sortedByAPY = useMemo((): TYDaemonVaults => {
+		if (sortBy !== 'apy') {
 			return vaults;
 		}
 		return vaults?.length
 			? vaults.toSorted((a, b): number =>
 					numberSort({
-						a: options?.aprType === 'ESTIMATED' ? a.apr.forwardAPR.netAPR || 0 : a.apr.netAPR || 0,
-						b: options?.aprType === 'ESTIMATED' ? b.apr.forwardAPR.netAPR || 0 : b.apr.netAPR || 0,
+						a: options?.apyType === 'ESTIMATED' ? a.apr.forwardAPR.netAPR || 0 : a.apr.netAPR || 0,
+						b: options?.apyType === 'ESTIMATED' ? b.apr.forwardAPR.netAPR || 0 : b.apr.netAPR || 0,
 						sortDirection: sortDirection as TSortDirection
 					})
 				)
 			: [];
-	}, [sortBy, vaults, options?.aprType, sortDirection]);
+	}, [sortBy, vaults, options?.apyType, sortDirection]);
 
 	/**********************************************************************************************
 	 ** The sortedByBalance memoized value will return the vaults sorted by TVL.
@@ -119,8 +119,8 @@ export const useSortedVaults = (
 		if (sortDirection === '') {
 			return sortedByBalance;
 		}
-		if (sortBy === 'apr') {
-			return sortedByAPR;
+		if (sortBy === 'apy') {
+			return sortedByAPY;
 		}
 
 		if (sortBy === 'deposits') {
@@ -131,7 +131,7 @@ export const useSortedVaults = (
 			return sortedByBalance;
 		}
 		return sortedByBalance;
-	}, [sortBy, sortDirection, sortedByAPR, sortedByBalance, sortedByDeposits]);
+	}, [sortBy, sortDirection, sortedByAPY, sortedByBalance, sortedByDeposits]);
 
 	/**********************************************************************************************
 	 ** onSortBy will update the sortBy state with a provided value.

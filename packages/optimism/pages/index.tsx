@@ -6,7 +6,7 @@ import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
-import {APR_TYPE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
+import {APY_TYPE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 
 import type {GetServerSideProps} from 'next';
 
@@ -17,12 +17,12 @@ export default function Index(): ReactElement {
 
 	const sumOfTVL = useMemo(() => vaultsValues.reduce((acc, vault) => acc + vault.tvl.tvl, 0), [vaultsValues]);
 
-	const upToAPR = useMemo(() => {
-		const aprs = vaultsValues.map(
-			vault => (APR_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
+	const upToAPY = useMemo(() => {
+		const apys = vaultsValues.map(
+			vault => (APY_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
 		);
-		if (aprs.length > 0) {
-			return Math.max(...aprs);
+		if (apys.length > 0) {
+			return Math.max(...apys);
 		}
 		return 0;
 	}, [vaultsValues]);
@@ -40,7 +40,7 @@ export default function Index(): ReactElement {
 				description={'Get the best Optimism yields, with Yearn.'}
 				cards={[
 					{title: 'TVL', currency: 'USD', value: sumOfTVL, decimals: 0, isReady: sumOfTVL > 0},
-					{title: 'APR up to', currency: '%', value: upToAPR, decimals: 2, isReady: upToAPR > 0},
+					{title: 'APY up to', currency: '%', value: upToAPY, decimals: 2, isReady: upToAPY > 0},
 					{title: 'Vaults', value: numberOfVaults, decimals: 0, isReady: numberOfVaults > 0}
 				]}
 			/>
@@ -48,7 +48,7 @@ export default function Index(): ReactElement {
 				vaults={vaultsValues}
 				isLoading={isLoading}
 				options={{
-					aprType: APR_TYPE
+					apyType: APY_TYPE
 				}}
 			/>
 

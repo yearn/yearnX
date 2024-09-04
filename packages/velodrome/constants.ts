@@ -1,11 +1,11 @@
-import type {TAPRType} from '@lib/utils/types';
+import type {TAPYType} from '@lib/utils/types';
 
 export const PROJECT_TITLE = 'Yearn x Velodrome';
 export const PROJECT_DESCRIPTION = 'Get the best Velodrome yields, with Yearn.';
 export const VARIANT_TO_USE = 3;
 export const VAULT_FILTER = 'velodrome';
 export const VAULTS_PER_PAGE = 20;
-export const APR_TYPE: TAPRType = 'HISTORICAL';
+export const APY_TYPE: TAPYType = 'HISTORICAL';
 
 export const COLORS = {
 	button: '#EE2524', // The main color of the button

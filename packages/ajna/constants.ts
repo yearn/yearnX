@@ -1,11 +1,11 @@
-import type {TAPRType} from '@lib/utils/types';
+import type {TAPYType} from '@lib/utils/types';
 
 export const PROJECT_TITLE = 'Yearn x Ajna';
 export const PROJECT_DESCRIPTION = 'Get the best Ajna yields, with Yearn.';
 export const VARIANT_TO_USE = 5;
 export const VAULT_FILTER = 'ajna';
 export const VAULTS_PER_PAGE = 20;
-export const APR_TYPE: TAPRType = 'HISTORICAL';
+export const APY_TYPE: TAPYType = 'HISTORICAL';
 
 export const COLORS = {
 	button: '#AC4BD2', // The main color of the button
