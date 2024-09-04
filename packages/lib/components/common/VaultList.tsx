@@ -22,6 +22,7 @@ type TVaultListProps = {
 	isLoading: boolean;
 	options?: {
 		aprType: TAPRType;
+		shouldDisplaySubAPR?: boolean;
 	};
 };
 
