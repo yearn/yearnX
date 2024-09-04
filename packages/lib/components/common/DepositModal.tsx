@@ -26,7 +26,7 @@ type TDepositModalProps = {
 	yearnfiLink: string;
 	hasBalanceForVault: boolean;
 	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
-	apr: number;
+	apy: number;
 	totalProfit?: string;
 };
 
@@ -224,7 +224,7 @@ export function DepositModalContent(props: TDepositModalProps): ReactElement {
 							dispatchConfiguration({type: 'SET_TOKEN_TO_SPEND', payload: {token, amount}})
 						}
 						totalProfit={props.totalProfit}
-						apr={props.apr}
+						apy={props.apy}
 					/>
 				</div>
 			</motion.div>

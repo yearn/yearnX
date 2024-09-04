@@ -86,7 +86,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 						onClick={() => toggleSortDirection(item.value as TVaultsSortBy)}
 						className={cl(
 							'flex w-full items-center gap-x-2',
-							item.value === 'deposits' || item.value === 'balance' || item.value === 'apr'
+							item.value === 'deposits' || item.value === 'balance' || item.value === 'apy'
 								? 'justify-end'
 								: 'justify-center'
 						)}
