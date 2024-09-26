@@ -1,3 +1,5 @@
+'use client';
+
 import {type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useQueryState} from 'nuqs';

@@ -51,6 +51,13 @@ export const usePortalsSolver = (
 	const isV3Vault = useMemo(() => configuration?.vault?.version.split('.')?.[0] === '3', [configuration?.vault]);
 
 	/**********************************************************************************************
+	 ** The isLegacyVault hook is used to determine if the current vault is a legacy vault.
+	 **
+	 ** @returns isLegacyVault: boolean - Whether the vault is a legacy vault or not.
+	 *********************************************************************************************/
+	const isLegacyVault = useMemo(() => configuration?.vault?.kind === 'Legacy', [configuration?.vault]);
+
+	/**********************************************************************************************
 	 ** If we are working with a withdraw, there are a few things we need to know:
 	 ** As we are working with the UNDERLYING value, and we are spending the SHARE of the vault,
 	 ** we need to convert the share to the underlying value and perform check based on that.
@@ -152,7 +159,7 @@ export const usePortalsSolver = (
 		spender: toAddress(approveCtx?.context.spender || zeroAddress),
 		owner: toAddress(address),
 		amountToApprove: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
-		shouldUsePermit: approveCtx?.context.canPermit || false,
+		shouldUsePermit: (approveCtx?.context.canPermit || false) && !isLegacyVault,
 		deadline: 60,
 		disabled: !isSolverEnabled
 	});

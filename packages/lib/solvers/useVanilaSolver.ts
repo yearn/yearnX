@@ -34,6 +34,13 @@ export const useVanilaSolver = (
 	const isV3Vault = useMemo(() => configuration?.vault?.version.split('.')?.[0] === '3', [configuration?.vault]);
 
 	/**********************************************************************************************
+	 ** The isLegacyVault hook is used to determine if the current vault is a legacy vault.
+	 **
+	 ** @returns isLegacyVault: boolean - Whether the vault is a legacy vault or not.
+	 *********************************************************************************************/
+	const isLegacyVault = useMemo(() => configuration?.vault?.kind === 'Legacy', [configuration?.vault]);
+
+	/**********************************************************************************************
 	 ** The yRouter hook is used to get the yearn router address for the current chain. If so, we
 	 ** can use the permit signature flow for the deposit function.
 	 **
@@ -63,7 +70,7 @@ export const useVanilaSolver = (
 		spender: isV3Vault && isAddress(yRouter) ? yRouter : toAddress(configuration?.vault?.address),
 		owner: toAddress(address),
 		amountToApprove: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
-		shouldUsePermit: isV3Vault && isAddress(yRouter),
+		shouldUsePermit: isV3Vault && isAddress(yRouter) && !isLegacyVault,
 		deadline: 60,
 		disabled: !isSolverEnabled
 	});
@@ -89,7 +96,9 @@ export const useVanilaSolver = (
 			? {
 					version: 'ERC-4626',
 					options: {
-						useRouter: isAddress(toAddress(CHAINS[configuration?.vault?.chainID].yearnRouterAddress)),
+						useRouter:
+							!isLegacyVault &&
+							isAddress(toAddress(CHAINS[configuration?.vault?.chainID].yearnRouterAddress)),
 						routerAddress: toAddress(CHAINS[configuration?.vault?.chainID].yearnRouterAddress),
 						minOutSlippage: 10n,
 						permitSignature

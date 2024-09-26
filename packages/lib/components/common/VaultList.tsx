@@ -1,3 +1,5 @@
+'use client';
+
 import {type ReactElement, useEffect, useMemo, useState} from 'react';
 import {useQueryState} from 'nuqs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
@@ -34,7 +36,7 @@ const HEADER_TABS = [
 	{value: 'manage', label: 'Manage', isSortable: false}
 ];
 
-export const VaultList = (props: TVaultListProps): ReactElement => {
+export function VaultList(props: TVaultListProps): ReactElement {
 	const [searchValue, set_searchValue] = useQueryState('search', {defaultValue: '', shallow: true});
 	const {getPrices, pricingHash} = usePrices();
 	const [allPrices, set_allPrices] = useState<TNDict<TDict<TNormalizedBN>>>({});
@@ -139,4 +141,4 @@ export const VaultList = (props: TVaultListProps): ReactElement => {
 			/>
 		</div>
 	);
-};
+}

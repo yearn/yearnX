@@ -1,3 +1,5 @@
+'use client';
+
 import {useMemo} from 'react';
 import {useQueryState} from 'nuqs';
 import useWallet from '@builtbymom/web3/contexts/useWallet';
