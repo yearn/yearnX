@@ -5,7 +5,7 @@ export const PROJECT_DESCRIPTION = 'Get the best Aerodrome yields, with Yearn.';
 export const VARIANT_TO_USE = 2;
 export const VAULT_FILTER = 'aerodrome';
 export const VAULTS_PER_PAGE = 20;
-export const APY_TYPE: TAPYType = 'HISTORICAL';
+export const APY_TYPE: TAPYType = 'ESTIMATED';
 
 export const COLORS = {
 	button: '#0052FF', // The main color of the button

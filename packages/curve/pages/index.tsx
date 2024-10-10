@@ -61,7 +61,8 @@ export default function Index(): ReactElement {
 				vaults={vaultsValues}
 				isLoading={isLoading}
 				options={{
-					apyType: APY_TYPE
+					apyType: APY_TYPE,
+					shouldDisplaySubAPY: APY_TYPE === 'ESTIMATED'
 				}}
 			/>
 

@@ -5,7 +5,7 @@ export const PROJECT_DESCRIPTION = 'Auto-rolling Pendle Vaults, from Yearn.';
 export const VARIANT_TO_USE = 2;
 export const VAULT_FILTER = 'pendle';
 export const VAULTS_PER_PAGE = 20;
-export const APY_TYPE: TAPYType = 'HISTORICAL';
+export const APY_TYPE: TAPYType = 'ESTIMATED';
 
 export const COLORS = {
 	button: '#1BE3C2', // The main color of the button

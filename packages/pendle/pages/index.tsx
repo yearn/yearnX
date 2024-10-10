@@ -48,7 +48,7 @@ export default function Index(): ReactElement {
 				isLoading={isLoading}
 				options={{
 					apyType: APY_TYPE,
-					shouldDisplaySubAPY: true
+					shouldDisplaySubAPY: APY_TYPE === 'ESTIMATED'
 				}}
 			/>
 
