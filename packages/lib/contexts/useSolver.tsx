@@ -7,6 +7,7 @@ import {useVanilaSolver} from '@lib/solvers/useVanilaSolver';
 import {useManageVaults} from './useManageVaults';
 
 import type {ReactElement} from 'react';
+import type {TransactionReceipt} from 'viem';
 import type {TPermitSignature} from '@builtbymom/web3/hooks/usePermit.types';
 import type {TPortalsEstimate} from '@lib/utils/api.portals';
 
@@ -27,8 +28,14 @@ export type TSolverContextBase = {
 	permitSignature?: TPermitSignature;
 	quote: TPortalsEstimate | null;
 	onApprove: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
-	onDeposit: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
-	onWithdraw: (onSuccess?: () => void, onFailure?: () => void) => Promise<boolean>;
+	onDeposit: (
+		onSuccess: (receipt?: TransactionReceipt) => void,
+		onFailure?: (message?: string) => void
+	) => Promise<boolean>;
+	onWithdraw: (
+		onSuccess: (receipt?: TransactionReceipt) => void,
+		onFailure?: (message?: string) => void
+	) => Promise<boolean>;
 };
 
 /**

@@ -76,7 +76,7 @@ export function DepositModalContent(props: TDepositModalProps): ReactElement {
 			openAccountModal?.();
 		}
 		if (canDeposit) {
-			const isSuccess = await onDeposit();
+			const isSuccess = await onDeposit(receipt => console.info('receipt: ', receipt));
 			if (isSuccess) {
 				plausible(PLAUSIBLE_EVENTS.DEPOSIT, {
 					props: {
@@ -92,10 +92,10 @@ export function DepositModalContent(props: TDepositModalProps): ReactElement {
 				props.openSuccessModal({
 					isOpen: true,
 					description: (
-						<div className={'flex flex-col items-center'}>
-							<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully deposited'}</p>
-
-							<div className={'flex'}>
+						<span>
+							<span className={'text-regularText/50 whitespace-nowrap'}>{'Successfully deposited'}</span>
+							&nbsp;
+							<span>
 								{!isZapNeededForDeposit
 									? configuration?.tokenToSpend.amount?.display.slice(0, 7)
 									: formatBigIntForDisplay(
@@ -103,13 +103,14 @@ export function DepositModalContent(props: TDepositModalProps): ReactElement {
 											configuration?.tokenToSpend.token?.decimals ?? 18,
 											{maximumFractionDigits: 6}
 										)}
-								<p className={'ml-1'}>{configuration?.tokenToSpend?.token?.symbol}</p>
+								&nbsp;
+								<span>{configuration?.tokenToSpend?.token?.symbol}</span>
 								<span className={'text-regularText/50'}>
 									<span className={'mx-1'}>{'to'}</span>
 									{configuration?.vault?.name}
 								</span>
-							</div>
-						</div>
+							</span>
+						</span>
 					)
 				});
 			}

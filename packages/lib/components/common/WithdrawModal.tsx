@@ -334,7 +334,9 @@ function ButtonComponent(props: {
 			onApprove?.();
 			return;
 		}
-		const isSuccess = await onWithdraw();
+
+		const isSuccess = await onWithdraw(receipt => console.info('receipt: ', receipt));
+
 		if (isSuccess) {
 			plausible(PLAUSIBLE_EVENTS.WITHDRAW, {
 				props: {
@@ -350,11 +352,11 @@ function ButtonComponent(props: {
 			props.openSuccessModal({
 				isOpen: true,
 				description: (
-					<div className={'flex flex-col items-center'}>
-						<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully withdrawn'}</p>
-
-						<div className={'flex flex-col items-center'}>
-							<div className={'flex'}>
+					<span>
+						<span className={'text-regularText/50 whitespace-nowrap'}>{'Successfully withdrawn'}</span>
+						&nbsp;
+						<span>
+							<span>
 								{!isZapNeededForWithdraw
 									? configuration?.tokenToSpend.amount?.display.slice(0, 7)
 									: formatBigIntForDisplay(
@@ -362,13 +364,13 @@ function ButtonComponent(props: {
 											quote?.outputTokenDecimals ?? 18,
 											{maximumFractionDigits: 6}
 										)}
-								<p className={'ml-1'}>{configuration?.tokenToReceive?.token?.symbol}</p>
-							</div>
+								<span className={'ml-1'}>{configuration?.tokenToReceive?.token?.symbol}</span>
+							</span>
 							<span className={'text-regularText/50'}>
 								<span className={'mx-1'}>{'to your wallet'}</span>
 							</span>
-						</div>
-					</div>
+						</span>
+					</span>
 				)
 			});
 		}
@@ -413,7 +415,7 @@ function ButtonComponent(props: {
 		return 'Withdraw';
 	}, [address, canZap, isFetchingQuote, isWalletSafe, isApproved, isZapNeededForWithdraw]);
 
-	const isWithdrawDisable =
+	const isWithdrawDisabled =
 		!props.isReady ||
 		!configuration?.tokenToSpend.amount ||
 		configuration?.tokenToSpend.amount.raw === 0n ||
@@ -423,7 +425,7 @@ function ButtonComponent(props: {
 		<Button
 			onClick={onAction}
 			isBusy={isFetchingQuote || isWithdrawing || isApproving}
-			isDisabled={isWithdrawDisable}
+			isDisabled={isWithdrawDisabled}
 			spinnerClassName={'text-background size-4 animate-spin'}
 			className={cl(
 				'text-black flex w-full justify-center regularTextspace-nowrap rounded-lg bg-regularText md:px-[34.5px] py-5 font-bold',
