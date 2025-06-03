@@ -47,13 +47,11 @@ export const KatanaSection = ({bgImage}: TSectionProps): ReactElement => (
 					{'.'}
 				</p>
 				<br />
-				<p className={'text-md'}>
-					{'Here your assets will find rest and reprieve. And a bridge to the Katana Network. '}
-				</p>
+				<p className={'text-md'}>{'Here your assets will find rest and reprieve. And a bridge to Katana. '}</p>
 				<br />
 				<p className={'text-md'}>
 					{
-						'Deposit USDT, USDC, WBTC, and WETH below. When Katana Chain is live, your funds will be automatically bridged to Katana, and you will be the first Samurai to earn your reward! Make sure to deposit here using a wallet with '
+						'Deposit USDT, USDC, WBTC, and WETH below and you will earn your reward! Make sure to deposit here using a wallet with '
 					}
 					<span className={'group relative'}>
 						<span className={'cursor-pointer underline'}>{'an address you can control on a new L2'}</span>
@@ -72,7 +70,7 @@ export const KatanaSection = ({bgImage}: TSectionProps): ReactElement => (
 				<br />
 				<p className={'text-md'}>
 					{
-						'When the Katana Chain is live, your funds will be automatically bridged to Katana and you will be the first '
+						'When the Katana is live, your funds will be automatically bridged to Katana and you will be the first '
 					}
 					<span style={{color: '#f8fe06'}}>{'Samurai!'}</span>
 				</p>
