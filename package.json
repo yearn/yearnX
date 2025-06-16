@@ -12,6 +12,7 @@
 		"@clustersxyz/sdk": "^0.2.1",
 		"@cowprotocol/cow-sdk": "2.1.0",
 		"@generationsoftware/hyperstructure-client-js": "^1.22.2",
+		"@generationsoftware/hyperstructure-react-hooks": "^1.28.1",
 		"@gnosis.pm/safe-apps-react-sdk": "^4.6.2",
 		"@headlessui/react": "^2.0.4",
 		"@rainbow-me/rainbowkit": "2.2.5",
@@ -50,6 +51,7 @@
 		"zod": "^3.23.8"
 	},
 	"devDependencies": {
+		"bun-types": "latest",
 		"@next/bundle-analyzer": "^14.2.4",
 		"@next/eslint-plugin-next": "^14.2.4",
 		"@testing-library/react": "^16.0.0",
