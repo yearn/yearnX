@@ -1,6 +1,6 @@
 import {Fragment, type ReactElement} from 'react';
-import {cl} from '@builtbymom/web3/utils';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
+import {cl} from '@lib/utils';
 
 import {IconSuccess} from '../icons/IconSuccess';
 import {Button} from './Button';

@@ -3,14 +3,14 @@ import {usePlausible} from 'next-plausible';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside, useTimeout} from 'usehooks-ts';
 import {motion} from 'framer-motion';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, fromNormalized, isAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePopularTokens} from '@lib/contexts/usePopularTokens';
 import {useSolver} from '@lib/contexts/useSolver';
+import useWallet from '@lib/contexts/useWallet';
+import {useWeb3} from '@lib/contexts/useWeb3';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
+import {cl, fromNormalized, isAddress, toBigInt, toNormalizedBN} from '@lib/utils';
 import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
 import {acknowledge, getDifference} from '@lib/utils/tools';
 
@@ -23,8 +23,8 @@ import {TokenSelectorDropdown} from './TokenSelectorDropdown';
 import {VaultLink} from './VaultLink';
 
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
-import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TNormalizedBN, TToken} from '@lib/types';
 import type {TSuccessModal} from './VaultItem';
 
 type TWithdrawModalProps = {

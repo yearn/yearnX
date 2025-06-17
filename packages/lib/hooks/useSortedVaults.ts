@@ -2,12 +2,12 @@
 
 import {useMemo} from 'react';
 import {useQueryState} from 'nuqs';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {numberSort} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
+import useWallet from '@lib/contexts/useWallet';
+import {numberSort} from '@lib/utils';
 import {acknowledge} from '@lib/utils/tools';
 
-import type {TDict, TNDict, TNormalizedBN, TSortDirection} from '@builtbymom/web3/types';
+import type {TDict, TNDict, TNormalizedBN, TSortDirection} from '@lib/types';
 import type {TAPYType, TVaultsSortBy} from '@lib/utils/types';
 import type {TYDaemonVaults} from './useYearnVaults.types';
 

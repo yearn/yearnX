@@ -1,6 +1,6 @@
 import {type ReactElement} from 'react';
 import ReactPaginate from 'react-paginate';
-import {cl} from '@builtbymom/web3/utils';
+import {cl} from '@lib/utils';
 
 import {IconArrowLeft} from '../icons/IconArrowLeft';
 

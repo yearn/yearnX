@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import {getNetwork} from '@builtbymom/web3/utils/wagmi';
+import {getNetwork} from '@lib/utils/wagmi';
 
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {ImageWithFallback} from './ImageWithFallback';

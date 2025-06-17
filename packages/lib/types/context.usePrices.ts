@@ -1,4 +1,4 @@
-import type {TAddress, TDict, TNDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TAddress, TDict, TNDict, TNormalizedBN, TToken} from '@lib/types';
 
 /**************************************************************************************************
  ** The TPrices type is used to type the prices object. The object is a dictionary of dictionaries,

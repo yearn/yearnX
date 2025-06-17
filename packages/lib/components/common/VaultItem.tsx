@@ -3,8 +3,10 @@
 import {type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useQueryState} from 'nuqs';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
+import {useManageVaults} from '@lib/contexts/useManageVaults';
+import {usePrices} from '@lib/contexts/usePrices';
+import useWallet from '@lib/contexts/useWallet';
+import {useAsyncTrigger} from '@lib/hooks/useAsyncTrigger';
 import {
 	cl,
 	formatAmount,
@@ -14,11 +16,9 @@ import {
 	toAddress,
 	toNormalizedBN,
 	zeroNormalizedBN
-} from '@builtbymom/web3/utils';
-import {getNetwork} from '@builtbymom/web3/utils/wagmi';
-import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {usePrices} from '@lib/contexts/usePrices';
+} from '@lib/utils';
 import {acknowledge, toPercent} from '@lib/utils/tools';
+import {getNetwork} from '@lib/utils/wagmi';
 
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {DepositModal} from './DepositModal';
@@ -26,8 +26,8 @@ import {ImageWithFallback} from './ImageWithFallback';
 import {SuccessModal} from './SuccessModal';
 import {WithdrawModal} from './WithdrawModal';
 
-import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TNormalizedBN} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
 
 type TVaultItem = {

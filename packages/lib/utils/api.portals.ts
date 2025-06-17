@@ -1,6 +1,6 @@
 import {zeroAddress} from 'viem';
 import {z} from 'zod';
-import {addressSchema, type TAddress} from '@builtbymom/web3/types';
+import {addressSchema, type TAddress} from '@lib/types';
 import {
 	ETH_TOKEN_ADDRESS,
 	fetch,
@@ -10,10 +10,10 @@ import {
 	toAddress,
 	toBigInt,
 	ZERO_ADDRESS
-} from '@builtbymom/web3/utils';
+} from '@lib/utils';
 
 import type {Hex} from 'viem';
-import type {TFetchReturn} from '@builtbymom/web3/utils';
+import type {TFetchReturn} from '@lib/utils';
 import type {TInitSolverArgs} from './solvers';
 
 export const portalsEstimateResponseSchema = z.object({

@@ -1,13 +1,13 @@
 import {Fragment, type ReactElement, type RefObject, useMemo} from 'react';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, formatAmount, toAddress, toBigInt, truncateHex} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
+import {useWeb3} from '@lib/contexts/useWeb3';
+import {cl, formatAmount, toAddress, toBigInt, truncateHex} from '@lib/utils';
 import {acknowledge} from '@lib/utils/tools';
 
 import {IconSearch} from '../icons/IconSearch';
 import {ImageWithFallback} from './ImageWithFallback';
 
-import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TNormalizedBN, TToken} from '@lib/types';
 
 type TTokenSelectorDropdownProps = {
 	isOpen: boolean;

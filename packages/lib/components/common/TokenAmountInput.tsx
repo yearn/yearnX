@@ -3,18 +3,18 @@ import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
 import {zeroAddress} from 'viem';
 import {useReadContract} from 'wagmi';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {cl, formatAmount, fromNormalized, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import useWallet from '@lib/contexts/useWallet';
+import {useWeb3} from '@lib/contexts/useWeb3';
+import {cl, formatAmount, fromNormalized, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@lib/utils';
 import {acknowledge, toPercent} from '@lib/utils/tools';
 import {VAULT_ABI} from '@lib/utils/vault.abi';
 
 import {Button} from './Button';
 import {TokenSelector} from './TokenSelector';
 
-import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TNormalizedBN, TToken} from '@lib/types';
 
 type TTokenAmountInputProps = {
 	chainID: number;

@@ -1,8 +1,8 @@
 import {type ReactElement, useMemo} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {truncateHex} from '@builtbymom/web3/utils';
+import {useWeb3} from '@lib/contexts/useWeb3';
+import {truncateHex} from '@lib/utils';
 
 import {IconColloboration} from '../icons/IconCollaboration';
 import {LogoYearn} from '../icons/LogoYearn';

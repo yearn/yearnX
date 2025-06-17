@@ -1,10 +1,10 @@
 import {zeroAddress} from 'viem';
 import {z} from 'zod';
-import {addressSchema} from '@builtbymom/web3/types';
-import {toBigInt} from '@builtbymom/web3/utils';
+import {addressSchema} from '@lib/types';
+import {toBigInt} from '@lib/utils';
 
 import type {KeyedMutator} from 'swr';
-import type {TDict} from '@builtbymom/web3/types';
+import type {TDict} from '@lib/types';
 
 const yDaemonVaultStrategySchema = z.object({
 	address: addressSchema,

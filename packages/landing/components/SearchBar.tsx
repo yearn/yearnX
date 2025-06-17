@@ -1,6 +1,6 @@
-import {cl} from '@builtbymom/web3/utils';
 import {IconCross} from '@lib/components/icons/IconCross';
 import {IconSearch} from '@lib/components/icons/IconSearch';
+import {cl} from '@lib/utils';
 
 import type {ReactElement} from 'react';
 

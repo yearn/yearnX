@@ -1,6 +1,6 @@
 import * as all from 'viem/chains';
 
-import type {TAddress} from '@builtbymom/web3/types';
+import type {TAddress} from '@lib/types';
 
 const {...chains} = all;
 

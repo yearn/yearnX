@@ -1,11 +1,11 @@
 import {Fragment, useCallback, useEffect, useMemo} from 'react';
 import {usePlausible} from 'next-plausible';
 import {motion} from 'framer-motion';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
+import useWallet from '@lib/contexts/useWallet';
+import {useWeb3} from '@lib/contexts/useWeb3';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
 import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
 import {useAccountModal} from '@rainbow-me/rainbowkit';

@@ -3,8 +3,10 @@
 import {type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useQueryState} from 'nuqs';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
+import {useManageVaults} from '@lib/contexts/useManageVaults';
+import {usePrices} from '@lib/contexts/usePrices';
+import useWallet from '@lib/contexts/useWallet';
+import {useAsyncTrigger} from '@lib/hooks/useAsyncTrigger';
 import {
 	cl,
 	formatAmount,
@@ -13,11 +15,10 @@ import {
 	toAddress,
 	toNormalizedBN,
 	zeroNormalizedBN
-} from '@builtbymom/web3/utils';
-import {getNetwork} from '@builtbymom/web3/utils/wagmi';
-import {useManageVaults} from '@lib/contexts/useManageVaults';
-import {usePrices} from '@lib/contexts/usePrices';
+} from '@lib/utils';
 import {acknowledge} from '@lib/utils/tools';
+import {CHAINS} from '@lib/utils/tools.chains';
+import {getNetwork} from '@lib/utils/wagmi';
 
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {DepositModal} from './DepositModal';
@@ -25,8 +26,8 @@ import {ImageWithFallback} from './ImageWithFallback';
 import {SuccessModal} from './SuccessModal';
 import {WithdrawModal} from './WithdrawModal';
 
-import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TNormalizedBN} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
 
 type TVaultItem = {
@@ -200,6 +201,14 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		set_selectedAction(null);
 	}, [dispatchConfiguration, set_selectedAction, set_selectedVault]);
 
+	/**********************************************************************************************
+	 ** Get the background color for the chain from the CHAINS object
+	 *********************************************************************************************/
+	const chainBgColor = useMemo(() => {
+		const chain = CHAINS[vault.chainID];
+		return chain?.bgColor || '#374151'; // fallback to gray if no color defined
+	}, [vault.chainID]);
+
 	return (
 		<div>
 			<DepositModal
@@ -227,7 +236,12 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 			/>
 
 			{/* Desktop screen Item */}
-			<div className={'bg-regularText/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-10'}>
+			<div
+				className={'bg-regularText/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-10'}
+				style={{
+					backgroundColor: `${chainBgColor}15`, // 15 is ~8% opacity in hex
+					borderLeft: `3px solid ${chainBgColor}`
+				}}>
 				<Link
 					href={yearnfiLink}
 					target={'_blank'}
@@ -258,6 +272,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					</div>
 				</div> */}
 
+				{/* TVL */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
 					<div className={'text-right font-mono'}>
 						{totalDeposits}
@@ -298,7 +313,12 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 			</div>
 
 			{/* Mobile screen Item */}
-			<div className={'bg-table flex w-full flex-col gap-y-6 rounded-2xl p-6 md:hidden'}>
+			<div
+				className={'bg-table flex w-full flex-col gap-y-6 rounded-2xl p-6 md:hidden'}
+				style={{
+					backgroundColor: `${chainBgColor}10`, // 10 is ~6% opacity in hex
+					borderLeft: `3px solid ${chainBgColor}`
+				}}>
 				<Link
 					href={yearnfiLink}
 					target={'_blank'}

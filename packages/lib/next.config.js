@@ -130,7 +130,8 @@ module.exports = withPlausibleProxy({
 			WALLETCONNECT_PROJECT_ICON: 'https://yearn.space/favicons/ms-icon-310x310.png',
 			SHOULD_USE_FORKNET: process.env.SHOULD_USE_FORKNET === 'false',
 			SMOL_ASSETS_URL: 'https://assets.smold.app/api',
-			PLAUSIBLE_DOMAIN: 'yearn.space'
+			PLAUSIBLE_DOMAIN: 'yearn.space',
+			YDAEMON_BASE_URI: process.env.YDAEMON_BASE_URI || 'https://ydaemon.yearn.fi'
 		}
 	})
 );

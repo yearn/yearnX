@@ -1,11 +1,11 @@
 import {createContext, useContext, useMemo, useReducer} from 'react';
 import {zeroAddress} from 'viem';
-import {zeroNormalizedBN} from '@builtbymom/web3/utils';
+import {zeroNormalizedBN} from '@lib/utils';
 import {optionalRenderProps} from '@lib/utils/optionalRenderProps';
 
 import type {Dispatch, ReactElement} from 'react';
-import type {TNormalizedBN} from '@builtbymom/web3/types';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TNormalizedBN} from '@lib/types';
 import type {TOptionalRenderProps} from '@lib/utils/optionalRenderProps';
 import type {TAssertedTokenToUse, TTokenToUse} from '@lib/utils/types';
 

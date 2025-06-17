@@ -1,6 +1,6 @@
 import {Fragment} from 'react';
-import {cl} from '@builtbymom/web3/utils';
 import {Dialog, Transition, TransitionChild} from '@headlessui/react';
+import {cl} from '@lib/utils';
 
 import type {ReactElement} from 'react';
 

@@ -1,10 +1,10 @@
 import {type ReactElement, useCallback} from 'react';
-import {cl} from '@builtbymom/web3/utils';
+import {cl} from '@lib/utils';
 
 import {IconSort} from '../icons/IconSort';
 
-import type {TSortDirection} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
+import type {TSortDirection} from '@lib/types';
 import type {TVaultsSortBy} from '@lib/utils/types';
 
 type TVaultsListHeadProps = {
@@ -63,13 +63,13 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 	);
 
 	return (
-		<div className={'hidden px-2 md:col-span-7 md:grid md:grid-cols-10'}>
+		<div className={'hidden px-2 md:col-span-7 md:grid md:grid-cols-7'}>
 			{props.items.map(item =>
 				item.isSortable ? (
 					<button
 						onClick={() => toggleSortDirection(item.value as TVaultsSortBy)}
 						className={cl(
-							'flex w-full items-center gap-x-2 group col-span-2',
+							'flex w-full items-center gap-x-2 group col-span-1',
 							item.value === 'balance' || item.value === 'apy'
 								? 'justify-end'
 								: item.value === 'deposits'
@@ -86,9 +86,9 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 						className={cl(
 							'flex flex-row items-center text-regularText/80',
 							item.value === 'vault'
-								? 'col-span-3 justify-start'
+								? 'col-span-2 justify-start'
 								: item.value === 'manage'
-									? 'justify-center col-span-3 pl-20'
+									? 'justify-center col-span-2 pl-10'
 									: 'justify-end'
 						)}>
 						{item.label}

@@ -27,7 +27,6 @@ export function Hero(): ReactElement {
 				alt={''}
 				width={'800'}
 				height={'700'}
-				fetchPriority={'high'}
 			/>
 			<Image
 				className={
@@ -39,7 +38,6 @@ export function Hero(): ReactElement {
 				alt={''}
 				width={'385'}
 				height={'315'}
-				fetchPriority={'high'}
 			/>
 			<Image
 				className={
@@ -51,7 +49,6 @@ export function Hero(): ReactElement {
 				alt={''}
 				width={'700'}
 				height={'700'}
-				fetchPriority={'high'}
 			/>
 			<div className={'z-30 flex w-full max-w-6xl justify-between py-20'}>
 				<div className={'mt-60 flex flex-col md:mt-0'}>

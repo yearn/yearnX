@@ -1,11 +1,11 @@
 import React from 'react';
-import {toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
 import {useGrandPrize, usePrizePool} from '@generationsoftware/hyperstructure-react-hooks';
 import {DefaultHeader} from '@lib/components/common/DefaultHeader';
 import {Footer} from '@lib/components/common/Footer';
 import {VaultList} from '@lib/components/common/VaultList';
 import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
+import {toAddress, toBigInt, toNormalizedBN} from '@lib/utils';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {APY_TYPE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';

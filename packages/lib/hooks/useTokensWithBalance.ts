@@ -1,13 +1,13 @@
 import {useCallback, useState} from 'react';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {useTokenList} from '@builtbymom/web3/contexts/WithTokenList';
-import {ETH_TOKEN_ADDRESS, toAddress, zeroNormalizedBN} from '@builtbymom/web3/utils';
-import {getNetwork} from '@builtbymom/web3/utils/wagmi';
+import useWallet from '@lib/contexts/useWallet';
+import {useWeb3} from '@lib/contexts/useWeb3';
+import {useTokenList} from '@lib/contexts/WithTokenList';
+import {ETH_TOKEN_ADDRESS, toAddress, zeroNormalizedBN} from '@lib/utils';
 import {acknowledge} from '@lib/utils/tools';
+import {getNetwork} from '@lib/utils/wagmi';
 import {useDeepCompareEffect} from '@react-hookz/web';
 
-import type {TChainTokens, TDict, TNDict, TToken} from '@builtbymom/web3/types';
+import type {TChainTokens, TDict, TNDict, TToken} from '@lib/types';
 
 export function useTokensWithBalance(): {
 	listAllTokensWithBalance: () => TToken[];

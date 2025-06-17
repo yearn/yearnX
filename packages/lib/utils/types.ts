@@ -1,4 +1,4 @@
-import type {TAddress, TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TAddress, TNormalizedBN, TToken} from '@lib/types';
 
 export type TVaultData = {
 	name: string;

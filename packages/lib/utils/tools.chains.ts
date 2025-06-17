@@ -1,17 +1,19 @@
 /* eslint-disable object-curly-newline */
 'use client';
 
+import {defineChain} from 'viem';
 import {arbitrum, base, fantom, gnosis, mainnet, optimism, polygon} from 'viem/chains';
-import {toAddress} from '@builtbymom/web3/utils';
+import {toAddress} from '@lib/utils';
 
 import type {Chain} from 'viem/chains';
-import type {TAddress, TNDict} from '@builtbymom/web3/types';
+import type {TAddress, TNDict} from '@lib/types';
 
 type TSmolChains = TNDict<
 	Chain & {
 		coingeckoGasCoinID: string;
 		llamaChainName?: string;
 		yearnRouterAddress: TAddress | undefined;
+		bgColor?: string;
 	}
 >;
 
@@ -20,6 +22,33 @@ type TAssignRPCUrls = {
 		http: string[];
 	};
 };
+
+const katana = /*#__PURE__*/ defineChain({
+	id: 747474,
+	name: 'Katana',
+	nativeCurrency: {
+		decimals: 18,
+		name: 'Ether',
+		symbol: 'ETH'
+	},
+	rpcUrls: {
+		default: {http: ['https://rpc.katanarpc.com']}
+	},
+	blockExplorers: {
+		default: {
+			name: 'Katana Explorer',
+			url: 'https://explorer.katanarpc.com'
+		}
+	},
+	contracts: {
+		multicall3: {
+			address: '0xcA11bde05977b3631167028862bE2a173976CA11',
+			blockCreated: 1898013
+		}
+	},
+	testnet: false
+});
+
 export function assignRPCUrls(chain: Chain, rpcUrls?: string[]): TAssignRPCUrls {
 	const availableRPCs: string[] = [];
 
@@ -64,7 +93,8 @@ const CHAINS: TSmolChains = {
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'ethereum',
 		rpcUrls: assignRPCUrls(mainnet),
-		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de'),
+		bgColor: '#253d6b'
 	},
 	[optimism.id]: {
 		...optimism,
@@ -72,21 +102,24 @@ const CHAINS: TSmolChains = {
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'optimism',
 		rpcUrls: assignRPCUrls(optimism),
-		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de'),
+		bgColor: '#6b212b'
 	},
 	[gnosis.id]: {
 		...gnosis,
 		coingeckoGasCoinID: 'xdai',
 		llamaChainName: 'xdai',
 		rpcUrls: assignRPCUrls(gnosis),
-		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de'),
+		bgColor: '#0b4d0f'
 	},
 	[polygon.id]: {
 		...polygon,
 		coingeckoGasCoinID: 'matic-network',
 		llamaChainName: 'polygon',
 		rpcUrls: assignRPCUrls(polygon),
-		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de'),
+		bgColor: '#320a36'
 	},
 	[fantom.id]: {
 		...fantom,
@@ -100,14 +133,24 @@ const CHAINS: TSmolChains = {
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'base',
 		rpcUrls: assignRPCUrls(base),
-		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de'),
+		bgColor: '#1e2e87'
 	},
 	[arbitrum.id]: {
 		...arbitrum,
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'arbitrum',
 		rpcUrls: assignRPCUrls(arbitrum),
-		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de')
+		yearnRouterAddress: toAddress('0x1112dbcf805682e828606f74ab717abf4b4fd8de'),
+		bgColor: '#424240'
+	},
+	[katana.id]: {
+		...katana,
+		coingeckoGasCoinID: 'ethereum',
+		llamaChainName: 'katana',
+		rpcUrls: assignRPCUrls(katana),
+		yearnRouterAddress: toAddress(''),
+		bgColor: '#694a11'
 	}
 };
 

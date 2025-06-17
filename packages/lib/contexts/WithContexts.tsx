@@ -1,6 +1,4 @@
 import {Toaster} from 'react-hot-toast';
-import {WalletContextApp} from '@builtbymom/web3/contexts/useWallet';
-import {WithMom} from '@builtbymom/web3/contexts/WithMom';
 import {WithFonts} from '@lib/components/common/WithFonts';
 import {IconCheck} from '@lib/components/icons/IconCheck';
 import {IconCircleCross} from '@lib/components/icons/IconCircleCross';
@@ -8,6 +6,8 @@ import {VaultsContextApp} from '@lib/contexts/useManageVaults';
 import {WithPopularTokens} from '@lib/contexts/usePopularTokens';
 import {WithPrices} from '@lib/contexts/usePrices';
 import {SolverContextApp} from '@lib/contexts/useSolver';
+import {WalletContextApp} from '@lib/contexts/useWallet';
+import {WithMom} from '@lib/contexts/WithMom';
 import {supportedNetworks} from '@lib/utils/tools.chains';
 
 import type {AppProps} from 'next/app';

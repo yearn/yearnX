@@ -7,7 +7,7 @@ import {useVanilaSolver} from '@lib/solvers/useVanilaSolver';
 import {useManageVaults} from './useManageVaults';
 
 import type {ReactElement} from 'react';
-import type {TPermitSignature} from '@builtbymom/web3/hooks/usePermit.types';
+import type {TPermitSignature} from '@lib/hooks/usePermit.types';
 import type {TPortalsEstimate} from '@lib/utils/api.portals';
 
 /**************************************************************************************************

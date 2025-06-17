@@ -1,6 +1,6 @@
 import React, {forwardRef} from 'react';
-import {cl} from '@builtbymom/web3/utils';
 import {IconSpinner} from '@icons/IconSpinner';
+import {cl} from '@lib/utils';
 
 import type {ComponentPropsWithoutRef, ForwardedRef, MouseEvent, ReactElement, ReactNode} from 'react';
 

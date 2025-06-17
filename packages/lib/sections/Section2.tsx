@@ -1,7 +1,7 @@
 import {Fragment, type ReactElement} from 'react';
 import Image from 'next/image';
-import {cl, formatLocalAmount} from '@builtbymom/web3/utils';
 import {Counter} from '@lib/components/common/Counter';
+import {cl, formatLocalAmount} from '@lib/utils';
 
 import type {TSectionProps} from '@lib/utils/types';
 

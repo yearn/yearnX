@@ -9,7 +9,7 @@ import {useDeepCompareMemo} from '@react-hookz/web';
 import {APY_TYPE, PROJECT_DESCRIPTION, PROJECT_TITLE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 
 export default function Index(): ReactElement {
-	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER);
+	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER, [1, 747474]);
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
 
 	const sumOfTVL = useMemo(() => {

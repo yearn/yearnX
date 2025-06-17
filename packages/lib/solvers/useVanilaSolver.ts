@@ -1,13 +1,13 @@
 import {useCallback, useMemo} from 'react';
 import {isAddress} from 'viem';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {useApprove} from '@builtbymom/web3/hooks/useApprove';
-import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
-import {useVaultDeposit} from '@builtbymom/web3/hooks/useDeposit';
-import {useVaultWithdraw} from '@builtbymom/web3/hooks/useWithdraw';
-import {ETH_TOKEN_ADDRESS, toAddress, toBigInt} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import useWallet from '@lib/contexts/useWallet';
+import {useWeb3} from '@lib/contexts/useWeb3';
+import {useApprove} from '@lib/hooks/useApprove';
+import {useAsyncTrigger} from '@lib/hooks/useAsyncTrigger';
+import {useVaultDeposit} from '@lib/hooks/useDeposit';
+import {useVaultWithdraw} from '@lib/hooks/useWithdraw';
+import {ETH_TOKEN_ADDRESS, toAddress, toBigInt} from '@lib/utils';
 import {CHAINS} from '@lib/utils/tools.chains';
 
 import type {TAssertedVaultsConfiguration} from '@lib/contexts/useManageVaults';

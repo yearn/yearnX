@@ -1,8 +1,8 @@
 import {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import {serialize} from 'wagmi';
 import axios from 'axios';
-import {toAddress, toNormalizedBN} from '@builtbymom/web3/utils';
 import {useTokensWithBalance} from '@lib/hooks/useTokensWithBalance';
+import {toAddress, toNormalizedBN} from '@lib/utils';
 import {createUniqueID} from '@lib/utils/tools.identifiers';
 import {useDeepCompareEffect} from '@react-hookz/web';
 
@@ -18,7 +18,7 @@ import {
 
 import type {Dispatch, ReactElement, SetStateAction} from 'react';
 import type {Chain} from 'viem';
-import type {TDict, TNDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TDict, TNDict, TNormalizedBN, TToken} from '@lib/types';
 import type {TGetPriceProps, TPrices, TPricesProps, TPriceTokens} from '@lib/types/context.usePrices';
 
 const PricesContext = createContext<TPricesProps>(usePricesDefaultProps);
@@ -141,19 +141,21 @@ export const WithPrices = (props: {children: ReactElement; supportedNetworks?: C
 			 ** a batch of 100 tokens per request.
 			 *************************************************************************************/
 			const ydaemonRequests = [];
-			if (missingTokens.length > 50) {
-				const tokens = missingTokens.slice();
-				while (tokens.length) {
-					const chunk = tokens.splice(0, 50);
-					ydaemonRequests.push(
-						axios.get(`https://ydaemon.yearn.fi/prices/some/${prepareQueryStringForYDaemon(chunk)}`)
-					);
-				}
-			} else {
-				ydaemonRequests.push(axios.get(`https://ydaemon.yearn.fi/prices/some/${queryStringForYDaemon}`));
-			}
+			// if (missingTokens.length > 50) {
+			// 	const tokens = missingTokens.slice();
+			// 	while (tokens.length) {
+			// 		const chunk = tokens.splice(0, 50);
+			// 		ydaemonRequests.push(
+			// 			axios.get(`https://ydaemon.yearn.fi/prices/some/${prepareQueryStringForYDaemon(chunk)}`)
+			// 		);
+			// 	}
+			// } else {
+			ydaemonRequests.push(axios.get('https://ydaemon.yearn.fi/prices/all'));
+			// }
 			const allPricesFromYDaemon = await Promise.allSettled(ydaemonRequests);
+			console.log('allPricesFromYDaemon', allPricesFromYDaemon);
 			const pricesFromYDaemon = mergeYDaemonResponse(allPricesFromYDaemon);
+			console.log('pricesFromYDaemon', pricesFromYDaemon);
 
 			/**************************************************************************************
 			 ** We will update the prices object with the new prices from the llama and yDaemon

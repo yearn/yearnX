@@ -1,4 +1,4 @@
-import {isAddress} from '@builtbymom/web3/utils';
+import {isAddress} from '@lib/utils';
 
 import type {TVaultsConfiguration} from '@lib/contexts/useManageVaults';
 

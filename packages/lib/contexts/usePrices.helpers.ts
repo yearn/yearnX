@@ -1,8 +1,8 @@
-import {deepMerge, fromNormalized, toAddress, toBigInt, toNormalizedBN} from '@builtbymom/web3/utils';
+import {deepMerge, fromNormalized, toAddress, toBigInt, toNormalizedBN} from '@lib/utils';
 import {CHAINS} from '@lib/utils/tools.chains';
 
 import type {AxiosResponse} from 'axios';
-import type {TDict, TNDict} from '@builtbymom/web3/types';
+import type {TDict, TNDict} from '@lib/types';
 import type {TLLamaPricesEndpointResponse, TPrices, TPricesProps, TPriceTokens} from '@lib/types/context.usePrices';
 
 export const usePricesDefaultProps: TPricesProps = {

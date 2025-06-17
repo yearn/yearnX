@@ -2,25 +2,25 @@ import {useCallback, useMemo, useState} from 'react';
 import toast from 'react-hot-toast';
 import {BaseError, isHex, zeroAddress} from 'viem';
 import {useReadContract} from 'wagmi';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {useApprove} from '@builtbymom/web3/hooks/useApprove';
-import {useAsyncTrigger} from '@builtbymom/web3/hooks/useAsyncTrigger';
-import {assert, ETH_TOKEN_ADDRESS, isEthAddress, isZeroAddress, toAddress, toBigInt} from '@builtbymom/web3/utils';
-import {defaultTxStatus, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
 import {useSafeAppsSDK} from '@gnosis.pm/safe-apps-react-sdk';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import useWallet from '@lib/contexts/useWallet';
+import {useWeb3} from '@lib/contexts/useWeb3';
+import {useApprove} from '@lib/hooks/useApprove';
+import {useAsyncTrigger} from '@lib/hooks/useAsyncTrigger';
+import {assert, ETH_TOKEN_ADDRESS, isEthAddress, isZeroAddress, toAddress, toBigInt} from '@lib/utils';
 import {getPortalsApproval, getPortalsTx, getQuote, PORTALS_NETWORK} from '@lib/utils/api.portals';
 import {isValidPortalsErrorObject} from '@lib/utils/isValidPortalsErrorObject';
 import {getApproveTransaction} from '@lib/utils/tools.gnosis';
 import {VAULT_ABI} from '@lib/utils/vault.abi';
+import {defaultTxStatus, retrieveConfig, toWagmiProvider} from '@lib/utils/wagmi';
 import {sendTransaction, switchChain, waitForTransactionReceipt} from '@wagmi/core';
 
-import type {TTxResponse} from '@builtbymom/web3/utils/wagmi';
 import type {BaseTransaction} from '@gnosis.pm/safe-apps-sdk';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
 import type {TPortalsApproval, TPortalsEstimate} from '@lib/utils/api.portals';
 import type {TInitSolverArgs} from '@lib/utils/solvers';
+import type {TTxResponse} from '@lib/utils/wagmi';
 
 export const usePortalsSolver = (
 	isZapNeededForDeposit: boolean,

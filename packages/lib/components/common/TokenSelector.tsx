@@ -1,9 +1,9 @@
 import {type ReactElement, type RefObject, useEffect, useState} from 'react';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {useWeb3} from '@builtbymom/web3/contexts/useWeb3';
-import {toAddress} from '@builtbymom/web3/utils';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePopularTokens} from '@lib/contexts/usePopularTokens';
+import useWallet from '@lib/contexts/useWallet';
+import {useWeb3} from '@lib/contexts/useWeb3';
+import {toAddress} from '@lib/utils';
 import {acknowledge} from '@lib/utils/tools';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
@@ -11,7 +11,7 @@ import {IconChevron} from '../icons/IconChevron';
 import {ImageWithFallback} from './ImageWithFallback';
 import {TokenSelectorDropdown} from './TokenSelectorDropdown';
 
-import type {TNormalizedBN, TToken} from '@builtbymom/web3/types';
+import type {TNormalizedBN, TToken} from '@lib/types';
 
 function getDifference(item: string, searchTerm: string): number {
 	if (item.startsWith(searchTerm)) {

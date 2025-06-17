@@ -1,6 +1,6 @@
 import {useEffect, useRef} from 'react';
 import {animate} from 'framer-motion';
-import {formatAmount, parseAmount} from '@builtbymom/web3/utils';
+import {formatAmount, parseAmount} from '@lib/utils';
 
 import type {ReactElement} from 'react';
 

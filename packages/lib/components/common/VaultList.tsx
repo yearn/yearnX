@@ -3,11 +3,11 @@
 import {Fragment, type ReactElement, useEffect, useMemo, useState} from 'react';
 import {useQueryState} from 'nuqs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
-import useWallet from '@builtbymom/web3/contexts/useWallet';
-import {zeroNormalizedBN} from '@builtbymom/web3/utils';
 import {usePrices} from '@lib/contexts/usePrices';
+import useWallet from '@lib/contexts/useWallet';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
+import {zeroNormalizedBN} from '@lib/utils';
 import {acknowledge} from '@lib/utils/tools';
 
 import {Pagination} from './Pagination';
@@ -16,8 +16,8 @@ import {VaultItem} from './VaultItem';
 import {VaultSearch} from './VaultSearch';
 import {VaultsListHead} from './VaultsListHead';
 
-import type {TDict, TNDict, TNormalizedBN, TToken} from '@builtbymom/web3/types';
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
+import type {TDict, TNDict, TNormalizedBN, TToken} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
 
 type TVaultListProps = {

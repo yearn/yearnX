@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import {cl} from '@builtbymom/web3/utils';
+import {cl} from '@lib/utils';
 
 import type {ReactElement} from 'react';
 import type {TSectionProps} from '@lib/utils/types';

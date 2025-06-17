@@ -1,6 +1,6 @@
 import {encodeFunctionData, erc20Abi} from 'viem';
-import {assert, assertAddress, MAX_UINT_256, toBigInt} from '@builtbymom/web3/utils';
-import {handleTx, retrieveConfig, toWagmiProvider} from '@builtbymom/web3/utils/wagmi';
+import {assert, assertAddress, MAX_UINT_256, toBigInt} from '@lib/utils';
+import {handleTx, retrieveConfig, toWagmiProvider} from '@lib/utils/wagmi';
 import {readContract} from '@wagmi/core';
 
 import {MULTICALL_ABI} from './multicall.abi.ts';
@@ -10,8 +10,8 @@ import {YEARN_4626_ROUTER_ABI} from './vaultRouter.abi.ts';
 import {VAULT_V2_ABI} from './vaultV2.abi.ts';
 
 import type {EncodeFunctionDataReturnType, Hex} from 'viem';
-import type {TAddress} from '@builtbymom/web3/types';
-import type {TTxResponse, TWriteTransaction} from '@builtbymom/web3/utils/wagmi';
+import type {TAddress} from '@lib/types';
+import type {TTxResponse, TWriteTransaction} from '@lib/utils/wagmi';
 
 /**************************************************************************************************
  ** redeemV3Shares is a _WRITE_ function that withdraws a share of underlying collateral from a

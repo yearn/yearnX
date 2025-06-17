@@ -1,4 +1,4 @@
-import type {TAddress} from '@builtbymom/web3/types';
+import type {TAddress} from '@lib/types';
 
 export type TInitSolverArgs = {
 	chainID: number;
