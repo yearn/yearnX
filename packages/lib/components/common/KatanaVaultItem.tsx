@@ -250,6 +250,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					}>
 					<ImageWithFallback
 						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
+						altSrc={`/tokens/${vault.token.address.toLowerCase()}/logo-32.png`}
 						alt={vault.token.symbol}
 						width={28}
 						height={28}
@@ -327,6 +328,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					}>
 					<ImageWithFallback
 						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
+						altSrc={`/tokens/${vault.token.address.toLowerCase()}/logo-32.png`}
 						alt={vault.token.symbol}
 						width={28}
 						height={28}
