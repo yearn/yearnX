@@ -3,6 +3,7 @@
 import {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import {isAddressEqual} from 'viem';
 import axios from 'axios';
+import manualTokens from '@lib/public/tokens/manualTokens.json';
 import {useLocalStorageValue} from '@react-hookz/web';
 
 import {useAsyncTrigger} from '../hooks/useAsyncTrigger';
@@ -109,18 +110,22 @@ export const WithTokenList = ({
 			}
 		}
 
+		// Add manual tokens (now with correct chainId property)
+		tokens.push(...(manualTokens.tokens as TTokenList['tokens']));
+
 		const tokenListTokens: TNDict<TDict<TToken>> = {};
 		for (const eachToken of tokens) {
-			if (!tokenListTokens[eachToken.chainId]) {
-				tokenListTokens[eachToken.chainId] = {};
+			const {chainId} = eachToken;
+			if (!tokenListTokens[chainId]) {
+				tokenListTokens[chainId] = {};
 			}
-			if (!tokenListTokens[eachToken.chainId][toAddress(eachToken.address)]) {
-				tokenListTokens[eachToken.chainId][toAddress(eachToken.address)] = {
+			if (!tokenListTokens[chainId][toAddress(eachToken.address)]) {
+				tokenListTokens[chainId][toAddress(eachToken.address)] = {
 					address: eachToken.address,
 					name: eachToken.name,
 					symbol: eachToken.symbol,
 					decimals: eachToken.decimals,
-					chainID: eachToken.chainId,
+					chainID: chainId,
 					logoURI: eachToken.logoURI,
 					value: 0,
 					balance: zeroNormalizedBN
@@ -131,11 +136,7 @@ export const WithTokenList = ({
 			 ** If we are in development mode, we also want to add the token to our list, but only
 			 ** if the token's chainID is 1 (Ethereum).
 			 *************************************************************************************/
-			if (
-				process.env.NODE_ENV === 'development' &&
-				Boolean(process.env.SHOULD_USE_FORKNET) &&
-				eachToken.chainId === 1
-			) {
+			if (process.env.NODE_ENV === 'development' && Boolean(process.env.SHOULD_USE_FORKNET) && chainId === 1) {
 				if (!tokenListTokens[1337]) {
 					tokenListTokens[1337] = {};
 				}
