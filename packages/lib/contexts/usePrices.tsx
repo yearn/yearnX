@@ -153,9 +153,7 @@ export const WithPrices = (props: {children: ReactElement; supportedNetworks?: C
 			ydaemonRequests.push(axios.get('https://ydaemon.yearn.fi/prices/all'));
 			// }
 			const allPricesFromYDaemon = await Promise.allSettled(ydaemonRequests);
-			console.log('allPricesFromYDaemon', allPricesFromYDaemon);
 			const pricesFromYDaemon = mergeYDaemonResponse(allPricesFromYDaemon);
-			console.log('pricesFromYDaemon', pricesFromYDaemon);
 
 			/**************************************************************************************
 			 ** We will update the prices object with the new prices from the llama and yDaemon

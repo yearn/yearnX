@@ -55,14 +55,9 @@ const SolverContext = createContext<TSolverContextBase>({
 
 function WithContexts({children}: {children: ReactElement}): ReactElement {
 	const {configuration} = useManageVaults();
-	console.log('configuration', configuration);
 	const {isZapNeededForDeposit, isZapNeededForWithdraw} = useIsZapNeeded(configuration);
-	console.log('isZapNeededForDeposit', isZapNeededForDeposit);
-	console.log('isZapNeededForWithdraw', isZapNeededForWithdraw);
 	const vanila = useVanilaSolver(isZapNeededForDeposit, isZapNeededForWithdraw);
-	console.log('vanila', vanila);
 	const portals = usePortalsSolver(isZapNeededForDeposit, isZapNeededForWithdraw);
-	console.log('portals', portals);
 
 	const currentSolver = useMemo(() => {
 		if (isZapNeededForDeposit && configuration.action === 'DEPOSIT') {
