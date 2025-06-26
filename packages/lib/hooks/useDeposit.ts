@@ -303,87 +303,90 @@ export function useVaultDeposit(args: TUseDepositArgs): TUseDepositResp {
 			 ** https://github.com/yearn/Yearn-ERC4626-Router
 			 *********************************************************************************************/
 			if (args.options) {
-				if (args.options.minOutSlippage < 0n || args.options.minOutSlippage > 10000n) {
-					throw new Error('Invalid minOutSlippage');
-				}
-				if (!isAddress(args.options.routerAddress)) {
-					throw new Error('Invalid router address');
-				}
-				const multicalls = [];
-				const minShareOut = (toBigInt(previewDeposit) * (10000n - args.options.minOutSlippage)) / 10000n;
+				// Check if we should use the router path
+				if (
+					args.options.minOutSlippage >= 0n &&
+					args.options.minOutSlippage <= 10000n &&
+					isAddress(args.options.routerAddress)
+				) {
+					const multicalls = [];
+					const minShareOut = (toBigInt(previewDeposit) * (10000n - args.options.minOutSlippage)) / 10000n;
 
-				/**********************************************************************************************
-				 ** We need to make sure that the Vault can spend the Underlying Token owned by the router.
-				 ** This is a bit weird and only need to be done once, but hey, this is required.
-				 *********************************************************************************************/
-				const allowance = await readContract(retrieveConfig(), {
-					address: args.tokenToDeposit,
-					chainId: args.chainID,
-					abi: erc20Abi,
-					functionName: 'allowance',
-					args: [args.options.routerAddress, args.vault]
-				});
-				if (toBigInt(allowance) < maxUint256) {
+					/**********************************************************************************************
+					 ** We need to make sure that the Vault can spend the Underlying Token owned by the router.
+					 ** This is a bit weird and only need to be done once, but hey, this is required.
+					 *********************************************************************************************/
+					const allowance = await readContract(retrieveConfig(), {
+						address: args.tokenToDeposit,
+						chainId: args.chainID,
+						abi: erc20Abi,
+						functionName: 'allowance',
+						args: [args.options.routerAddress, args.vault]
+					});
+					if (toBigInt(allowance) < maxUint256) {
+						multicalls.push(
+							encodeFunctionData({
+								abi: erc4626RouterAbi,
+								functionName: 'approve',
+								args: [args.tokenToDeposit, args.vault, maxUint256]
+							})
+						);
+					}
+
+					/**********************************************************************************************
+					 ** Then we can prepare our multicall
+					 *********************************************************************************************/
+					if (args.options.permitSignature) {
+						multicalls.push(
+							encodeFunctionData({
+								abi: erc4626RouterAbi,
+								functionName: 'selfPermit',
+								args: [
+									toAddress(args.tokenToDeposit),
+									toBigInt(args.amountToDeposit),
+									args.options.permitSignature.deadline,
+									args.options.permitSignature.v,
+									args.options.permitSignature.r,
+									args.options.permitSignature.s
+								]
+							})
+						);
+					}
 					multicalls.push(
 						encodeFunctionData({
 							abi: erc4626RouterAbi,
-							functionName: 'approve',
-							args: [args.tokenToDeposit, args.vault, maxUint256]
-						})
-					);
-				}
-
-				/**********************************************************************************************
-				 ** Then we can prepare our multicall
-				 *********************************************************************************************/
-				if (args.options.permitSignature) {
-					multicalls.push(
-						encodeFunctionData({
-							abi: erc4626RouterAbi,
-							functionName: 'selfPermit',
+							functionName: 'depositToVault',
 							args: [
-								toAddress(args.tokenToDeposit),
-								toBigInt(args.amountToDeposit),
-								args.options.permitSignature.deadline,
-								args.options.permitSignature.v,
-								args.options.permitSignature.r,
-								args.options.permitSignature.s
+								args.vault,
+								args.amountToDeposit,
+								isAddress(args.receiver) ? args.receiver : args.owner,
+								minShareOut
 							]
 						})
 					);
+					const result = await depositTo4626VaultViaRouter({
+						connector: provider,
+						chainID: args.chainID,
+						contractAddress: args.options.routerAddress,
+						multicalls
+					});
+					if (result.isSuccessful) {
+						onSuccess?.(result.receipt);
+					} else {
+						const errorMessage =
+							(result.error as BaseError).message ||
+							(result.error as BaseError).shortMessage ||
+							(result.error as BaseError).details;
+						onFailure?.(errorMessage || 'Unknown Error');
+					}
+					await refetchMaxDepositForUser();
+					set_isDepositing(false);
+					return result.isSuccessful;
 				}
-				multicalls.push(
-					encodeFunctionData({
-						abi: erc4626RouterAbi,
-						functionName: 'depositToVault',
-						args: [
-							args.vault,
-							args.amountToDeposit,
-							isAddress(args.receiver) ? args.receiver : args.owner,
-							minShareOut
-						]
-					})
-				);
-				const result = await depositTo4626VaultViaRouter({
-					connector: provider,
-					chainID: args.chainID,
-					contractAddress: args.options.routerAddress,
-					multicalls
-				});
-				if (result.isSuccessful) {
-					onSuccess?.(result.receipt);
-				} else {
-					const errorMessage =
-						(result.error as BaseError).message ||
-						(result.error as BaseError).shortMessage ||
-						(result.error as BaseError).details;
-					onFailure?.(errorMessage || 'Unknown Error');
-				}
-				await refetchMaxDepositForUser();
-				set_isDepositing(false);
-				return result.isSuccessful;
+				// If validation fails, fall through to the direct deposit
 			}
 
+			// Fallback: direct deposit to vault
 			const result = await depositToVault({
 				connector: provider,
 				chainID: args.chainID,

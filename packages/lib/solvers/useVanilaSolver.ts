@@ -13,6 +13,13 @@ import {CHAINS} from '@lib/utils/tools.chains';
 import type {TAssertedVaultsConfiguration} from '@lib/contexts/useManageVaults';
 import type {TSolverContextBase} from '@lib/contexts/useSolver';
 
+function isDefinedAndAddress(address: string | undefined): boolean {
+	if (!address) {
+		return false;
+	}
+	return isAddress(address);
+}
+
 export const useVanilaSolver = (
 	isZapNeededForDeposit: boolean,
 	isZapNeededForWithdraw: boolean
@@ -52,7 +59,13 @@ export const useVanilaSolver = (
 	 ** @returns yRouter: TAddress - The yearn router address for the current chain.
 	 *********************************************************************************************/
 	const yRouter = useMemo(
-		() => toAddress(CHAINS[configuration?.vault?.chainID]?.yearnRouterAddress),
+		() => {
+			const result = CHAINS[configuration?.vault?.chainID]?.yearnRouterAddress;
+			if (result === undefined) {
+				return undefined;
+			}
+			return toAddress(result);
+		},
 		[configuration?.vault]
 	);
 
@@ -72,10 +85,10 @@ export const useVanilaSolver = (
 		provider,
 		chainID: configuration?.vault?.chainID || 0,
 		tokenToApprove: toAddress(configuration?.tokenToSpend.token?.address),
-		spender: isV3Vault && isAddress(yRouter) ? yRouter : toAddress(configuration?.vault?.address),
+		spender: isV3Vault && isDefinedAndAddress(yRouter) ? yRouter! : toAddress(configuration?.vault?.address),
 		owner: toAddress(address),
 		amountToApprove: toBigInt(configuration?.tokenToSpend.amount?.raw || 0n),
-		shouldUsePermit: isV3Vault && isAddress(yRouter) && !isLegacyVault,
+		shouldUsePermit: isV3Vault && isDefinedAndAddress(yRouter) && !isLegacyVault,
 		deadline: 60,
 		disabled: !isSolverEnabled
 	});

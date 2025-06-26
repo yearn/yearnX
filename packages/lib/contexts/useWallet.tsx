@@ -125,7 +125,6 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 		tokens: availableTokens,
 		priorityChainID: chainID
 	});
-
 	/**************************************************************************
 	 ** onRefresh is a function that allows to refresh the balances of the
 	 ** tokens. It takes an optional list of tokens to refresh, and a boolean
