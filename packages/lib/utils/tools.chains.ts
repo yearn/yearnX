@@ -149,7 +149,7 @@ const CHAINS: TSmolChains = {
 		coingeckoGasCoinID: 'ethereum',
 		llamaChainName: 'katana',
 		rpcUrls: assignRPCUrls(katana),
-		yearnRouterAddress: toAddress('0x1112dbCF805682e828606f74AB717abf4b4FD8DE'),
+		yearnRouterAddress: undefined,
 		bgColor: '#694a11'
 	}
 };
