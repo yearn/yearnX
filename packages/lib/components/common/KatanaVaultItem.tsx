@@ -289,7 +289,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 								vault.token.symbol
 							}`}
 							className={'text-regularText truncate text-right text-xs text-opacity-40'}>
-							{`${formatAmount(balance * toNormalizedBN(vault.pricePerShare, vault.decimals).normalized)} ${vault.token.symbol}`}
+							{`${formatAmount(balance * toNormalizedBN(vault.pricePerShare, vault.decimals).normalized, 0, 6)} ${vault.token.symbol}`}
 						</div>
 					</div>
 				</div>
@@ -352,7 +352,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 
 				<div className={'flex w-full justify-between'}>
 					<div className={'flex items-center'}>
-						<p>{'Total Deposits'}</p>
+						<p>{'TVL'}</p>
 					</div>
 					<div>{totalDeposits}</div>
 				</div>
@@ -361,7 +361,17 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					<div className={'flex items-center'}>
 						<p>{'My balance'}</p>
 					</div>
-					<div>{balance}</div>
+					<div className={'text-right'}>
+						{' '}
+						{`$${formatAmount(balance * price.normalized, 2, 2)}`}
+						<div
+							title={`${formatAmount(balance * toNormalizedBN(vault.pricePerShare, vault.decimals).normalized)} ${
+								vault.token.symbol
+							}`}
+							className={'text-regularText truncate text-right text-xs text-opacity-40'}>
+							{`${formatAmount(balance * toNormalizedBN(vault.pricePerShare, vault.decimals).normalized, 0, 6)} ${vault.token.symbol}`}
+						</div>
+					</div>
 				</div>
 
 				<div className={'flex gap-x-6'}>
