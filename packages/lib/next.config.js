@@ -87,6 +87,7 @@ module.exports = withPlausibleProxy({
 				56288: process.env.RPC_URI_FOR_56288,
 				81457: process.env.RPC_URI_FOR_81457,
 				111188: process.env.RPC_URI_FOR_111188,
+				747474: process.env.RPC_URI_FOR_747474,
 
 				/**********************************************************************************
 				 ** New RPC Setup for testnet networks
@@ -118,6 +119,7 @@ module.exports = withPlausibleProxy({
 				8453: process.env.RPC_URL_FOR_8453,
 				80001: process.env.RPC_URL_FOR_80001,
 				42161: process.env.RPC_URL_FOR_42161,
+				747474: process.env.RPC_URL_FOR_747474,
 				11155111: process.env.RPC_URL_FOR_11155111
 			},
 			/**********************************************************************************
