@@ -132,7 +132,9 @@ function InputAmountComponent(props: {isReady: boolean; availableBalance: TNorma
 		</Fragment>
 	);
 }
-
+// @ts-expect-error - removed zaps for katana
+// eslint-disable-next-line unused-imports/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function OutputComponent(props: {isReady: boolean; availableBalance: TNormalizedBN}): ReactElement {
 	const {address} = useWeb3();
 	const {configuration, dispatchConfiguration} = useManageVaults();
@@ -535,6 +537,10 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 				</Fragment>
 
 				<Fragment>
+					<div className={'mb-4 mt-10 flex w-full justify-start'}></div>
+				</Fragment>
+
+				{/* <Fragment>
 					<div className={'mb-4 mt-10 flex w-full justify-start'}>
 						<p className={'text-lg font-bold'}>{'Receive'}</p>
 					</div>
@@ -543,7 +549,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 						isReady={isReady}
 						availableBalance={availableBalance}
 					/>
-				</Fragment>
+				</Fragment> */}
 
 				<ButtonComponent
 					isReady={isReady}

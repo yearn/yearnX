@@ -1,6 +1,5 @@
-import {type ReactElement, useMemo, useRef, useState} from 'react';
+import {type ReactElement, useMemo} from 'react';
 import InputNumber from 'rc-input-number';
-import {useOnClickOutside} from 'usehooks-ts';
 import {zeroAddress} from 'viem';
 import {useReadContract} from 'wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
@@ -11,7 +10,7 @@ import {acknowledge, toPercent} from '@lib/utils/tools';
 import {VAULT_ABI} from '@lib/utils/vault.abi';
 
 import {Button} from './Button';
-import {TokenSelector} from './TokenSelector';
+import {ImageWithFallback} from './ImageWithFallback';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN, TToken} from '@lib/types';
@@ -29,29 +28,44 @@ type TTokenAmountInputProps = {
 export function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 	const {chainID} = props;
 	const {address} = useWeb3();
-	const [isChainSelectorOpen, set_isChainSelectorOpen] = useState<boolean>(false);
+	// const [isChainSelectorOpen, set_isChainSelectorOpen] = useState<boolean>(false);
 	const {configuration} = useManageVaults();
-	const selectorRef = useRef<HTMLDivElement>(null);
-	const selectorButtonRef = useRef<HTMLButtonElement>(null);
+	// const selectorRef = useRef<HTMLDivElement>(null);
+	// const selectorButtonRef = useRef<HTMLButtonElement>(null);
 
 	/**********************************************************************************************
 	 ** In TokenSelector we add this useOnClickOutside to close token list on outside click.
 	 *********************************************************************************************/
-	useOnClickOutside<HTMLDivElement | HTMLButtonElement>([selectorRef, selectorButtonRef], () =>
-		set_isChainSelectorOpen(false)
-	);
+	// useOnClickOutside<HTMLDivElement | HTMLButtonElement>([selectorRef, selectorButtonRef], () =>
+	// 	set_isChainSelectorOpen(false)
+	// );
 
 	return (
 		<div className={'flex w-full gap-x-2'}>
 			<div className={'h-full'}>
-				<TokenSelector
+				<div
+					className={
+						'border-regularText/15 bg-regularText/5 relative flex !h-16 items-center gap-x-2 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
+					}>
+					<ImageWithFallback
+						src={`https://assets.smold.app/tokens/${chainID}/${configuration?.tokenToSpend.token?.address}/logo-128.png`}
+						alt={configuration?.tokenToSpend.token?.address || 'address'}
+						width={32}
+						height={32}
+					/>
+					<p className={'text-regularText/50 flex w-full justify-start'}>
+						{configuration.tokenToSpend.token?.name}
+					</p>
+				</div>
+				{/* removed for katana. uncomment if we want to bring back zaps in */}
+				{/* <TokenSelector
 					chainID={chainID}
 					isOpen={isChainSelectorOpen}
 					toggleOpen={() => set_isChainSelectorOpen(prev => !prev)}
 					selectorRef={selectorRef}
 					selectorButtonRef={selectorButtonRef}
 					set_tokenToUse={props.set_tokenToUse}
-				/>
+				/> */}
 			</div>
 			<label
 				className={cl(
