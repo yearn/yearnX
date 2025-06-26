@@ -10,7 +10,7 @@ import {useSolver} from '@lib/contexts/useSolver';
 import useWallet from '@lib/contexts/useWallet';
 import {useWeb3} from '@lib/contexts/useWeb3';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
-import {cl, fromNormalized, isAddress, toBigInt, toNormalizedBN} from '@lib/utils';
+import {cl, fromNormalized, isAddress, toBigInt, toNormalizedBN, zeroNormalizedBN} from '@lib/utils';
 import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
 import {acknowledge, getDifference} from '@lib/utils/tools';
 
@@ -476,7 +476,7 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 							chainID: props.vault.chainID,
 							value: 0
 						},
-						amount: availableBalance
+						amount: zeroNormalizedBN
 					},
 					toSpend: {
 						token: {
@@ -487,17 +487,17 @@ function WithdrawModalContent(props: TWithdrawModalProps): ReactElement {
 							chainID: props.vault.chainID,
 							value: 0
 						},
-						amount: availableBalance
+						amount: zeroNormalizedBN
 					}
 				}
 			});
 		} else {
 			dispatchConfiguration({
 				type: 'SET_AMOUNT_TO_SPEND',
-				payload: availableBalance
+				payload: zeroNormalizedBN
 			});
 		}
-	}, [configuration.action, dispatchConfiguration, props.vault, availableBalance]);
+	}, [configuration.action, dispatchConfiguration, props.vault]);
 
 	return (
 		<ModalWrapper
