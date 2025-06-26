@@ -4,9 +4,9 @@ import {motion} from 'framer-motion';
 import {formatBigIntForDisplay} from '@generationsoftware/hyperstructure-client-js';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {useSolver} from '@lib/contexts/useSolver';
-import useWallet from '@lib/contexts/useWallet';
 import {useWeb3} from '@lib/contexts/useWeb3';
 import {useIsZapNeeded} from '@lib/hooks/useIsZapNeeded';
+import {zeroNormalizedBN} from '@lib/utils';
 import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
 import {useAccountModal} from '@rainbow-me/rainbowkit';
 
@@ -32,7 +32,6 @@ type TDepositModalProps = {
 
 export function DepositModalContent(props: TDepositModalProps): ReactElement {
 	const plausible = usePlausible();
-	const {getBalance} = useWallet();
 	const {address, isWalletSafe} = useWeb3();
 	const {openAccountModal} = useAccountModal();
 	const {configuration, dispatchConfiguration} = useManageVaults();
@@ -179,11 +178,11 @@ export function DepositModalContent(props: TDepositModalProps): ReactElement {
 						chainID: props.vault.chainID,
 						value: 0
 					},
-					amount: getBalance({address: props.vault.token.address, chainID: props.vault.chainID})
+					amount: zeroNormalizedBN
 				}
 			}
 		});
-	}, [dispatchConfiguration, getBalance, props.vault]);
+	}, [dispatchConfiguration, props.vault]);
 
 	return (
 		<ModalWrapper
