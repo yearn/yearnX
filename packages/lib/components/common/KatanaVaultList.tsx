@@ -93,10 +93,12 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 			// Katana chain (747474) vaults come first
 			if (a.chainID === 747474 && b.chainID !== 747474) return -1;
 			if (a.chainID !== 747474 && b.chainID === 747474) return 1;
-			
+
 			// Then sort by balance
-			return getBalance({address: b.address, chainID: b.chainID}).normalized -
-				getBalance({address: a.address, chainID: a.chainID}).normalized;
+			return (
+				getBalance({address: b.address, chainID: b.chainID}).normalized -
+				getBalance({address: a.address, chainID: a.chainID}).normalized
+			);
 		});
 	}, [balanceHash, allVaults, getBalance]);
 
@@ -118,7 +120,7 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 			// Katana chain (747474) vaults come first
 			if (a.chainID === 747474 && b.chainID !== 747474) return -1;
 			if (a.chainID !== 747474 && b.chainID === 747474) return 1;
-			
+
 			// Then sort by featuringScore
 			return b.featuringScore - a.featuringScore;
 		});
