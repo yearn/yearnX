@@ -54,7 +54,7 @@ export function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 						height={32}
 					/>
 					<p className={'text-regularText/50 flex w-full justify-start'}>
-						{configuration.tokenToSpend.token?.name}
+						{configuration.tokenToSpend.token?.symbol}
 					</p>
 				</div>
 				{/* removed for katana. uncomment if we want to bring back zaps in */}
@@ -86,7 +86,12 @@ export function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 						decimalSeparator={'.'}
 						placeholder={'0.00'}
 						controls={false}
-						value={configuration?.tokenToSpend.amount?.normalized}
+						value={
+							!configuration?.tokenToSpend.amount?.normalized ||
+							configuration?.tokenToSpend.amount?.normalized === 0
+								? ''
+								: configuration?.tokenToSpend.amount?.normalized
+						}
 						onChange={value => {
 							if (!value || !configuration.tokenToSpend.token) {
 								return props.onChangeValue(undefined);

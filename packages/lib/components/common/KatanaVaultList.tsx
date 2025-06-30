@@ -88,12 +88,18 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 			return balance > 0;
 		});
 
-		// Sort by balance by default
-		return values.sort(
-			(a, b) =>
+		// Sort by Katana chain first, then by balance
+		return values.sort((a, b) => {
+			// Katana chain (747474) vaults come first
+			if (a.chainID === 747474 && b.chainID !== 747474) return -1;
+			if (a.chainID !== 747474 && b.chainID === 747474) return 1;
+
+			// Then sort by balance
+			return (
 				getBalance({address: b.address, chainID: b.chainID}).normalized -
 				getBalance({address: a.address, chainID: a.chainID}).normalized
-		);
+			);
+		});
 	}, [balanceHash, allVaults, getBalance]);
 
 	/**********************************************************************************************
@@ -109,8 +115,15 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 			const balance = getBalance({address: vault.address, chainID: vault.chainID}).normalized || 0;
 			return balance === 0;
 		});
-		// Sort by featuringScore by default
-		return values.sort((a, b) => b.featuringScore - a.featuringScore);
+		// Sort by Katana chain first, then by featuringScore
+		return values.sort((a, b) => {
+			// Katana chain (747474) vaults come first
+			if (a.chainID === 747474 && b.chainID !== 747474) return -1;
+			if (a.chainID !== 747474 && b.chainID === 747474) return 1;
+
+			// Then sort by featuringScore
+			return b.featuringScore - a.featuringScore;
+		});
 	}, [balanceHash, allVaults, getBalance]);
 
 	const {sortedVaults: sortedVaultsWithBalance} = useSortedVaults(vaultsWithBalance, allPrices, props.options);
