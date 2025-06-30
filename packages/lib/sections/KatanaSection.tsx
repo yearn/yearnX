@@ -11,7 +11,7 @@ export const KatanaSection = ({bgImage}: TSectionProps): ReactElement => (
 		<div
 			className={cl(
 				'col-span-12 md:col-span-8',
-				'w-full overflow-hidden rounded-t-2xl bg-cover bg-center bg-no-repeat md:rounded-2xl'
+				'w-full overflow-hidden rounded-t-2xl bg-cover bg-center bg-no-repeat md:rounded-2xl max-h-[400px]'
 			)}
 			style={{
 				display: 'flex',
@@ -66,13 +66,6 @@ export const KatanaSection = ({bgImage}: TSectionProps): ReactElement => (
 						</span>
 					</span>
 					{'.'}
-				</p>
-				<br />
-				<p className={'text-md'}>
-					{
-						'When the Katana is live, your funds will be automatically bridged to Katana and you will be the first '
-					}
-					<span style={{color: '#f8fe06'}}>{'Samurai!'}</span>
 				</p>
 			</div>
 		</div>

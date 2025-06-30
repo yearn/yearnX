@@ -14,7 +14,7 @@ type TTabSwitcherProps = {
 
 export function TabSwitcher({selected, onSelect, options}: TTabSwitcherProps): React.ReactElement {
 	return (
-		<div className={'mb-4 flex rounded-xl bg-table p-0.5'}>
+		<div className={'bg-table mb-4 flex rounded-xl p-0.5'}>
 			{options.map(option => (
 				<button
 					key={option.id}
