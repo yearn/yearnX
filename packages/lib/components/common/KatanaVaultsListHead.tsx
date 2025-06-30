@@ -63,18 +63,13 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 	);
 
 	return (
-		<div className={'hidden px-2 md:col-span-7 md:grid md:grid-cols-10'}>
+		<div className={'hidden px-2 md:grid md:grid-cols-12'}>
 			{props.items.map(item =>
 				item.isSortable ? (
 					<button
 						onClick={() => toggleSortDirection(item.value as TVaultsSortBy)}
 						className={cl(
-							'flex w-full items-center gap-x-2 group col-span-2',
-							item.value === 'balance' || item.value === 'apy'
-								? 'justify-end'
-								: item.value === 'deposits'
-									? 'justify-end'
-									: 'justify-center'
+							'flex w-full items-center gap-x-2 group col-span-2 justify-end'
 						)}
 						key={item.label}>
 						{renderSortIcons(props.sortBy === item.value)}
@@ -88,8 +83,8 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 							item.value === 'vault'
 								? 'col-span-3 justify-start'
 								: item.value === 'manage'
-									? 'justify-center col-span-3 pl-20'
-									: 'justify-end'
+									? 'col-span-3 justify-center pl-20'
+									: 'col-span-2 justify-end'
 						)}>
 						{item.label}
 					</div>

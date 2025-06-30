@@ -30,7 +30,7 @@ type TVaultListProps = {
 
 const HEADER_TABS = [
 	{value: 'vault', label: 'Vault', isSortable: false},
-	// {value: 'apy', label: 'APY', isSortable: true},
+	{value: 'apy', label: 'APY', isSortable: true},
 	{value: 'deposits', label: 'TVL', isSortable: true},
 	{value: 'balance', label: 'My Balance', isSortable: true},
 	{value: 'manage', label: 'Manage', isSortable: false}
@@ -91,8 +91,12 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		// Sort by Katana chain first, then by balance
 		return values.sort((a, b) => {
 			// Katana chain (747474) vaults come first
-			if (a.chainID === 747474 && b.chainID !== 747474) return -1;
-			if (a.chainID !== 747474 && b.chainID === 747474) return 1;
+			if (a.chainID === 747474 && b.chainID !== 747474) {
+return -1;
+}
+			if (a.chainID !== 747474 && b.chainID === 747474) {
+return 1;
+}
 
 			// Then sort by balance
 			return (
@@ -118,8 +122,12 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		// Sort by Katana chain first, then by featuringScore
 		return values.sort((a, b) => {
 			// Katana chain (747474) vaults come first
-			if (a.chainID === 747474 && b.chainID !== 747474) return -1;
-			if (a.chainID !== 747474 && b.chainID === 747474) return 1;
+			if (a.chainID === 747474 && b.chainID !== 747474) {
+return -1;
+}
+			if (a.chainID !== 747474 && b.chainID === 747474) {
+return 1;
+}
 
 			// Then sort by featuringScore
 			return b.featuringScore - a.featuringScore;

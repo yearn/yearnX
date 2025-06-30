@@ -16,7 +16,7 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@lib/utils';
-import {acknowledge} from '@lib/utils/tools';
+import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
 
@@ -237,7 +237,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 
 			{/* Desktop screen Item */}
 			<div
-				className={'bg-regularText/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-10'}
+				className={'bg-regularText/3 hidden h-24 min-h-[68px] rounded-xl p-2.5 md:grid md:grid-cols-12'}
 				style={{
 					backgroundColor: `${chainBgColor}15`, // 15 is ~8% opacity in hex
 					borderLeft: `3px solid ${chainBgColor}`
@@ -264,14 +264,14 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 						<p className={'text-regularText/50 w-full'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
-				{/* <div className={'font-number flex items-center justify-end'}>
+				
+				{/* APY */}
+				<div className={'font-number col-span-2 flex items-center justify-end'}>
 					<div className={'text-right font-mono font-semibold'}>
-						{'5.00%'}
-						<div className={'text-regularText truncate text-right text-xs font-normal text-opacity-40'}>
-							{'Earned when Live'}
-						</div>
+						{toPercent(APYToUse)}
+						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
 					</div>
-				</div> */}
+				</div>
 
 				{/* TVL */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
@@ -343,12 +343,12 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					</div>
 				</Link>
 
-				{/* <div className={'flex w-full justify-between'}>
+				<div className={'flex w-full justify-between'}>
 					<div className={'flex items-center gap-x-2 text-sm'}>
 						<p>{'APY'}</p>
 					</div>
-					<div>{formatPercent(APYToUse)}</div>
-				</div> */}
+					<div>{toPercent(APYToUse)}</div>
+				</div>
 
 				<div className={'flex w-full justify-between'}>
 					<div className={'flex items-center'}>
