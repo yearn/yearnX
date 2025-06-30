@@ -1,6 +1,6 @@
 import type {TAPYType} from '@lib/utils/types';
 
-export const PROJECT_TITLE = 'Katana Pre-Deposit Vaults';
+export const PROJECT_TITLE = 'Yearn x Katana';
 export const PROJECT_DESCRIPTION = 'Welcome to the Dojo';
 export const VARIANT_TO_USE = 7;
 export const VAULT_FILTER = 'katana';
