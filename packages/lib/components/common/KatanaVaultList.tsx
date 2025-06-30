@@ -30,7 +30,7 @@ type TVaultListProps = {
 
 const HEADER_TABS = [
 	{value: 'vault', label: 'Vault', isSortable: false},
-	// {value: 'apy', label: 'APY', isSortable: true},
+	{value: 'apy', label: 'APY', isSortable: true},
 	{value: 'deposits', label: 'TVL', isSortable: true},
 	{value: 'balance', label: 'My Balance', isSortable: true},
 	{value: 'manage', label: 'Manage', isSortable: false}
