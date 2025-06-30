@@ -91,8 +91,12 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		// Sort by Katana chain first, then by balance
 		return values.sort((a, b) => {
 			// Katana chain (747474) vaults come first
-			if (a.chainID === 747474 && b.chainID !== 747474) return -1;
-			if (a.chainID !== 747474 && b.chainID === 747474) return 1;
+			if (a.chainID === 747474 && b.chainID !== 747474) {
+return -1;
+}
+			if (a.chainID !== 747474 && b.chainID === 747474) {
+return 1;
+}
 
 			// Then sort by balance
 			return (
@@ -118,8 +122,12 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		// Sort by Katana chain first, then by featuringScore
 		return values.sort((a, b) => {
 			// Katana chain (747474) vaults come first
-			if (a.chainID === 747474 && b.chainID !== 747474) return -1;
-			if (a.chainID !== 747474 && b.chainID === 747474) return 1;
+			if (a.chainID === 747474 && b.chainID !== 747474) {
+return -1;
+}
+			if (a.chainID !== 747474 && b.chainID === 747474) {
+return 1;
+}
 
 			// Then sort by featuringScore
 			return b.featuringScore - a.featuringScore;
