@@ -1,15 +1,21 @@
-import {type ReactElement, useMemo} from 'react';
+import {type ReactElement, useEffect, useMemo} from 'react';
 import {Footer} from '@lib/components/common/KatanaFooter';
 import {KatanaHeader} from '@lib/components/common/KatanaHeader';
 import {VaultList} from '@lib/components/common/KatanaVaultList';
+import useWallet from '@lib/contexts/useWallet';
 import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
+import {toAddress, zeroNormalizedBN} from '@lib/utils';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {APY_TYPE, PROJECT_DESCRIPTION, PROJECT_TITLE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
 
+import type {TDict, TToken} from '@lib/types';
+
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER, [747474]);
+	const {onRefreshWithList} = useWallet();
+
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
 
 	const sumOfTVL = useMemo(() => {
@@ -40,6 +46,27 @@ export default function Index(): ReactElement {
 		return Math.max(...boost);
 	}, [vaultsValues]);
 
+	useEffect(() => {
+		if (isLoading) {
+			return;
+		}
+		const underlyingTokens: TDict<TToken> = {};
+		vaultsValues.forEach(vault => {
+			const tokenAddress = toAddress(vault.token.address);
+			underlyingTokens[tokenAddress] = {
+				address: vault.token.address,
+				name: vault.token.name,
+				symbol: vault.token.symbol,
+				decimals: vault.token.decimals,
+				chainID: vault.chainID,
+				logoURI: undefined,
+				value: 0,
+				balance: zeroNormalizedBN
+			};
+		});
+		onRefreshWithList(underlyingTokens);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [vaults.length, isLoading]);
 
 	return (
 		<section className={'flex w-full max-w-screen-xl flex-col gap-y-6'}>
@@ -55,14 +82,14 @@ export default function Index(): ReactElement {
 					{title: 'Boost up to', currency: 'x', value: upToBoost, decimals: 2, isReady: upToAPY > 0}
 				]}
 			/>
-				<VaultList
-					vaults={vaultsValues}
-					isLoading={isLoading}
-					options={{
-						apyType: APY_TYPE,
-						shouldDisplaySubAPY: APY_TYPE === 'ESTIMATED'
-					}}
-				/>
+			<VaultList
+				vaults={vaultsValues}
+				isLoading={isLoading}
+				options={{
+					apyType: APY_TYPE,
+					shouldDisplaySubAPY: APY_TYPE === 'ESTIMATED'
+				}}
+			/>
 			<Footer />
 		</section>
 	);
