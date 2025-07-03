@@ -41,8 +41,7 @@ export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactEle
 	const {onRefresh} = useWallet();
 	const [isWrapping, set_isWrapping] = useState(false);
 	const [processedWrapHash, set_processedWrapHash] = useState<string | null>(null);
-	const {canZap, onApprove, isApproving, isDepositing, onDeposit, canDeposit, isFetchingQuote, isApproved} = useSolver();
-
+	const {canZap, onApprove, isApproving, isDepositing, onDeposit, canDeposit, isFetchingQuote} = useSolver();
 
 	// Check if token to spend is ETH
 	const isETHSelected = useMemo(() => {
@@ -90,8 +89,8 @@ export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactEle
 	 *********************************************************************************************/
 	const handleWrapETH = useCallback(async () => {
 		if (!configuration?.tokenToSpend?.amount?.raw) {
-return;
-}
+			return;
+		}
 
 		set_isWrapping(true);
 		try {
@@ -196,7 +195,7 @@ return;
 		} else {
 			onApprove();
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		address,
 		isETHSelected,
@@ -230,10 +229,7 @@ return;
 		}
 
 		return true;
-	}, [
-		isETHSelected,
-		configuration
-	]);
+	}, [isETHSelected, configuration]);
 
 	/**********************************************************************************************
 	 ** Set initial vault configuration and reset state when modal opens

@@ -20,12 +20,12 @@ import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
 
+import {WETHDepositModal} from '../../../katana/components/WETHDepositModal';
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {DepositModal} from './DepositModal';
 import {ImageWithFallback} from './ImageWithFallback';
 import {SuccessModal} from './SuccessModal';
 import {WithdrawModal} from './WithdrawModal';
-import {WETHDepositModal} from '../../../katana/components/WETHDepositModal';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
@@ -283,7 +283,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 						<p className={'text-regularText/50 w-full'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
-				
+
 				{/* APY */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
 					<div className={'text-right font-mono font-semibold'}>
