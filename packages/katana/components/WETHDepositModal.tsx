@@ -1,4 +1,5 @@
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
+import toast from 'react-hot-toast';
 import {usePlausible} from 'next-plausible';
 import {useWaitForTransactionReceipt, useWriteContract} from 'wagmi';
 import {motion} from 'framer-motion';
@@ -45,7 +46,10 @@ export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactEle
 
 	// Check if token to spend is ETH
 	const isETHSelected = useMemo(() => {
-		return configuration?.tokenToSpend?.token?.address === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+		return (
+			configuration?.tokenToSpend?.token?.address.toLowerCase() ===
+			'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'.toLowerCase()
+		);
 	}, [configuration?.tokenToSpend?.token?.address]);
 
 	// Write contract for wrapping ETH
@@ -136,6 +140,7 @@ export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactEle
 
 					// Refresh balances
 					await onRefresh([{chainID: props.vault.chainID, address: WETH_ADDRESS}]);
+					toast.success('Successfully wrapped ETH!');
 				} catch (error) {
 					console.error('Error during wrap completion:', error);
 				} finally {

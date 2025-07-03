@@ -1,4 +1,4 @@
-import {type ReactElement, useMemo, useRef,useState} from 'react';
+import {type ReactElement, useMemo, useRef, useState} from 'react';
 import InputNumber from 'rc-input-number';
 import {useOnClickOutside} from 'usehooks-ts';
 import {useBalance} from 'wagmi';
@@ -140,12 +140,10 @@ export function WETHTokenAmountInput(props: TWETHTokenAmountInputProps): ReactEl
 	const onMaxClick = (): void => {
 		const token = configuration?.tokenToSpend?.token;
 		if (!token) {
-return;
-}
+			return;
+		}
 
-		const balance = token.address === ETH_ADDRESS ?
-			toNormalizedBN(ethBalance?.value || 0n, 18) :
-			wethBalance;
+		const balance = token.address === ETH_ADDRESS ? toNormalizedBN(ethBalance?.value || 0n, 18) : wethBalance;
 
 		dispatchConfiguration({
 			type: 'SET_TOKEN_TO_SPEND',
@@ -156,9 +154,8 @@ return;
 	const selectedToken = configuration?.tokenToSpend?.token;
 	const isETHSelected = selectedToken?.address === ETH_ADDRESS;
 
-	const selectedBalance = selectedToken?.address === ETH_ADDRESS ?
-		toNormalizedBN(ethBalance?.value || 0n, 18) :
-		wethBalance;
+	const selectedBalance =
+		selectedToken?.address === ETH_ADDRESS ? toNormalizedBN(ethBalance?.value || 0n, 18) : wethBalance;
 
 	return (
 		<div className={'flex w-full flex-col items-start gap-y-2'}>
@@ -184,13 +181,17 @@ return;
 						{isTokenSelectorOpen && (
 							<div
 								ref={selectorRef}
-								className={'bg-background border-regularText/15 absolute left-0 top-full z-50 mt-2 w-48 rounded-lg border shadow-lg'}>
+								className={
+									'bg-background border-regularText/15 absolute left-0 top-full z-50 mt-2 w-48 rounded-lg border shadow-lg'
+								}>
 								<div className={'p-2'}>
-									{tokens.map((token) => (
+									{tokens.map(token => (
 										<button
 											key={token.address}
 											onClick={() => onSelectToken(token)}
-											className={'hover:bg-regularText/5 flex w-full items-center gap-x-2 rounded-lg p-2'}>
+											className={
+												'hover:bg-regularText/5 flex w-full items-center gap-x-2 rounded-lg p-2'
+											}>
 											<ImageWithFallback
 												src={`https://assets.smold.app/tokens/${vault.chainID}/${token.address === ETH_ADDRESS ? WETH_ADDRESS : token.address}/logo-128.png`}
 												alt={token.symbol}

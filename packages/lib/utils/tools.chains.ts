@@ -23,7 +23,7 @@ type TAssignRPCUrls = {
 	};
 };
 
-const katana = /*#__PURE__*/ defineChain({
+export const katana = /*#__PURE__*/ defineChain({
 	id: 747474,
 	name: 'Katana',
 	nativeCurrency: {

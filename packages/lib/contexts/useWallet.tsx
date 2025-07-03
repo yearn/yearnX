@@ -125,6 +125,7 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 		tokens: availableTokens,
 		priorityChainID: chainID
 	});
+
 	/**************************************************************************
 	 ** onRefresh is a function that allows to refresh the balances of the
 	 ** tokens. It takes an optional list of tokens to refresh, and a boolean
@@ -135,7 +136,7 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 		async (
 			tokenToUpdate?: TUseBalancesTokens[],
 			shouldSaveInStorage?: boolean,
-			shouldForceFetch = false
+			shouldForceFetch = true
 		): Promise<TChainTokens> => {
 			if (tokenToUpdate && tokenToUpdate.length > 0) {
 				const updatedBalances = await onUpdateSome(tokenToUpdate, shouldForceFetch);
