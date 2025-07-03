@@ -38,6 +38,7 @@ export type TUseBalancesReq = {
 	priorityChainID?: number;
 	effectDependencies?: DependencyList;
 	provider?: Connector;
+	allowedChains?: number[]; // Only query these chains, ignore others
 };
 
 export type TChainStatus = {
@@ -390,6 +391,10 @@ export function useBalances(props?: TUseBalancesReq): TUseBalancesRes {
 			const chainIDs = retrieveConfig().chains.map(({id}) => id);
 			for (const [chainIDStr, tokens] of Object.entries(tokensPerChainID)) {
 				const chainID = Number(chainIDStr);
+				// Skip chains not in allowedChains if specified
+				if (props?.allowedChains && !props.allowedChains.includes(chainID)) {
+					continue;
+				}
 				if (!chainIDs.includes(chainID)) {
 					continue;
 				}
@@ -487,6 +492,10 @@ export function useBalances(props?: TUseBalancesReq): TUseBalancesRes {
 			const chainIDs = retrieveConfig().chains.map(({id}) => id);
 			for (const [chainIDStr, tokens] of Object.entries(tokensPerChainID)) {
 				const chainID = Number(chainIDStr);
+				// Skip chains not in allowedChains if specified
+				if (props?.allowedChains && !props.allowedChains.includes(chainID)) {
+					continue;
+				}
 				if (!chainIDs.includes(chainID)) {
 					continue;
 				}
@@ -565,6 +574,10 @@ export function useBalances(props?: TUseBalancesReq): TUseBalancesRes {
 		const tokensPerChainID: TNDict<TUseBalancesTokens[]> = {};
 		const alreadyAdded: TNDict<TDict<boolean>> = {};
 		for (const token of tokens) {
+			// Skip tokens from chains not in allowedChains if specified
+			if (props?.allowedChains && !props.allowedChains.includes(token.chainID)) {
+				continue;
+			}
 			if (!tokensPerChainID[token.chainID]) {
 				tokensPerChainID[token.chainID] = [];
 			}
@@ -617,6 +630,10 @@ export function useBalances(props?: TUseBalancesReq): TUseBalancesRes {
 		const chainIDs = retrieveConfig().chains.map(({id}) => id);
 		for (const [chainIDStr, tokens] of Object.entries(tokensPerChainID)) {
 			const chainID = Number(chainIDStr);
+			// Skip chains not in allowedChains if specified
+			if (props?.allowedChains && !props.allowedChains.includes(chainID)) {
+				continue;
+			}
 			if (!chainIDs.includes(chainID)) {
 				continue;
 			}

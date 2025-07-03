@@ -28,7 +28,7 @@ export default function MyApp(props: AppProps): ReactElement {
 					nonce: PROJECT_TITLE
 				}}
 				enabled={true}>
-				<WithContexts {...props} />
+				<WithContexts {...props} chainIds={[747474]} />
 			</PlausibleProvider>
 		</Fragment>
 	);

@@ -3,24 +3,26 @@ import {WithFonts} from '@lib/components/common/WithFonts';
 import {IconCheck} from '@lib/components/icons/IconCheck';
 import {IconCircleCross} from '@lib/components/icons/IconCircleCross';
 import {VaultsContextApp} from '@lib/contexts/useManageVaults';
-import {WithPopularTokens} from '@lib/contexts/usePopularTokens';
-import {WithPrices} from '@lib/contexts/usePrices';
 import {SolverContextApp} from '@lib/contexts/useSolver';
-import {WalletContextApp} from '@lib/contexts/useWallet';
 import {WithMom} from '@lib/contexts/WithMom';
 import {supportedNetworks} from '@lib/utils/tools.chains';
+
+import {WithPopularTokens} from './usePopularTokens';
+import {WithPrices} from './usePrices';
+import {WalletContextApp} from './useWallet';
 
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
 
-export default function WithContexts(props: AppProps): ReactElement {
+
+export default function WithContexts(props: AppProps & {chainIds?: number[]}): ReactElement {
 	const {Component} = props;
 	return (
 		<WithFonts>
 			<WithMom
 				supportedChains={supportedNetworks}
 				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn-min.json']}>
-				<WalletContextApp>
+				<WalletContextApp chainIds={props.chainIds}>
 					<WithPopularTokens>
 						<WithPrices supportedNetworks={supportedNetworks}>
 							<VaultsContextApp>
