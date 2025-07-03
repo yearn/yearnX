@@ -25,6 +25,7 @@ import {DepositModal} from './DepositModal';
 import {ImageWithFallback} from './ImageWithFallback';
 import {SuccessModal} from './SuccessModal';
 import {WithdrawModal} from './WithdrawModal';
+import {WETHDepositModal} from '../../../katana/components/WETHDepositModal';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
@@ -209,18 +210,36 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		return chain?.bgColor || '#374151'; // fallback to gray if no color defined
 	}, [vault.chainID]);
 
+	// Check if this is a WETH vault
+	const isWETHVault = useMemo(() => {
+		return vault.token.address.toLowerCase() === '0xee7d8bcfb72bc1880d0cf19822eb0a2e6577ab62';
+	}, [vault.token.address]);
+
 	return (
 		<div>
-			<DepositModal
-				isOpen={isDepositModalOpen}
-				onClose={onClose}
-				vault={vault}
-				yearnfiLink={yearnfiLink}
-				hasBalanceForVault={balance > 0}
-				openSuccessModal={set_successModal}
-				totalProfit={totalProfit}
-				apy={APYToUse}
-			/>
+			{isWETHVault ? (
+				<WETHDepositModal
+					isOpen={isDepositModalOpen}
+					onClose={onClose}
+					vault={vault}
+					yearnfiLink={yearnfiLink}
+					hasBalanceForVault={balance > 0}
+					openSuccessModal={set_successModal}
+					totalProfit={totalProfit}
+					apy={APYToUse}
+				/>
+			) : (
+				<DepositModal
+					isOpen={isDepositModalOpen}
+					onClose={onClose}
+					vault={vault}
+					yearnfiLink={yearnfiLink}
+					hasBalanceForVault={balance > 0}
+					openSuccessModal={set_successModal}
+					totalProfit={totalProfit}
+					apy={APYToUse}
+				/>
+			)}
 			<WithdrawModal
 				isOpen={isWithdrawModalOpen}
 				onClose={onClose}
