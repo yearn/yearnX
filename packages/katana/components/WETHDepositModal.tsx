@@ -6,11 +6,10 @@ import {ModalWrapper} from '@lib/components/common/ModalWrapper';
 import {VaultLink} from '@lib/components/common/VaultLink';
 import {IconCross} from '@lib/components/icons/IconCross';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
+import {useSolver} from '@lib/contexts/useSolver';
 import useWallet from '@lib/contexts/useWallet';
 import {useWeb3} from '@lib/contexts/useWeb3';
-import {useApprove} from '@lib/hooks/useApprove';
-import {useVaultDeposit} from '@lib/hooks/useDeposit';
-import {toAddress,toBigInt, zeroNormalizedBN} from '@lib/utils';
+import {toBigInt, zeroNormalizedBN} from '@lib/utils';
 import {weth9Abi} from '@lib/utils/abi/weth9.abi';
 import {PLAUSIBLE_EVENTS} from '@lib/utils/plausible';
 import {useAccountModal} from '@rainbow-me/rainbowkit';
@@ -36,20 +35,19 @@ type TWETHDepositModalProps = {
 
 export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactElement {
 	const plausible = usePlausible();
-	const {address, isWalletSafe, provider} = useWeb3();
+	const {address, isWalletSafe} = useWeb3();
 	const {openAccountModal} = useAccountModal();
 	const {configuration, dispatchConfiguration} = useManageVaults();
 	const {onRefresh} = useWallet();
 	const [isWrapping, set_isWrapping] = useState(false);
 	const [processedWrapHash, set_processedWrapHash] = useState<string | null>(null);
-	const [isProcessingDeposit, set_isProcessingDeposit] = useState(false);
+	const {canZap, onApprove, isApproving, isDepositing, onDeposit, canDeposit, isFetchingQuote, isApproved} = useSolver();
+
 
 	// Check if token to spend is ETH
 	const isETHSelected = useMemo(() => {
 		return configuration?.tokenToSpend?.token?.address === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 	}, [configuration?.tokenToSpend?.token?.address]);
-
-	// Get ETH balance - removed to reduce RPC calls (handled in WETHTokenAmountInput)
 
 	// Write contract for wrapping ETH
 	const {data: wrapHash, writeContract: wrapETH} = useWriteContract();
@@ -58,30 +56,6 @@ export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactEle
 	const {isLoading: isWrapPending} = useWaitForTransactionReceipt({
 		hash: wrapHash,
 		chainId: props.vault.chainID
-	});
-
-	// Use approve hook - only enable when we have a token selected and it's not ETH
-	const {isApproved, isApproving, onApprove} = useApprove({
-		provider,
-		chainID: props.vault.chainID,
-		tokenToApprove: toAddress(configuration?.tokenToSpend?.token?.address),
-		spender: toAddress(props.vault.address),
-		owner: toAddress(address),
-		amountToApprove: toBigInt(configuration?.tokenToSpend?.amount?.raw || 0n),
-		shouldUsePermit: false,
-		disabled: !configuration?.tokenToSpend?.token?.address || isETHSelected
-	});
-
-	// Use vault deposit hook - only enable when we have a token selected and it's not ETH
-	const {canDeposit, isDepositing, onDeposit: onVaultDeposit} = useVaultDeposit({
-		tokenToDeposit: toAddress(configuration?.tokenToSpend?.token?.address),
-		vault: toAddress(props.vault.address),
-		owner: toAddress(address),
-		receiver: toAddress(address),
-		amountToDeposit: toBigInt(configuration?.tokenToSpend?.amount?.raw || 0n),
-		chainID: props.vault.chainID,
-		version: props.vault.version.startsWith('3') || props.vault.version.startsWith('~3') ? 'ERC-4626' : 'LEGACY',
-		disabled: !configuration?.tokenToSpend?.token?.address || isETHSelected
 	});
 
 	/**********************************************************************************************
@@ -94,24 +68,27 @@ export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactEle
 		if (isETHSelected) {
 			return 'Wrap ETH';
 		}
+		if (!canZap && !isFetchingQuote) {
+			return 'Impossible to zap in';
+		}
 		if (isWalletSafe) {
 			return 'Approve and Deposit';
 		}
-		if (canDeposit && isApproved) {
+		if (canDeposit) {
 			return 'Deposit';
 		}
 
 		return 'Approve';
-	}, [address, isETHSelected, canDeposit, isApproved, isWalletSafe]);
+	}, [address, isETHSelected, canDeposit, isWalletSafe, isFetchingQuote, canZap]);
 
 	const isBusy = !configuration?.tokenToSpend.amount?.normalized
 		? false
-		: Boolean(isApproving || isDepositing || isWrapping || isWrapPending || isProcessingDeposit);
+		: Boolean(isApproving || isDepositing || isWrapping || isWrapPending);
 
 	/**********************************************************************************************
-	 ** Handle wrapping ETH to WETH before deposit
+	 ** Handle wrapping ETH to WETH as a standalone transaction
 	 *********************************************************************************************/
-	const handleWrapAndDeposit = useCallback(async () => {
+	const handleWrapETH = useCallback(async () => {
 		if (!configuration?.tokenToSpend?.amount?.raw) {
 return;
 }
@@ -119,15 +96,13 @@ return;
 		set_isWrapping(true);
 		try {
 			// Wrap ETH to WETH
-			await wrapETH({
+			wrapETH({
 				address: WETH_ADDRESS,
 				abi: weth9Abi,
 				functionName: 'deposit',
 				value: toBigInt(configuration.tokenToSpend.amount.raw),
 				chainId: props.vault.chainID
 			});
-
-			// Transaction initiated, wait for completion in the useEffect below
 		} catch (error) {
 			console.error('Error wrapping ETH:', error);
 			set_isWrapping(false);
@@ -137,12 +112,11 @@ return;
 	// Watch for wrap transaction completion
 	useEffect(() => {
 		// Only process if we have a new wrap hash that we haven't processed yet
-		if (wrapHash && !isWrapPending && isWrapping && wrapHash !== processedWrapHash && !isProcessingDeposit) {
+		if (wrapHash && !isWrapPending && isWrapping && wrapHash !== processedWrapHash) {
 			// Mark this hash as processed immediately to prevent re-runs
 			set_processedWrapHash(wrapHash);
-			set_isProcessingDeposit(true);
 
-			// Transaction confirmed, proceed with the rest
+			// Transaction confirmed, switch to WETH
 			(async () => {
 				try {
 					// Update the token to WETH
@@ -163,65 +137,15 @@ return;
 
 					// Refresh balances
 					await onRefresh([{chainID: props.vault.chainID, address: WETH_ADDRESS}]);
-
-					// Small delay to ensure state updates
-					await new Promise(resolve => setTimeout(resolve, 1000));
-
-					// Check if we need approval first
-					if (!isApproved) {
-						console.log('Starting approval for WETH...');
-						const isApprovalSuccess = await onApprove();
-						if (!isApprovalSuccess) {
-							console.error('Approval failed');
-							set_isWrapping(false);
-							set_isProcessingDeposit(false);
-							return;
-						}
-						// Wait for approval state to update
-						await new Promise(resolve => setTimeout(resolve, 2000));
-					}
-
-					// Then proceed with deposit
-					const isSuccess = await onVaultDeposit();
-					if (isSuccess) {
-						plausible(PLAUSIBLE_EVENTS.DEPOSIT, {
-							props: {
-								vaultAddress: props.vault.address,
-								vaultSymbol: props.vault.symbol,
-								amountToDeposit: configuration?.tokenToSpend?.amount?.display,
-								tokenAddress: WETH_ADDRESS,
-								tokenSymbol: 'kbETH',
-								isZap: false,
-								isWrapped: true
-							}
-						});
-						props.onClose();
-						props.openSuccessModal({
-							isOpen: true,
-							description: (
-								<div className={'flex flex-col items-center'}>
-									<p className={'text-regularText/50 whitespace-nowrap'}>{'Successfully wrapped and deposited'}</p>
-									<div className={'flex'}>
-										{configuration?.tokenToSpend?.amount?.display.slice(0, 7)}
-										<p className={'ml-1'}>{'ETH as kbETH'}</p>
-										<span className={'text-regularText/50'}>
-											<span className={'mx-1'}>{'to'}</span>
-											{configuration?.vault?.name}
-										</span>
-									</div>
-								</div>
-							)
-						});
-					}
 				} catch (error) {
-					console.error('Error during deposit:', error);
+					console.error('Error during wrap completion:', error);
 				} finally {
 					set_isWrapping(false);
-					set_isProcessingDeposit(false);
 				}
 			})();
 		}
-	}, [wrapHash, isWrapPending, isWrapping, processedWrapHash, isProcessingDeposit]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [wrapHash, isWrapPending, isWrapping, processedWrapHash]);
 
 	/**********************************************************************************************
 	 ** onAction is a callback that decides what to do on button click
@@ -233,12 +157,12 @@ return;
 		}
 
 		if (isETHSelected) {
-			await handleWrapAndDeposit();
+			await handleWrapETH();
 			return;
 		}
 
-		if (canDeposit && isApproved) {
-			const isSuccess = await onVaultDeposit();
+		if (canDeposit) {
+			const isSuccess = await onDeposit();
 			if (isSuccess) {
 				plausible(PLAUSIBLE_EVENTS.DEPOSIT, {
 					props: {
@@ -269,21 +193,22 @@ return;
 					)
 				});
 			}
-		} else if (!isApproved) {
-			await onApprove();
+		} else {
+			onApprove();
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		address,
 		isETHSelected,
-		handleWrapAndDeposit,
 		canDeposit,
-		isApproved,
-		configuration,
+		configuration?.tokenToSpend.amount?.display,
+		configuration?.tokenToSpend.amount?.raw,
+		configuration?.tokenToSpend.token?.decimals,
+		configuration?.tokenToSpend.token?.symbol,
+		configuration?.vault?.name,
 		onApprove,
-		onVaultDeposit,
-		openAccountModal,
-		plausible,
-		props
+		onDeposit,
+		openAccountModal
 	]);
 
 	/**********************************************************************************************
@@ -317,7 +242,6 @@ return;
 		if (props.isOpen) {
 			// Reset state when modal opens
 			set_processedWrapHash(null);
-			set_isProcessingDeposit(false);
 			set_isWrapping(false);
 
 			dispatchConfiguration({
