@@ -3,6 +3,7 @@ import {Footer} from '@lib/components/common/KatanaFooter';
 import {KatanaHeader} from '@lib/components/common/KatanaHeader';
 import {VaultList} from '@lib/components/common/KatanaVaultList';
 import useWallet from '@lib/contexts/useWallet';
+import {useWeb3} from '@lib/contexts/useWeb3';
 import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
 import {toAddress, zeroNormalizedBN} from '@lib/utils';
@@ -15,6 +16,7 @@ import type {TDict, TToken} from '@lib/types';
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER, [747474]);
 	const {onRefreshWithList} = useWallet();
+	const {address} = useWeb3();
 
 	const vaultsValues = useDeepCompareMemo(() => Object.values(vaults), [vaults]);
 
@@ -50,6 +52,7 @@ export default function Index(): ReactElement {
 		if (isLoading) {
 			return;
 		}
+		console.log('refreshing for', address);
 		const underlyingTokens: TDict<TToken> = {};
 		vaultsValues.forEach(vault => {
 			const tokenAddress = toAddress(vault.token.address);
@@ -66,7 +69,7 @@ export default function Index(): ReactElement {
 		});
 		onRefreshWithList(underlyingTokens);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [vaults.length, isLoading]);
+	}, [vaults.length, isLoading, address]);
 
 	return (
 		<section className={'flex w-full max-w-screen-xl flex-col gap-y-6'}>
