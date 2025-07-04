@@ -55,8 +55,7 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 	shouldWorkOnTestnet?: boolean;
 	chainIds?: number[];
 }): ReactElement {
-	const {isInitialized, tokenLists: _tokenLists} = useTokenList();
-	const tokenLists = _tokenLists;
+	const {isInitialized, tokenLists} = useTokenList();
 	const {chainID, address} = useWeb3();
 	const {value: extraTokens, set: saveExtraTokens} = useLocalStorageValue<TTokenList['tokens']>('extraTokens', {
 		defaultValue: []
