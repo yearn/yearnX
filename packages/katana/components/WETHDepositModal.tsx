@@ -1,6 +1,7 @@
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
 import toast from 'react-hot-toast';
 import {usePlausible} from 'next-plausible';
+import {isAddressEqual} from 'viem';
 import {useWaitForTransactionReceipt, useWriteContract} from 'wagmi';
 import {motion} from 'framer-motion';
 import {ModalWrapper} from '@lib/components/common/ModalWrapper';
@@ -47,8 +48,11 @@ export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactEle
 	// Check if token to spend is ETH
 	const isETHSelected = useMemo(() => {
 		return (
-			configuration?.tokenToSpend?.token?.address.toLowerCase() ===
-			'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'.toLowerCase()
+			configuration?.tokenToSpend?.token?.address &&
+			isAddressEqual(
+				configuration.tokenToSpend.token.address,
+				'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+			)
 		);
 	}, [configuration?.tokenToSpend?.token?.address]);
 

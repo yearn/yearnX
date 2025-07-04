@@ -1,3 +1,4 @@
+import {isAddressEqual} from 'viem';
 import {isAddress} from '@lib/utils';
 import {katana} from '@lib/utils/tools.chains';
 
@@ -13,8 +14,9 @@ export const useIsZapNeeded = (
 } => {
 	// ETH should not trigger zap flow - it's handled separately via wrapping if chain is katana
 	const shouldTriggerWrap =
-		configuration?.tokenToSpend?.token?.address?.toLowerCase() === ETH_ADDRESS.toLowerCase() &&
-		configuration?.tokenToSpend?.token?.chainID === katana.id;
+		configuration?.tokenToSpend?.token?.address &&
+		configuration?.tokenToSpend?.token?.chainID === katana.id &&
+		isAddressEqual(configuration.tokenToSpend.token.address, ETH_ADDRESS);
 
 	// Zap is needed if we are depositing and ...
 	const isZapNeededForDeposit =
