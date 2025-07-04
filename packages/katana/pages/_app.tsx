@@ -2,6 +2,7 @@ import {Fragment, type ReactElement} from 'react';
 import PlausibleProvider from 'next-plausible';
 import {Meta} from '@lib/components/common/Meta';
 import WithContexts from '@lib/contexts/WithContexts';
+import {katana} from '@lib/utils/tools.chains';
 
 import {COLORS, PROJECT_DESCRIPTION, PROJECT_TITLE} from '../constants';
 
@@ -28,7 +29,7 @@ export default function MyApp(props: AppProps): ReactElement {
 					nonce: PROJECT_TITLE
 				}}
 				enabled={true}>
-				<WithContexts {...props} />
+				<WithContexts {...props} chainIds={[katana.id]} />
 			</PlausibleProvider>
 		</Fragment>
 	);

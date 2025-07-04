@@ -53,6 +53,7 @@ const WalletContext = createContext<TWalletContext>(defaultProps);
 export const WalletContextApp = memo(function WalletContextApp(props: {
 	children: ReactElement;
 	shouldWorkOnTestnet?: boolean;
+	chainIds?: number[];
 }): ReactElement {
 	const {isInitialized, tokenLists} = useTokenList();
 	const {chainID, address} = useWeb3();
@@ -72,6 +73,10 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 		const tokens: TUseBalancesTokens[] = [];
 		for (const forChainID of Object.values(tokenLists)) {
 			for (const token of Object.values(forChainID)) {
+				// Filter by chainIds if provided
+				if (props.chainIds && !props.chainIds.includes(token.chainID)) {
+					continue;
+				}
 				tokens.push({
 					address: toAddress(token.address),
 					chainID: token.chainID,
@@ -79,7 +84,7 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 					name: token.name,
 					symbol: token.symbol
 				});
-				if (chainID === 1337) {
+				if (chainID === 1337 && (!props.chainIds || props.chainIds.includes(1337))) {
 					tokens.push({
 						address: toAddress(token.address),
 						chainID: 1337,
@@ -99,6 +104,10 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 			if (chain.id === 1337 && !props.shouldWorkOnTestnet) {
 				continue;
 			}
+			// Filter by chainIds if provided
+			if (props.chainIds && !props.chainIds.includes(chain.id)) {
+				continue;
+			}
 			tokens.push({
 				address: toAddress(ETH_TOKEN_ADDRESS),
 				chainID: chain.id,
@@ -108,7 +117,7 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 			});
 		}
 		return tokens;
-	}, [tokenLists, chainID, isInitialized, props.shouldWorkOnTestnet]);
+	}, [tokenLists, chainID, isInitialized, props.shouldWorkOnTestnet, props.chainIds]);
 
 	/**************************************************************************
 	 ** This hook triggers the fetching of the balances of the available tokens
@@ -123,8 +132,10 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 		chainLoadingStatus
 	} = useBalances({
 		tokens: availableTokens,
-		priorityChainID: chainID
+		priorityChainID: chainID,
+		allowedChains: props.chainIds // Only query specified chains if provided
 	});
+
 	/**************************************************************************
 	 ** onRefresh is a function that allows to refresh the balances of the
 	 ** tokens. It takes an optional list of tokens to refresh, and a boolean
@@ -135,7 +146,7 @@ export const WalletContextApp = memo(function WalletContextApp(props: {
 		async (
 			tokenToUpdate?: TUseBalancesTokens[],
 			shouldSaveInStorage?: boolean,
-			shouldForceFetch = false
+			shouldForceFetch = true
 		): Promise<TChainTokens> => {
 			if (tokenToUpdate && tokenToUpdate.length > 0) {
 				const updatedBalances = await onUpdateSome(tokenToUpdate, shouldForceFetch);

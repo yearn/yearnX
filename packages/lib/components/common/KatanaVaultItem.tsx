@@ -3,6 +3,7 @@
 import {type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useQueryState} from 'nuqs';
+import {useAccount} from 'wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePrices} from '@lib/contexts/usePrices';
 import useWallet from '@lib/contexts/useWallet';
@@ -20,6 +21,7 @@ import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
 
+import {WETHDepositModal} from '../../../katana/components/WETHDepositModal';
 import {IconExternalLink} from '../icons/IconExternalLink';
 import {DepositModal} from './DepositModal';
 import {ImageWithFallback} from './ImageWithFallback';
@@ -44,6 +46,7 @@ export type TSuccessModal = {
 };
 
 export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => {
+	const {address} = useAccount();
 	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
 	const {pricingHash, getPrice} = usePrices();
@@ -106,13 +109,16 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	 ** missing it.
 	 *********************************************************************************************/
 	useAsyncTrigger(async () => {
+		if (address === undefined) {
+			return;
+		}
 		if (!isLoadingOnChain(vault.chainID)) {
 			const token = getToken({address: vault.address, chainID: vault.chainID});
 			if (isZeroAddress(token.address)) {
 				onRefresh([{chainID: vault.chainID, address: vault.address}]);
 			}
 		}
-	}, [getToken, isLoadingOnChain, onRefresh, vault.address, vault.chainID]);
+	}, [getToken, isLoadingOnChain, onRefresh, vault.address, vault.chainID, address]);
 
 	/**********************************************************************************************
 	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
@@ -209,18 +215,36 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		return chain?.bgColor || '#374151'; // fallback to gray if no color defined
 	}, [vault.chainID]);
 
+	// Check if this is a WETH vault
+	const isWETHVault = useMemo(() => {
+		return vault.token.address.toLowerCase() === '0xee7d8bcfb72bc1880d0cf19822eb0a2e6577ab62';
+	}, [vault.token.address]);
+
 	return (
 		<div>
-			<DepositModal
-				isOpen={isDepositModalOpen}
-				onClose={onClose}
-				vault={vault}
-				yearnfiLink={yearnfiLink}
-				hasBalanceForVault={balance > 0}
-				openSuccessModal={set_successModal}
-				totalProfit={totalProfit}
-				apy={APYToUse}
-			/>
+			{isWETHVault ? (
+				<WETHDepositModal
+					isOpen={isDepositModalOpen}
+					onClose={onClose}
+					vault={vault}
+					yearnfiLink={yearnfiLink}
+					hasBalanceForVault={balance > 0}
+					openSuccessModal={set_successModal}
+					totalProfit={totalProfit}
+					apy={APYToUse}
+				/>
+			) : (
+				<DepositModal
+					isOpen={isDepositModalOpen}
+					onClose={onClose}
+					vault={vault}
+					yearnfiLink={yearnfiLink}
+					hasBalanceForVault={balance > 0}
+					openSuccessModal={set_successModal}
+					totalProfit={totalProfit}
+					apy={APYToUse}
+				/>
+			)}
 			<WithdrawModal
 				isOpen={isWithdrawModalOpen}
 				onClose={onClose}
@@ -264,7 +288,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 						<p className={'text-regularText/50 w-full'}>{getNetwork(vault.chainID).name}</p>
 					</div>
 				</Link>
-				
+
 				{/* APY */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
 					<div className={'text-right font-mono font-semibold'}>
