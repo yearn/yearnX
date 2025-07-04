@@ -3,6 +3,7 @@
 import {type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useQueryState} from 'nuqs';
+import {useAccount} from 'wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePrices} from '@lib/contexts/usePrices';
 import useWallet from '@lib/contexts/useWallet';
@@ -44,6 +45,7 @@ export type TSuccessModal = {
 };
 
 export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => {
+	const {address} = useAccount();
 	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
 	const {pricingHash, getPrice} = usePrices();
@@ -106,13 +108,16 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	 ** missing it.
 	 *********************************************************************************************/
 	useAsyncTrigger(async () => {
+		if (address === undefined) {
+			return;
+		}
 		if (!isLoadingOnChain(vault.chainID)) {
 			const token = getToken({address: vault.address, chainID: vault.chainID});
 			if (isZeroAddress(token.address)) {
 				onRefresh([{chainID: vault.chainID, address: vault.address}]);
 			}
 		}
-	}, [getToken, isLoadingOnChain, onRefresh, vault.address, vault.chainID]);
+	}, [address, getToken, isLoadingOnChain, onRefresh, vault.address, vault.chainID]);
 
 	/**********************************************************************************************
 	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
