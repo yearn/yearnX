@@ -43,6 +43,15 @@ export type TChainReward = {
 
 export type TAngleRewardsResponse = TChainReward[];
 
+type TCachedRewardsData = {
+	preDepositRewards: TAngleReward[];
+	currentRewards: TAngleReward[];
+	timestamp: number;
+	address: string;
+	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+	lastClaimed?: Record<number, number>; // chainId -> timestamp
+};
+
 export const useAngleRewards = (): {
 	preDepositRewards: TAngleReward[];
 	currentRewards: TAngleReward[];
@@ -52,6 +61,8 @@ export const useAngleRewards = (): {
 	refetch: () => void;
 	getTotalValueInUSD: () => number;
 	hasRewards: boolean;
+	markClaimed: (chainId: number) => void;
+	canClaim: (chainId: number) => boolean;
 } => {
 	const {address} = useWeb3();
 	const [preDepositRewards, set_preDepositRewards] = useState<TAngleReward[]>([]);
@@ -59,54 +70,100 @@ export const useAngleRewards = (): {
 	const [isLoading, set_isLoading] = useState(false);
 	const [error, set_error] = useState<string | null>(null);
 	const [total, set_total] = useState(0);
+	const [claimTimestamps, set_claimTimestamps] = useState<{[key: number]: number}>({});
 
-	const fetchRewards = useCallback(async () => {
-		if (!address) {
-			set_preDepositRewards([]);
-			set_currentRewards([]);
-			set_total(0);
-			return;
-		}
+	const CACHE_KEY = 'angleRewards_cache';
+	const EIGHT_HOURS = 8 * 60 * 60 * 1000;
 
-		set_isLoading(true);
-		set_error(null);
-
+	const getCache = useCallback((): TCachedRewardsData | null => {
 		try {
-			// Fetch rewards for both chains
-			const [polygonResponse, katanaResponse] = await Promise.all([
-				fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=137`),
-				fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=747474`)
-			]);
-
-			const polygonData: TAngleRewardsResponse = polygonResponse.ok ? await polygonResponse.json() : [];
-			const katanaData: TAngleRewardsResponse = katanaResponse.ok ? await katanaResponse.json() : [];
-
-			// Filter KAT rewards for Polygon (chainId 137)
-			const polygonChainData = polygonData.find(chain => chain.chain.id === 137);
-			const preDepositKatRewards = polygonChainData?.rewards ?? [];
-			// .filter(
-			// 	reward => reward.token.symbol.includes('KAT') && parseFloat(reward.amount) > 0
-			// ) || [];
-
-			// Filter KAT rewards for Katana (chainId 747474)
-			const katanaChainData = katanaData.find(chain => chain.chain.id === 747474);
-			const currentKatRewards = katanaChainData?.rewards ?? [];
-			// ?.rewards.filter(
-			// 	reward => reward.token.symbol.includes('KAT') && parseFloat(reward.amount) > 0
-			// ) || [];
-
-			set_preDepositRewards(preDepositKatRewards);
-			set_currentRewards(currentKatRewards);
-			set_total(preDepositKatRewards.length + currentKatRewards.length);
-		} catch (err) {
-			set_error(err instanceof Error ? err.message : 'Failed to fetch rewards');
-			set_preDepositRewards([]);
-			set_currentRewards([]);
-			set_total(0);
-		} finally {
-			set_isLoading(false);
+			const cached = localStorage.getItem(CACHE_KEY);
+			if (!cached) {
+				return null;
+			}
+			const parsed: TCachedRewardsData = JSON.parse(cached);
+			return parsed.address === address ? parsed : null;
+		} catch {
+			return null;
 		}
 	}, [address]);
+
+	const updateCache = useCallback(
+		(updates: Partial<TCachedRewardsData>) => {
+			const existing = getCache() || {
+				timestamp: 0,
+				address: address!,
+				preDepositRewards: [],
+				currentRewards: [],
+				lastClaimed: {}
+			};
+			const updated = {...existing, ...updates};
+			localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+			set_claimTimestamps(updated.lastClaimed || {});
+		},
+		[address, getCache]
+	);
+
+	const fetchRewards = useCallback(
+		async (forceRefetch = false) => {
+			if (!address) {
+				set_preDepositRewards([]);
+				set_currentRewards([]);
+				set_total(0);
+				set_claimTimestamps({});
+				return;
+			}
+
+			const now = Date.now();
+
+			// Check cache first
+			if (!forceRefetch) {
+				const cached = getCache();
+				if (cached && now - cached.timestamp < EIGHT_HOURS) {
+					set_preDepositRewards(cached.preDepositRewards);
+					set_currentRewards(cached.currentRewards);
+					set_total(cached.preDepositRewards.length + cached.currentRewards.length);
+					set_claimTimestamps(cached.lastClaimed || {});
+					return;
+				}
+			}
+
+			set_isLoading(true);
+			set_error(null);
+
+			try {
+				const [polygonResponse, katanaResponse] = await Promise.all([
+					fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=137`),
+					fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=747474`)
+				]);
+
+				const polygonData: TAngleRewardsResponse = polygonResponse.ok ? await polygonResponse.json() : [];
+				const katanaData: TAngleRewardsResponse = katanaResponse.ok ? await katanaResponse.json() : [];
+
+				const preDepositKatRewards = polygonData.find(chain => chain.chain.id === 137)?.rewards ?? [];
+				const currentKatRewards = katanaData.find(chain => chain.chain.id === 747474)?.rewards ?? [];
+
+				updateCache({
+					preDepositRewards: preDepositKatRewards,
+					currentRewards: currentKatRewards,
+					timestamp: now,
+					address
+				});
+
+				set_preDepositRewards(preDepositKatRewards);
+				set_currentRewards(currentKatRewards);
+				set_total(preDepositKatRewards.length + currentKatRewards.length);
+			} catch (err) {
+				set_error(err instanceof Error ? err.message : 'Failed to fetch rewards');
+				set_preDepositRewards([]);
+				set_currentRewards([]);
+				set_total(0);
+			} finally {
+				set_isLoading(false);
+			}
+		},
+		[address, getCache, updateCache]
+	);
 
 	useEffect(() => {
 		fetchRewards();
@@ -136,14 +193,40 @@ export const useAngleRewards = (): {
 		return preDepositValue + currentValue;
 	}, [preDepositRewards, currentRewards]);
 
+	const handleRefetch = useCallback(async () => fetchRewards(true), [fetchRewards]);
+
+	const markClaimed = useCallback(
+		(chainId: number) => {
+			if (!address) {
+				return;
+			}
+			const existing = getCache();
+			if (existing) {
+				const updatedTimestamps = {...existing.lastClaimed, [chainId]: Date.now()};
+				updateCache({lastClaimed: updatedTimestamps});
+			}
+		},
+		[address, getCache, updateCache]
+	);
+
+	const canClaim = useCallback(
+		(chainId: number) => {
+			const timestamp = claimTimestamps[chainId];
+			return !timestamp || Date.now() - timestamp >= EIGHT_HOURS;
+		},
+		[claimTimestamps, EIGHT_HOURS]
+	);
+
 	return {
 		preDepositRewards,
 		currentRewards,
 		isLoading,
 		error,
 		total,
-		refetch: fetchRewards,
+		refetch: handleRefetch,
 		getTotalValueInUSD,
-		hasRewards: preDepositRewards.length > 0 || currentRewards.length > 0
+		hasRewards: preDepositRewards.length > 0 || currentRewards.length > 0,
+		markClaimed,
+		canClaim
 	};
 };

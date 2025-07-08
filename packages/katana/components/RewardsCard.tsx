@@ -1,10 +1,12 @@
 import {useCallback, useEffect, useState} from 'react';
 import toast from 'react-hot-toast';
+import {type TAngleReward, useAngleRewards} from 'packages/katana/hooks/useAngleRewards';
 import {useWaitForTransactionReceipt, useWriteContract} from 'wagmi';
+import {Tooltip} from '@lib/components/common/Tooltip';
+import {IconInfo} from '@lib/components/icons/InfoIcon';
 import {useWeb3} from '@lib/contexts/useWeb3';
 import {cl, formatAmount} from '@lib/utils';
 
-import type {TAngleReward} from 'packages/katana/hooks/useAngleRewards';
 import type {FC} from 'react';
 
 // Merkl Distributor contract addresses
@@ -58,8 +60,26 @@ const getChainName = (chainId: number): string => {
 	return 'Katana';
 };
 
+const RewardsPill: FC<{
+	className?: string;
+	reward: TAngleReward;
+	status: 'claimable' | 'pending';
+	claimKey: 'amount' | 'pending';
+}> = ({reward, status, claimKey, className}) => {
+	return status === 'claimable' ? (
+		<p className={cl('rounded-full bg-white px-2 text-[14px] font-medium text-neutral-900 ', className)}>
+			{formatAmount(parseFloat(reward[claimKey]) / 1e18, 4)} {reward.token.symbol}
+		</p>
+	) : (
+		<p className={cl('rounded-full border border-white/20 px-2 text-[14px] font-medium text-white ', className)}>
+			{formatAmount(parseFloat(reward[claimKey]) / 1e18, 4)} {reward.token.symbol}
+		</p>
+	);
+};
+
 export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 	const {address, chainID: currentChainId, onSwitchChain} = useWeb3();
+	const {markClaimed, canClaim} = useAngleRewards();
 	const [currentReward, set_currentReward] = useState<TAngleReward | null>(null);
 	const [error, set_error] = useState<string | null>(null);
 
@@ -133,9 +153,10 @@ export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 			const symbolsText = tokenSymbols.join(', ');
 
 			toast.success(`Successfully claimed ${formatAmount(totalAmount, 4)} ${symbolsText}`);
+			markClaimed(chainId);
 			set_currentReward(null);
 		}
-	}, [isClaimSuccess, currentReward, claimHash, chainId, rewards]);
+	}, [isClaimSuccess, currentReward, claimHash, chainId, rewards, markClaimed]);
 
 	if (rewards.length === 0) {
 		return null;
@@ -150,40 +171,49 @@ export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 		return acc + parseFloat(reward.pending || '0') / 1e18;
 	}, 0);
 
+	// Determine if claiming is allowed based on recent claims
+	const canClaimRewards = canClaim(chainId);
+
 	return (
-		<div className={'min-w-[300px] space-y-2 rounded-lg border border-neutral-200 bg-neutral-50 p-4'}>
-			<p className={'text-md w-full border-b border-neutral-200 pb-2 text-left text-black'}>{title}</p>
+		<div className={'min-w-[400px] space-y-2 rounded-lg border border-white/10 bg-white/10 p-4'}>
+			<p className={'text-md w-full border-b border-white/20 pb-2 text-left text-white'}>{title}</p>
 			<div className={'space-y-2 py-2'}>
-				{totalClaimable > 0 && (
-					<div className={'flex items-center justify-between'}>
+				{totalClaimable > 0 && canClaimRewards && (
+					<div className={cl('flex flex-auto items-center justify-between gap-4')}>
 						<div className={'flex h-6 items-center justify-center'}>
-							<span className={'font-medium text-black'}>{'Claimable'}</span>
+							<span className={'font-medium text-white'}>{'Claimable'}</span>
 						</div>
-						<div className={'flex gap-2'}>
+						<div className={'flex flex-auto justify-end gap-1'}>
 							{rewards.map(reward => (
-								<p
-									className={
-										'rounded-full border border-neutral-200 bg-neutral-200 px-2 text-[14px] font-medium text-neutral-900 '
-									}>
-									{formatAmount(parseFloat(reward.amount) / 1e18, 4)} {reward.token.symbol}
-								</p>
+								<RewardsPill
+									status={'claimable'}
+									claimKey={'amount'}
+									key={reward.token.address}
+									reward={reward}
+								/>
 							))}
 						</div>
 					</div>
 				)}
 				{totalPending > 0 && (
-					<div className={'flex items-center justify-between opacity-50'}>
+					<div className={'flex items-center justify-between opacity-60'}>
 						<div className={'flex h-6 items-center justify-center'}>
-							<span className={'font-medium text-black'}>{'Pending'}</span>
+							<span className={'font-medium text-white'}>{'Pending'}</span>
+							<Tooltip content={'Rewards that will be credited onchain on the next reward update.'}>
+								<IconInfo
+									className={'ml-1 mt-px size-4'}
+									color={'#ffffff'}
+								/>
+							</Tooltip>
 						</div>
-						<div className={'flex gap-2'}>
+						<div className={'flex flex-auto justify-end gap-1'}>
 							{rewards.map(reward => (
-								<p
-									className={
-										'rounded-full border border-neutral-200 bg-neutral-200 px-2 text-[14px] font-medium text-neutral-900 '
-									}>
-									{formatAmount(parseFloat(reward.pending) / 1e18, 4)} {reward.token.symbol}
-								</p>
+								<RewardsPill
+									status={'pending'}
+									claimKey={'pending'}
+									key={reward.token.address}
+									reward={reward}
+								/>
 							))}
 						</div>
 					</div>
@@ -196,6 +226,11 @@ export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 			)}
 			{totalClaimable > 0 && (
 				<div className={'space-y-2'}>
+					{!canClaimRewards && (
+						<div className={'rounded-lg border border-white/20 bg-yellow-500/10 p-3'}>
+							<p className={'text-sm text-yellow-200'}>{'No new rewards available, check back later'}</p>
+						</div>
+					)}
 					<button
 						onClick={async () => {
 							if (isInvalidChain) {
@@ -205,7 +240,7 @@ export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 								await handleClaimAllRewards();
 							}
 						}}
-						disabled={isClaimPending}
+						disabled={isClaimPending || !canClaimRewards}
 						className={cl(
 							'bg-button text-accentText !h-12 w-full rounded-xl p-3 transition-colors hover:bg-[#f8fe06] hover:text-black disabled:cursor-not-allowed disabled:opacity-50'
 						)}>
