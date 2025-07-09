@@ -1,6 +1,15 @@
 import {useCallback, useEffect, useState} from 'react';
 import {useWeb3} from '@lib/contexts/useWeb3';
 
+const CACHE_KEY = 'angleRewards_cache';
+
+const EIGHT_HOURS = 8 * 60 * 60 * 1000;
+
+const CHAIN_IDS = {
+	POLYGON: 137,
+	KATANA: 747474
+} as const;
+
 export type TRewardBreakdown = {
 	reason: string;
 	amount: string;
@@ -48,8 +57,7 @@ type TCachedRewardsData = {
 	currentRewards: TAngleReward[];
 	timestamp: number;
 	address: string;
-	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-	lastClaimed?: Record<number, number>; // chainId -> timestamp
+	lastClaimed?: {[key: number]: number};
 };
 
 export const useAngleRewards = (): {
@@ -72,15 +80,13 @@ export const useAngleRewards = (): {
 	const [total, set_total] = useState(0);
 	const [claimTimestamps, set_claimTimestamps] = useState<{[key: number]: number}>({});
 
-	const CACHE_KEY = 'angleRewards_cache';
-	const EIGHT_HOURS = 8 * 60 * 60 * 1000;
-
 	const getCache = useCallback((): TCachedRewardsData | null => {
 		try {
 			const cached = localStorage.getItem(CACHE_KEY);
 			if (!cached) {
 				return null;
 			}
+
 			const parsed: TCachedRewardsData = JSON.parse(cached);
 			return parsed.address === address ? parsed : null;
 		} catch {
@@ -133,28 +139,30 @@ export const useAngleRewards = (): {
 
 			try {
 				const [polygonResponse, katanaResponse] = await Promise.all([
-					fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=137`),
-					fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=747474`)
+					fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=${CHAIN_IDS.POLYGON}`),
+					fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=${CHAIN_IDS.KATANA}`)
 				]);
 
 				const polygonData: TAngleRewardsResponse = polygonResponse.ok ? await polygonResponse.json() : [];
 				const katanaData: TAngleRewardsResponse = katanaResponse.ok ? await katanaResponse.json() : [];
 
-				const preDepositKatRewards = polygonData.find(chain => chain.chain.id === 137)?.rewards ?? [];
-				const currentKatRewards = katanaData.find(chain => chain.chain.id === 747474)?.rewards ?? [];
+				const preDepositRewards =
+					polygonData.find(chain => chain.chain.id === CHAIN_IDS.POLYGON)?.rewards ?? [];
+				const currentRewards = katanaData.find(chain => chain.chain.id === CHAIN_IDS.KATANA)?.rewards ?? [];
 
 				updateCache({
-					preDepositRewards: preDepositKatRewards,
-					currentRewards: currentKatRewards,
+					preDepositRewards,
+					currentRewards,
 					timestamp: now,
 					address
 				});
 
-				set_preDepositRewards(preDepositKatRewards);
-				set_currentRewards(currentKatRewards);
-				set_total(preDepositKatRewards.length + currentKatRewards.length);
+				set_preDepositRewards(preDepositRewards);
+				set_currentRewards(currentRewards);
+				set_total(preDepositRewards.length + currentRewards.length);
 			} catch (err) {
-				set_error(err instanceof Error ? err.message : 'Failed to fetch rewards');
+				const errorMessage = err instanceof Error ? err.message : 'Failed to fetch rewards';
+				set_error(errorMessage);
 				set_preDepositRewards([]);
 				set_currentRewards([]);
 				set_total(0);
@@ -165,41 +173,25 @@ export const useAngleRewards = (): {
 		[address, getCache, updateCache]
 	);
 
-	useEffect(() => {
-		fetchRewards();
-	}, [fetchRewards]);
-
 	const getTotalValueInUSD = useCallback(() => {
-		const preDepositValue = preDepositRewards.reduce((acc, reward) => {
-			const pendingAmount = parseFloat(reward.amount);
-			const tokenPrice = reward.token.price;
-			const tokenDecimals = reward.token.decimals;
+		const calculateValue = (rewards: TAngleReward[]): number =>
+			rewards.reduce((acc, reward) => {
+				const amount = parseFloat(reward.amount);
+				const {price} = reward.token;
+				const {decimals} = reward.token;
+				const actualAmount = amount / Math.pow(10, decimals);
+				return acc + actualAmount * price;
+			}, 0);
 
-			// Convert from token units to actual amount and multiply by price
-			const actualAmount = pendingAmount / Math.pow(10, tokenDecimals);
-			return acc + actualAmount * tokenPrice;
-		}, 0);
-
-		const currentValue = currentRewards.reduce((acc, reward) => {
-			const pendingAmount = parseFloat(reward.amount);
-			const tokenPrice = reward.token.price;
-			const tokenDecimals = reward.token.decimals;
-
-			// Convert from token units to actual amount and multiply by price
-			const actualAmount = pendingAmount / Math.pow(10, tokenDecimals);
-			return acc + actualAmount * tokenPrice;
-		}, 0);
-
-		return preDepositValue + currentValue;
+		return calculateValue(preDepositRewards) + calculateValue(currentRewards);
 	}, [preDepositRewards, currentRewards]);
-
-	const handleRefetch = useCallback(async () => fetchRewards(true), [fetchRewards]);
 
 	const markClaimed = useCallback(
 		(chainId: number) => {
 			if (!address) {
 				return;
 			}
+
 			const existing = getCache();
 			if (existing) {
 				const updatedTimestamps = {...existing.lastClaimed, [chainId]: Date.now()};
@@ -214,8 +206,12 @@ export const useAngleRewards = (): {
 			const timestamp = claimTimestamps[chainId];
 			return !timestamp || Date.now() - timestamp >= EIGHT_HOURS;
 		},
-		[claimTimestamps, EIGHT_HOURS]
+		[claimTimestamps]
 	);
+
+	useEffect(() => {
+		fetchRewards();
+	}, [fetchRewards]);
 
 	return {
 		preDepositRewards,
@@ -223,7 +219,7 @@ export const useAngleRewards = (): {
 		isLoading,
 		error,
 		total,
-		refetch: handleRefetch,
+		refetch: async () => fetchRewards(true),
 		getTotalValueInUSD,
 		hasRewards: preDepositRewards.length > 0 || currentRewards.length > 0,
 		markClaimed,
