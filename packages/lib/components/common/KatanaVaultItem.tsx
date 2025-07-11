@@ -3,6 +3,8 @@
 import {type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
 import {useQueryState} from 'nuqs';
+import {AprModal} from 'packages/katana/components/AprModal';
+import {WETHDepositModal} from 'packages/katana/components/WETHDepositModal';
 import {useAccount} from 'wagmi';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePrices} from '@lib/contexts/usePrices';
@@ -21,8 +23,8 @@ import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
 
-import {WETHDepositModal} from '../../../katana/components/WETHDepositModal';
 import {IconExternalLink} from '../icons/IconExternalLink';
+import {IconInfo} from '../icons/InfoIcon';
 import {DepositModal} from './DepositModal';
 import {ImageWithFallback} from './ImageWithFallback';
 import {SuccessModal} from './SuccessModal';
@@ -35,6 +37,7 @@ import type {TAPYType} from '@lib/utils/types';
 type TVaultItem = {
 	vault: TYDaemonVault;
 	price: TNormalizedBN;
+	apr?: number;
 	options?: {
 		apyType: TAPYType;
 		shouldDisplaySubAPY?: boolean;
@@ -45,7 +48,7 @@ export type TSuccessModal = {
 	description: ReactElement | null;
 };
 
-export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => {
+export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElement => {
 	const {address} = useAccount();
 	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
@@ -54,6 +57,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	const [vaultPrice, set_vaultPrice] = useState<TNormalizedBN>(zeroNormalizedBN);
 	const [selectedVault, set_selectedVault] = useQueryState('vault');
 	const [selectedAction, set_selectedAction] = useQueryState('action');
+	const [isAprModalOpen, set_isAprModalOpen] = useState(false);
 	const isDepositModalOpen = selectedAction === 'DEPOSIT' && selectedVault === vault.address;
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
@@ -64,11 +68,14 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
+		if (apr) {
+			return apr;
+		}
 		if (!options?.apyType) {
 			return vault.apr.netAPR;
 		}
 		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
-	}, [vault.apr, options?.apyType]);
+	}, [vault.apr, options?.apyType, apr]);
 
 	/**********************************************************************************************
 	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
@@ -221,6 +228,11 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 
 	return (
 		<div>
+			<AprModal
+				isOpen={isAprModalOpen}
+				onClose={() => set_isAprModalOpen(false)}
+				vault={vault}
+			/>
 			{isWETHVault ? (
 				<WETHDepositModal
 					isOpen={isDepositModalOpen}
@@ -290,9 +302,13 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 
 				{/* APY */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
-					<div className={'text-right font-mono font-semibold'}>
-						{/* {toPercent(APYToUse)} */}
-						{'NEW'}
+					<div className={'relative flex items-center gap-x-2 text-right font-mono font-semibold'}>
+						<span>{toPercent(APYToUse)}</span>
+						<button
+							onClick={() => set_isAprModalOpen(true)}
+							className={'absolute right-[-12px] text-white/60 transition-colors hover:text-white'}>
+							<IconInfo className={'size-4'} />
+						</button>
 						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
 					</div>
 				</div>
@@ -371,7 +387,14 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					<div className={'flex items-center gap-x-2 text-sm'}>
 						<p>{'APY'}</p>
 					</div>
-					<div>{toPercent(APYToUse)}</div>
+					<div className={'flex items-center gap-x-2'}>
+						<span>{toPercent(APYToUse)}</span>
+						<button
+							onClick={() => set_isAprModalOpen(true)}
+							className={'text-white/60 transition-colors hover:text-white'}>
+							<IconInfo className={'size-4'} />
+						</button>
+					</div>
 				</div>
 
 				<div className={'flex w-full justify-between'}>

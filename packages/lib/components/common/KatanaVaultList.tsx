@@ -2,6 +2,7 @@
 
 import {Fragment, type ReactElement, useEffect, useMemo, useState} from 'react';
 import {useQueryState} from 'nuqs';
+import {useKatanaAprs} from 'packages/katana/hooks/useKatanaAprs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
 import {usePrices} from '@lib/contexts/usePrices';
 import useWallet from '@lib/contexts/useWallet';
@@ -40,6 +41,7 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 	const [searchValue] = useQueryState('search', {defaultValue: '', shallow: true});
 	const {getPrices, pricingHash} = usePrices();
 	const [allPrices, set_allPrices] = useState<TNDict<TDict<TNormalizedBN>>>({});
+	const {data: aprs} = useKatanaAprs();
 
 	const {balanceHash, getBalance} = useWallet();
 
@@ -92,11 +94,11 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		return values.sort((a, b) => {
 			// Katana chain (747474) vaults come first
 			if (a.chainID === 747474 && b.chainID !== 747474) {
-return -1;
-}
+				return -1;
+			}
 			if (a.chainID !== 747474 && b.chainID === 747474) {
-return 1;
-}
+				return 1;
+			}
 
 			// Then sort by balance
 			return (
@@ -123,11 +125,11 @@ return 1;
 		return values.sort((a, b) => {
 			// Katana chain (747474) vaults come first
 			if (a.chainID === 747474 && b.chainID !== 747474) {
-return -1;
-}
+				return -1;
+			}
 			if (a.chainID !== 747474 && b.chainID === 747474) {
-return 1;
-}
+				return 1;
+			}
 
 			// Then sort by featuringScore
 			return b.featuringScore - a.featuringScore;
@@ -161,6 +163,7 @@ return 1;
 							key={vault.address}
 							vault={vault}
 							price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
+							apr={aprs?.[vault.address]?.apr?.extra?.katanaRewardsAPR}
 							options={props.options}
 						/>
 					))}
