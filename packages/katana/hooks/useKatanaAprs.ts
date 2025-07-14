@@ -43,9 +43,7 @@ export const useKatanaAprs = (): {data: Partial<TKatanaAprs>; isLoading: boolean
 				}
 
 				const freshData = await axios
-					.get(
-						'https://raw.githubusercontent.com/0xeye/yearn-katana-aprs/refs/heads/main/vault-apr-data.json'
-					)
+					.get('https://katana-apr-service.vercel.app/api/vaults')
 					.then(res => res.data);
 
 				const cacheData: TCacheData = {
