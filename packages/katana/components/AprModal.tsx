@@ -18,7 +18,7 @@ export function AprModal({isOpen, onClose, vault}: TAprModal): ReactElement {
 	const {data: aprs} = useKatanaAprs();
 
 	const katanaRewardsAPY = aprs?.[vault.address]?.apr?.extra?.katanaRewardsAPR || 0;
-	const totalAPY = aprs?.[vault.address]?.apr?.netAPR || 0 + katanaRewardsAPY;
+	const underlyingAPY = aprs?.[vault.address]?.apr?.netAPR || 0;
 
 	return (
 		<ModalWrapper
@@ -26,7 +26,7 @@ export function AprModal({isOpen, onClose, vault}: TAprModal): ReactElement {
 			onClose={onClose}>
 			<div className={'relative flex w-[320px] flex-col gap-[10px] rounded-[16px] bg-[#353535] p-4 pb-2'}>
 				<div className={'mb-4 flex items-center justify-between'}>
-					<h2 className={'text-lg font-medium text-white'}>{'APR Breakdown'}</h2>
+					<h2 className={'text-lg font-medium text-white'}>{'Yield Breakdown'}</h2>
 					<button
 						onClick={onClose}
 						className={'text-neutral-500 transition-colors hover:text-neutral-700'}>
@@ -34,11 +34,20 @@ export function AprModal({isOpen, onClose, vault}: TAprModal): ReactElement {
 					</button>
 				</div>
 
+				{underlyingAPY > 0 && (
+					<div className={'flex h-[48px] items-center justify-between rounded-[12px] bg-white/10 px-4'}>
+						<span className={'text-[16px] font-medium text-white'}>{'Underlying'}</span>
+						<span className={'w-[125px] text-right text-[16px] text-white'}>
+							{`${formatAmount(underlyingAPY * 100, 2, 2)}%`}
+						</span>
+					</div>
+				)}
+
 				<div className={'flex flex-col gap-2 rounded-[12px] bg-[#494949] pb-2'}>
 					<div className={'flex h-[48px] items-center justify-between rounded-[12px] bg-white/10 px-4'}>
 						<span className={'text-[16px] font-medium text-white'}>{'Rewards'}</span>
 						<span className={'w-[125px] text-right text-[16px] text-white'}>
-							{`${formatAmount(totalAPY * 100, 2, 2)}%`}
+							{`${formatAmount(katanaRewardsAPY * 100, 2, 2)}%`}
 						</span>
 					</div>
 
