@@ -24,7 +24,10 @@ export function AprModal({isOpen, onClose, vault}: TAprModal): ReactElement {
 		<ModalWrapper
 			isOpen={isOpen}
 			onClose={onClose}>
-			<div className={'relative flex w-[320px] flex-col gap-[10px] rounded-[16px] bg-[#353535] p-4 pb-2'}>
+			<div
+				className={
+					'relative flex min-h-fit w-[400px] flex-col gap-[10px] rounded-[16px] bg-[#353535] p-4 pb-2'
+				}>
 				<div className={'mb-4 flex items-center justify-between'}>
 					<h2 className={'text-lg font-medium text-white'}>{'Yield Breakdown'}</h2>
 					<button
@@ -70,9 +73,23 @@ export function AprModal({isOpen, onClose, vault}: TAprModal): ReactElement {
 					)}
 				</div>
 
-				<div className={'rounded-[12px] px-2 pt-2 text-center'}>
-					<p className={'h-[53px] text-[12px] font-medium leading-[1.21] text-white/50'}>
-						{'APR calculations are based on the fees and rewards generated over the past 24 hours.'}
+				<div className={'rounded-[12px] px-4 pb-4 pt-2'}>
+					<ul
+						className={
+							'list-inside list-disc space-y-1 text-left text-[12px] font-medium leading-[1.21] text-white/50'
+						}>
+						<li>{'KAT tokens are locked until no later than Feb. 20 2026.'}</li>
+						<li>{'KAT APR is calculated using an assumed $1B Fully Diluted Valuation.'}</li>
+					</ul>
+					<p className={'mt-2 text-left text-[12px] font-medium leading-[1.21] text-white/50'}>
+						{'Read more about KAT tokenomics '}
+						<a
+							href={'https://katana.network/blog/the-network-is-katana-the-token-is-kat'}
+							target={'_blank'}
+							rel={'noopener noreferrer'}
+							className={'text-blue-400 underline hover:text-blue-300'}>
+							{'here'}
+						</a>
 					</p>
 				</div>
 			</div>
