@@ -157,8 +157,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	const totalProfit = useMemo(() => {
 		const price = vaultPrice.normalized ?? 0;
 		return `$${formatLocalAmount(
-			Number(configuration?.tokenToSpend.amount?.normalized) * APYToUse * price +
-				Number(configuration?.tokenToSpend.amount?.normalized) * price,
+			Number(configuration?.tokenToSpend.amount?.normalized) * APYToUse * price,
 			4,
 			'$',
 			{
@@ -231,7 +230,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					hasBalanceForVault={balance > 0}
 					openSuccessModal={set_successModal}
 					totalProfit={totalProfit}
-					apy={APYToUse}
+					apy={vault.chainID === 747474 ? 'NEW' : APYToUse}
 				/>
 			) : (
 				<DepositModal
@@ -242,7 +241,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					hasBalanceForVault={balance > 0}
 					openSuccessModal={set_successModal}
 					totalProfit={totalProfit}
-					apy={APYToUse}
+					apy={vault.chainID === 747474 ? 'NEW' : APYToUse}
 				/>
 			)}
 			<WithdrawModal
@@ -292,7 +291,8 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 				{/* APY */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
 					<div className={'text-right font-mono font-semibold'}>
-						{toPercent(APYToUse)}
+						{/* {toPercent(APYToUse)} */}
+						{'NEW'}
 						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
 					</div>
 				</div>
