@@ -292,7 +292,8 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 				{/* APY */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
 					<div className={'text-right font-mono font-semibold'}>
-						{toPercent(APYToUse)}
+						{/* {toPercent(APYToUse)} */}
+						{'NEW'}
 						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
 					</div>
 				</div>
