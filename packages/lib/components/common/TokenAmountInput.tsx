@@ -122,7 +122,7 @@ type TTokenAmountWrapperProps = {
 	buttonTitle: string;
 	set_tokenToUse: (token: TToken, amount: TNormalizedBN) => void;
 	totalProfit?: string;
-	apy: number;
+	apy: number | string;
 };
 export function TokenAmountWrapper(props: TTokenAmountWrapperProps): ReactElement {
 	const {balanceHash, getBalance} = useWallet();
@@ -245,7 +245,9 @@ export function TokenAmountWrapper(props: TTokenAmountWrapperProps): ReactElemen
 			<div className={'my-10 flex w-full justify-between'}>
 				<div>
 					<span className={'mr-1'}>{'APY:'}</span>
-					<span className={'font-bold'}>{toPercent(props.apy)}</span>
+					<span className={'font-bold'}>
+						{typeof props.apy === 'string' ? props.apy : toPercent(props.apy)}
+					</span>
 				</div>
 				{Boolean(configuration?.tokenToSpend.amount?.normalized) && (
 					<span className={'text-base'}>

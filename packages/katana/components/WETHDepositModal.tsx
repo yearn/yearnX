@@ -31,7 +31,7 @@ type TWETHDepositModalProps = {
 	yearnfiLink: string;
 	hasBalanceForVault: boolean;
 	openSuccessModal: Dispatch<SetStateAction<TSuccessModal>>;
-	apy: number;
+	apy: number | string;
 	totalProfit?: string;
 };
 
@@ -49,10 +49,7 @@ export function WETHDepositModalContent(props: TWETHDepositModalProps): ReactEle
 	const isETHSelected = useMemo(() => {
 		return (
 			configuration?.tokenToSpend?.token?.address &&
-			isAddressEqual(
-				configuration.tokenToSpend.token.address,
-				'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-			)
+			isAddressEqual(configuration.tokenToSpend.token.address, '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE')
 		);
 	}, [configuration?.tokenToSpend?.token?.address]);
 

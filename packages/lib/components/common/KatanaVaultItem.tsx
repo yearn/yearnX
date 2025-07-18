@@ -157,8 +157,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	const totalProfit = useMemo(() => {
 		const price = vaultPrice.normalized ?? 0;
 		return `$${formatLocalAmount(
-			Number(configuration?.tokenToSpend.amount?.normalized) * APYToUse * price +
-				Number(configuration?.tokenToSpend.amount?.normalized) * price,
+			Number(configuration?.tokenToSpend.amount?.normalized) * APYToUse * price,
 			4,
 			'$',
 			{
@@ -231,7 +230,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					hasBalanceForVault={balance > 0}
 					openSuccessModal={set_successModal}
 					totalProfit={totalProfit}
-					apy={APYToUse}
+					apy={vault.chainID === 747474 ? 'NEW' : APYToUse}
 				/>
 			) : (
 				<DepositModal
@@ -242,7 +241,7 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 					hasBalanceForVault={balance > 0}
 					openSuccessModal={set_successModal}
 					totalProfit={totalProfit}
-					apy={APYToUse}
+					apy={vault.chainID === 747474 ? 'NEW' : APYToUse}
 				/>
 			)}
 			<WithdrawModal
