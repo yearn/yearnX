@@ -169,7 +169,7 @@ export function WETHTokenAmountInput(props: TWETHTokenAmountInputProps): ReactEl
 								'border-regularText/15 bg-regularText/5 relative flex !h-16 items-center gap-x-1 rounded-lg border px-4 py-3'
 							}>
 							<ImageWithFallback
-								src={`https://assets.smold.app/tokens/${vault.chainID}/${selectedToken?.address === ETH_ADDRESS ? WETH_ADDRESS : selectedToken?.address}/logo-128.png`}
+								src={`https://token-assets-one.vercel.app/tokens/${vault.chainID}/${selectedToken?.address === ETH_ADDRESS ? WETH_ADDRESS : selectedToken?.address}/logo-128.png`}
 								alt={selectedToken?.symbol || 'token'}
 								width={32}
 								height={32}
@@ -193,7 +193,7 @@ export function WETHTokenAmountInput(props: TWETHTokenAmountInputProps): ReactEl
 												'hover:bg-regularText/5 flex w-full items-center gap-x-2 rounded-lg p-2'
 											}>
 											<ImageWithFallback
-												src={`https://assets.smold.app/tokens/${vault.chainID}/${token.address === ETH_ADDRESS ? WETH_ADDRESS : token.address}/logo-128.png`}
+												src={`https://token-assets-one.vercel.app/tokens/${vault.chainID}/${token.address === ETH_ADDRESS ? WETH_ADDRESS : token.address}/logo-128.png`}
 												alt={token.symbol}
 												width={24}
 												height={24}

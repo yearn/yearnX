@@ -256,7 +256,7 @@ function OutputComponent(props: {isReady: boolean; availableBalance: TNormalized
 					)}>
 					<div className={'flex w-full items-center gap-x-2'}>
 						<ImageWithFallback
-							src={`https://assets.smold.app/tokens/${configuration?.vault?.chainID}/${configuration?.tokenToReceive.token?.address}/logo-128.png`}
+							src={`https://token-assets-one.vercel.app/tokens/${configuration?.vault?.chainID}/${configuration?.tokenToReceive.token?.address}/logo-128.png`}
 							alt={configuration?.tokenToReceive.token?.address || 'address'}
 							width={32}
 							height={32}

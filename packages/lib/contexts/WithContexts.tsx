@@ -14,14 +14,13 @@ import {WalletContextApp} from './useWallet';
 import type {AppProps} from 'next/app';
 import type {ReactElement} from 'react';
 
-
 export default function WithContexts(props: AppProps & {chainIds?: number[]}): ReactElement {
 	const {Component} = props;
 	return (
 		<WithFonts>
 			<WithMom
 				supportedChains={supportedNetworks}
-				tokenLists={['https://raw.githubusercontent.com/SmolDapp/tokenLists/main/lists/yearn-min.json']}>
+				tokenLists={['https://raw.githubusercontent.com/yearn/tokenLists/main/lists/yearn-min.json']}>
 				<WalletContextApp chainIds={props.chainIds}>
 					<WithPopularTokens>
 						<WithPrices supportedNetworks={supportedNetworks}>

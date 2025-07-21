@@ -122,7 +122,7 @@ export function TokenSelector({
 					'border-regularText/15 bg-regularText/5 relative flex !h-16 items-center gap-x-1 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
 				}>
 				<ImageWithFallback
-					src={`https://assets.smold.app/tokens/${chainID}/${configuration?.tokenToSpend.token?.address}/logo-128.png`}
+					src={`https://token-assets-one.vercel.app/tokens/${chainID}/${configuration?.tokenToSpend.token?.address}/logo-128.png`}
 					alt={configuration?.tokenToSpend.token?.address || 'address'}
 					width={32}
 					height={32}

@@ -23,7 +23,7 @@ const defaultProps: TPopularTokensProps = {
 	onChangeListsURI: () => {},
 	listTokens: () => []
 };
-const POPULAR_LIST_URI = 'https://raw.githubusercontent.com/smoldapp/tokenLists/main/lists/popular.json';
+const POPULAR_LIST_URI = 'https://raw.githubusercontent.com/yearn/tokenLists/main/lists/popular.json';
 const PopularTokensContext = createContext<TPopularTokensProps>(defaultProps);
 export const WithPopularTokens = ({children}: {children: ReactElement}): ReactElement => {
 	const {chainID} = useWeb3();
