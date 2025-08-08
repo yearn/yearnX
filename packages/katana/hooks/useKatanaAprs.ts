@@ -14,6 +14,7 @@ export type TKatanaAprs = {
 };
 
 export type TAprData = {
+	katanaRewardsAPR: number; // legacy field for App rewards from Morpho, Sushi, Yearn, etc.
 	katanaAppRewardsAPR: number; // rewards from Morpho, Sushi, Yearn, etc.
 	FixedRateKatanaRewards: number; // fixed rate rewards from Katana
 	katanaBonusAPY: number; // bonus APR from Katana for not leaving the vault
@@ -49,8 +50,7 @@ export const useKatanaAprs = (): {data: Partial<TKatanaAprs>; isLoading: boolean
 				}
 
 				const freshData = await axios
-					.get('http://localhost:3000/api/vaults')
-					// .get('https://katana-apr-service.vercel.app/api/vaults')
+					.get('https://katana-apr-service-git-chore-update-yearn.vercel.app/api/vaults')
 					.then(res => res.data);
 
 				const cacheData: TCacheData = {
