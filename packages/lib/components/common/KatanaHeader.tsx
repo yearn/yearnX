@@ -2,6 +2,7 @@ import {type ReactElement, useMemo, useState} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {RewardsModal} from 'packages/katana/components/RewardsModal';
+import {useAngleRewards} from 'packages/katana/hooks/useAngleRewards';
 import {useWeb3} from '@lib/contexts/useWeb3';
 import {truncateHex} from '@lib/utils';
 
@@ -14,6 +15,7 @@ type TKatanaHeader = {
 
 export function KatanaHeader({secondLogoURL}: TKatanaHeader): ReactElement {
 	const {onConnect, address, ens, clusters, openLoginModal} = useWeb3();
+	const {hasRewards} = useAngleRewards();
 	const ensOrClusters = useMemo(() => address && (ens || clusters?.name), [address, ens, clusters]);
 	const [isRewardsModalOpen, set_isRewardsModalOpen] = useState(false);
 
@@ -99,8 +101,11 @@ export function KatanaHeader({secondLogoURL}: TKatanaHeader): ReactElement {
 					<div className={'flex items-center gap-2'}>
 						<button
 							onClick={() => set_isRewardsModalOpen(true)}
-							className={'rounded-lg border border-white p-3 text-sm font-bold text-white md:px-[30px]'}>
-							{'Claim Rewards'}
+							className={
+								'rounded-lg p-3 text-sm font-bold text-white md:px-[30px] ' +
+								(hasRewards ? 'bg-button h-full' : 'border border-white/20')
+							}>
+							{'View Rewards'}
 						</button>
 						<button
 							suppressHydrationWarning
