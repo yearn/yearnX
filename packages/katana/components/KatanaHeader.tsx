@@ -6,8 +6,8 @@ import {useAngleRewards} from 'packages/katana/hooks/useAngleRewards';
 import {useWeb3} from '@lib/contexts/useWeb3';
 import {truncateHex} from '@lib/utils';
 
-import {IconColloboration} from '../icons/IconCollaboration';
-import {LogoYearn} from '../icons/LogoYearn';
+import {IconColloboration} from '../../lib/components/icons/IconCollaboration';
+import {LogoYearn} from '../../lib/components/icons/LogoYearn';
 
 type TKatanaHeader = {
 	secondLogoURL: string;

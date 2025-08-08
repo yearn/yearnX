@@ -1,7 +1,7 @@
 import {type ReactElement, useCallback} from 'react';
 import {cl} from '@lib/utils';
 
-import {IconSort} from '../icons/IconSort';
+import {IconSort} from '../../lib/components/icons/IconSort';
 
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
 import type {TSortDirection} from '@lib/types';
@@ -68,9 +68,7 @@ export const VaultsListHead = (props: TVaultsListHeadProps): ReactElement => {
 				item.isSortable ? (
 					<button
 						onClick={() => toggleSortDirection(item.value as TVaultsSortBy)}
-						className={cl(
-							'flex w-full items-center gap-x-2 group col-span-2 justify-end'
-						)}
+						className={cl('flex w-full items-center gap-x-2 group col-span-2 justify-end')}
 						key={item.label}>
 						{renderSortIcons(props.sortBy === item.value)}
 						<p className={'text-regularText/80 text-right'}>{item.label}</p>

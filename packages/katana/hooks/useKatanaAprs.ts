@@ -4,15 +4,21 @@ import axios from 'axios';
 const CACHE_KEY = 'katana-aprs-cache';
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
-type TKatanaAprs = {
+export type TKatanaAprs = {
 	[key: string]: {
 		apr: {
 			netAPR: number;
-			extra: {
-				katanaRewardsAPR: number;
-			};
+			extra: TAprData;
 		};
 	};
+};
+
+export type TAprData = {
+	katanaAppRewardsAPR: number; // rewards from Morpho, Sushi, Yearn, etc.
+	FixedRateKatanaRewards: number; // fixed rate rewards from Katana
+	katanaBonusAPY: number; // bonus APR from Katana for not leaving the vault
+	extrinsicYield: number; // yield from underlying assets in bridge
+	katanaNativeYield: number; // yield from katana markets (the netAPR). This is subsidized if low.
 };
 
 type TCacheData = {
@@ -43,7 +49,8 @@ export const useKatanaAprs = (): {data: Partial<TKatanaAprs>; isLoading: boolean
 				}
 
 				const freshData = await axios
-					.get('https://katana-apr-service.vercel.app/api/vaults')
+					.get('http://localhost:3000/api/vaults')
+					// .get('https://katana-apr-service.vercel.app/api/vaults')
 					.then(res => res.data);
 
 				const cacheData: TCacheData = {

@@ -2,23 +2,27 @@ import {type ReactElement} from 'react';
 import Image from 'next/image';
 import {ModalWrapper} from '@lib/components/common/ModalWrapper';
 import {IconCross} from '@lib/components/icons/IconCross';
-import {formatAmount} from '@lib/utils';
-
-import {useKatanaAprs} from '../hooks/useKatanaAprs';
+import {toPercent} from '@lib/utils/tools';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TAprData} from '../hooks/useKatanaAprs';
 
 type TAprModal = {
 	isOpen: boolean;
 	onClose: () => void;
 	vault: TYDaemonVault;
+	apr?: TAprData;
 };
 
-export function AprModal({isOpen, onClose, vault}: TAprModal): ReactElement {
-	const {data: aprs} = useKatanaAprs();
+export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement {
+	const katanaAppRewardsAPR = apr?.katanaAppRewardsAPR || 0;
+	const fixedRateKatanRewardsAPR = apr?.FixedRateKatanaRewards || 0;
+	const katanaBonusAPR = apr?.katanaBonusAPY || 0;
+	const extrinsicYield = apr?.extrinsicYield || 0;
+	const katanaNativeYield = apr?.katanaNativeYield || 0;
+	const totalAPR = Object.values(apr ?? {}).reduce((sum, value) => sum + value, 0);
 
-	const katanaRewardsAPY = aprs?.[vault.address]?.apr?.extra?.katanaRewardsAPR || 0;
-	const underlyingAPY = aprs?.[vault.address]?.apr?.netAPR || 0;
+	console.log('apr passed to AprModal', apr);
 
 	return (
 		<ModalWrapper
@@ -37,25 +41,57 @@ export function AprModal({isOpen, onClose, vault}: TAprModal): ReactElement {
 					</button>
 				</div>
 
-				{underlyingAPY > 0 && (
-					<div className={'flex h-[48px] items-center justify-between rounded-[12px] bg-white/10 px-4'}>
-						<span className={'text-[16px] font-medium text-white'}>{'Underlying'}</span>
-						<span className={'w-[125px] text-right text-[16px] text-white'}>
-							{`${formatAmount(underlyingAPY * 100, 2, 2)}%`}
-						</span>
-					</div>
-				)}
+				{/* Native APY - Group 1 */}
+				<div className={'flex flex-col gap-2 rounded-[12px] bg-[#494949] p-4'}>
+					<h3 className={'text-left text-[16px] font-semibold text-white'}>{'Native APY'}</h3>
 
-				<div className={'flex flex-col gap-2 rounded-[12px] bg-[#494949] pb-2'}>
-					<div className={'flex h-[48px] items-center justify-between rounded-[12px] bg-white/10 px-4'}>
-						<span className={'text-[16px] font-medium text-white'}>{'Rewards'}</span>
-						<span className={'w-[125px] text-right text-[16px] text-white'}>
-							{`${formatAmount(katanaRewardsAPY * 100, 2, 2)}%`}
-						</span>
+					<div className={'flex flex-col gap-1'}>
+						<div className={'flex items-center justify-between'}>
+							<div className={'flex items-center gap-[10px]'}>
+								<Image
+									src={`/tokens/${vault.token.symbol}/logo.svg`}
+									alt={vault.token.symbol}
+									className={'size-5 rounded-full'}
+									width={20}
+									height={20}
+								/>
+								<span className={'text-[14px] font-medium text-white'}>{'Extrinsic Yield'}</span>
+							</div>
+							<span className={'text-[14px] text-white'}>{toPercent(extrinsicYield)}</span>
+						</div>
+						<p className={'text-left text-[12px] text-white/60'}>
+							{'Yield Earned from underlying bridged assets'}
+						</p>
 					</div>
 
-					{katanaRewardsAPY > 0 && (
-						<div className={'flex h-[32px] items-center justify-between rounded-[12px] px-4'}>
+					<div className={'flex flex-col gap-1'}>
+						<div className={'flex items-center justify-between'}>
+							<div className={'flex items-center gap-[10px]'}>
+								<Image
+									src={`/tokens/${vault.token.symbol}/logo.svg`}
+									alt={vault.token.symbol}
+									className={'size-5 rounded-full'}
+									width={20}
+									height={20}
+								/>
+								<span className={'text-[14px] font-medium text-white'}>{'Katana Yield'}</span>
+							</div>
+							<span className={'text-[14px] text-white'}>{toPercent(katanaNativeYield)}</span>
+						</div>
+						<p className={'text-left text-[12px] text-white/60'}>{'Yield Earned on Katana'}</p>
+					</div>
+
+					<p className={'text-left text-[11px] italic text-white/50'}>
+						{'*Some of this yield may be paid in KAT tokens if actual earned rates are lower than shown.'}
+					</p>
+				</div>
+
+				{/* Rewards APR - Group 2 */}
+				<div className={'flex flex-col gap-2 rounded-[12px] bg-[#494949] p-4'}>
+					<h3 className={'text-left text-[16px] font-semibold text-white'}>{'Rewards APR'}</h3>
+
+					<div className={'flex flex-col gap-1'}>
+						<div className={'flex items-center justify-between'}>
 							<div className={'flex items-center gap-[10px]'}>
 								<Image
 									src={'/tokens/0x6E9C1F88a960fE63387eb4b71BC525a9313d8461/logo.jpg'}
@@ -64,13 +100,56 @@ export function AprModal({isOpen, onClose, vault}: TAprModal): ReactElement {
 									width={20}
 									height={20}
 								/>
-								<span className={'text-[14px] font-medium text-white'}>{'KAT'}</span>
+								<span className={'text-[14px] font-medium text-white'}>{'Base Rewards APR'}</span>
 							</div>
-							<span className={'w-[125px] text-right text-[14px] text-white/75'}>
-								{`${formatAmount(katanaRewardsAPY * 100, 2, 2)}%`}
-							</span>
+							<span className={'text-[14px] text-white'}>{toPercent(fixedRateKatanRewardsAPR)}</span>
 						</div>
-					)}
+						<p className={'text-left text-[12px] text-white/60'}>{'Limited time fixed KAT rewards'}</p>
+					</div>
+
+					<div className={'flex flex-col gap-1'}>
+						<div className={'flex items-center justify-between'}>
+							<div className={'flex items-center gap-[10px]'}>
+								<Image
+									src={'/tokens/KAT/logo.jpg'}
+									alt={'KAT'}
+									className={'size-5 rounded-full'}
+									width={20}
+									height={20}
+								/>
+								<span className={'text-[14px] font-medium text-white'}>{'App Rewards APR'}</span>
+							</div>
+							<span className={'text-[14px] text-white'}>{toPercent(katanaAppRewardsAPR)}</span>
+						</div>
+						<p className={'text-left text-[12px] text-white/60'}>
+							{'Kat Rewards passed through from Apps'}
+						</p>
+					</div>
+
+					<div className={'flex flex-col gap-1'}>
+						<div className={'flex items-center justify-between'}>
+							<div className={'flex items-center gap-[10px]'}>
+								<Image
+									src={'/tokens/0x6E9C1F88a960fE63387eb4b71BC525a9313d8461/logo.jpg'}
+									alt={'KAT'}
+									className={'size-5 rounded-full'}
+									width={20}
+									height={20}
+								/>
+								<span className={'text-[14px] font-medium text-white'}>{'Deposit Bonus APR'}</span>
+							</div>
+							<span className={'text-[14px] text-white'}>{toPercent(katanaBonusAPR)}</span>
+						</div>
+						<p className={'text-left text-[12px] text-white/60'}>{'If you hold for 90 days'}</p>
+					</div>
+				</div>
+
+				{/* Combined APR - Group 3 */}
+				<div className={'flex flex-col gap-2 rounded-[12px] bg-white/10 p-4'}>
+					<div className={'flex items-center justify-between'}>
+						<span className={'text-[16px] font-bold text-white'}>{'Expected Net APR'}</span>
+						<span className={'text-[16px] font-bold text-white'}>{toPercent(totalAPR)}</span>
+					</div>
 				</div>
 
 				<div className={'rounded-[12px] px-4 pb-4 pt-2'}>

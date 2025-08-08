@@ -23,21 +23,22 @@ import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
 
-import {IconExternalLink} from '../icons/IconExternalLink';
-import {IconInfo} from '../icons/InfoIcon';
-import {DepositModal} from './DepositModal';
-import {ImageWithFallback} from './ImageWithFallback';
-import {SuccessModal} from './SuccessModal';
-import {WithdrawModal} from './WithdrawModal';
+import {DepositModal} from '../../lib/components/common/DepositModal';
+import {ImageWithFallback} from '../../lib/components/common/ImageWithFallback';
+import {SuccessModal} from '../../lib/components/common/SuccessModal';
+import {WithdrawModal} from '../../lib/components/common/WithdrawModal';
+import {IconExternalLink} from '../../lib/components/icons/IconExternalLink';
+import {IconInfo} from '../../lib/components/icons/InfoIcon';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
+import type {TAprData} from '../hooks/useKatanaAprs';
 
 type TVaultItem = {
 	vault: TYDaemonVault;
 	price: TNormalizedBN;
-	apr?: number;
+	apr?: TAprData;
 	options?: {
 		apyType: TAPYType;
 		shouldDisplaySubAPY?: boolean;
@@ -62,6 +63,8 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
 
+	console.log('apr passed to KatanaVaultItem', apr);
+
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
 	 ** @param {TAPYType} options.apyType - The APY type to display (HISTORICAL OR ESTIMATED)
@@ -69,7 +72,8 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
 		if (apr) {
-			return apr;
+			//sum all values in the apr object
+			return Object.values(apr).reduce((sum, value) => sum + value, 0);
 		}
 		if (!options?.apyType) {
 			return vault.apr.netAPR;
@@ -232,6 +236,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				isOpen={isAprModalOpen}
 				onClose={() => set_isAprModalOpen(false)}
 				vault={vault}
+				apr={apr}
 			/>
 			{isWETHVault ? (
 				<WETHDepositModal
@@ -242,7 +247,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 					hasBalanceForVault={balance > 0}
 					openSuccessModal={set_successModal}
 					totalProfit={totalProfit}
-					apy={vault.chainID === 747474 ? 'NEW' : APYToUse}
+					apy={APYToUse}
 				/>
 			) : (
 				<DepositModal
@@ -253,7 +258,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 					hasBalanceForVault={balance > 0}
 					openSuccessModal={set_successModal}
 					totalProfit={totalProfit}
-					apy={vault.chainID === 747474 ? 'NEW' : APYToUse}
+					apy={APYToUse}
 				/>
 			)}
 			<WithdrawModal
