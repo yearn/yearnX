@@ -94,7 +94,7 @@ export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement
 						<div className={'flex items-center justify-between'}>
 							<div className={'flex items-center gap-[10px]'}>
 								<Image
-									src={'/tokens/0x6E9C1F88a960fE63387eb4b71BC525a9313d8461/logo.jpg'}
+									src={'/tokens/KAT/logo.jpg'}
 									alt={'KAT'}
 									className={'size-5 rounded-full'}
 									width={20}
@@ -130,7 +130,7 @@ export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement
 						<div className={'flex items-center justify-between'}>
 							<div className={'flex items-center gap-[10px]'}>
 								<Image
-									src={'/tokens/0x6E9C1F88a960fE63387eb4b71BC525a9313d8461/logo.jpg'}
+									src={'/tokens/KAT/logo.jpg'}
 									alt={'KAT'}
 									className={'size-5 rounded-full'}
 									width={20}
