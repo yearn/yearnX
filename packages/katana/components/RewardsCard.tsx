@@ -64,22 +64,26 @@ const RewardsPill: FC<{
 	className?: string;
 	reward: TAngleReward;
 	status: 'claimable' | 'pending';
-	claimKey: 'amount' | 'pending';
-}> = ({reward, status, claimKey, className}) => {
+	amount: number;
+}> = ({reward, status, amount, className}) => {
+	if (amount <= 0) {
+		return null;
+	}
+
 	return status === 'claimable' ? (
 		<p className={cl('rounded-full bg-white px-2 text-[14px] font-medium text-neutral-900 ', className)}>
-			{formatAmount(parseFloat(reward[claimKey]) / 1e18, 4)} {reward.token.symbol}
+			{formatAmount(amount, 4)} {reward.token.symbol}
 		</p>
 	) : (
 		<p className={cl('rounded-full border border-white/20 px-2 text-[14px] font-medium text-white ', className)}>
-			{formatAmount(parseFloat(reward[claimKey]) / 1e18, 4)} {reward.token.symbol}
+			{formatAmount(amount, 4)} {reward.token.symbol}
 		</p>
 	);
 };
 
 export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 	const {address, chainID: currentChainId, onSwitchChain} = useWeb3();
-	const {markClaimed, canClaim} = useAngleRewards();
+	const {markClaimed, canClaim, getClaimableAmount, getRewardClaimable} = useAngleRewards();
 	const [currentReward, set_currentReward] = useState<TAngleReward | null>(null);
 	const [error, set_error] = useState<string | null>(null);
 
@@ -148,7 +152,7 @@ export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 	// Catch claim
 	useEffect(() => {
 		if (isClaimSuccess && currentReward) {
-			const totalAmount = rewards.reduce((acc, reward) => acc + parseFloat(reward.amount) / 1e18, 0);
+			const totalAmount = getClaimableAmount(rewards);
 			const tokenSymbols = [...new Set(rewards.map(reward => reward.token.symbol))];
 			const symbolsText = tokenSymbols.join(', ');
 
@@ -156,16 +160,13 @@ export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 			markClaimed(chainId);
 			set_currentReward(null);
 		}
-	}, [isClaimSuccess, currentReward, claimHash, chainId, rewards, markClaimed]);
+	}, [isClaimSuccess, currentReward, claimHash, chainId, rewards, markClaimed, getClaimableAmount]);
 
 	if (rewards.length === 0) {
 		return null;
 	}
 
-	// Calculate total claimable and pending amounts
-	const totalClaimable = rewards.reduce((acc, reward) => {
-		return acc + parseFloat(reward.amount) / 1e18;
-	}, 0);
+	const totalClaimable = getClaimableAmount(rewards);
 
 	const totalPending = rewards.reduce((acc, reward) => {
 		return acc + parseFloat(reward.pending || '0') / 1e18;
@@ -187,9 +188,9 @@ export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 							{rewards.map(reward => (
 								<RewardsPill
 									status={'claimable'}
-									claimKey={'amount'}
 									key={reward.token.address}
 									reward={reward}
+									amount={getRewardClaimable(reward)}
 								/>
 							))}
 						</div>
@@ -210,9 +211,9 @@ export const RewardsCard: FC<TProps> = ({title, rewards, chainId}) => {
 							{rewards.map(reward => (
 								<RewardsPill
 									status={'pending'}
-									claimKey={'pending'}
 									key={reward.token.address}
 									reward={reward}
+									amount={parseFloat(reward.pending) / 1e18}
 								/>
 							))}
 						</div>

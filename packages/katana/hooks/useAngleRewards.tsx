@@ -67,10 +67,11 @@ export const useAngleRewards = (): {
 	error: string | null;
 	total: number;
 	refetch: () => void;
-	getTotalValueInUSD: () => number;
 	hasRewards: boolean;
 	markClaimed: (chainId: number) => void;
 	canClaim: (chainId: number) => boolean;
+	getClaimableAmount: (rewards: TAngleReward[]) => number;
+	getRewardClaimable: (reward: TAngleReward) => number;
 } => {
 	const {address} = useWeb3();
 	const [preDepositRewards, set_preDepositRewards] = useState<TAngleReward[]>([]);
@@ -146,9 +147,8 @@ export const useAngleRewards = (): {
 				const polygonData: TAngleRewardsResponse = polygonResponse.ok ? await polygonResponse.json() : [];
 				const katanaData: TAngleRewardsResponse = katanaResponse.ok ? await katanaResponse.json() : [];
 
-				const preDepositRewards =
-					polygonData.find(chain => chain.chain.id === CHAIN_IDS.POLYGON)?.rewards ?? [];
-				const currentRewards = katanaData.find(chain => chain.chain.id === CHAIN_IDS.KATANA)?.rewards ?? [];
+				const preDepositRewards = polygonData.find(({chain}) => chain.id === CHAIN_IDS.POLYGON)?.rewards ?? [];
+				const currentRewards = katanaData.find(({chain}) => chain.id === CHAIN_IDS.KATANA)?.rewards ?? [];
 
 				updateCache({
 					preDepositRewards,
@@ -173,19 +173,6 @@ export const useAngleRewards = (): {
 		[address, getCache, updateCache]
 	);
 
-	const getTotalValueInUSD = useCallback(() => {
-		const calculateValue = (rewards: TAngleReward[]): number =>
-			rewards.reduce((acc, reward) => {
-				const amount = parseFloat(reward.amount);
-				const {price} = reward.token;
-				const {decimals} = reward.token;
-				const actualAmount = amount / Math.pow(10, decimals);
-				return acc + actualAmount * price;
-			}, 0);
-
-		return calculateValue(preDepositRewards) + calculateValue(currentRewards);
-	}, [preDepositRewards, currentRewards]);
-
 	const markClaimed = useCallback(
 		(chainId: number) => {
 			if (!address) {
@@ -209,6 +196,20 @@ export const useAngleRewards = (): {
 		[claimTimestamps]
 	);
 
+	const getRewardClaimable = useCallback((reward: TAngleReward): number => {
+		const amount = parseFloat(reward.amount);
+		const claimed = parseFloat(reward.claimed);
+		const claimable = amount - claimed;
+		return claimable > 0 ? claimable / 1e18 : 0;
+	}, []);
+
+	const getClaimableAmount = useCallback(
+		(rewards: TAngleReward[]) => {
+			return rewards.reduce((acc, reward) => acc + getRewardClaimable(reward), 0);
+		},
+		[getRewardClaimable]
+	);
+
 	useEffect(() => {
 		fetchRewards();
 	}, [fetchRewards]);
@@ -220,9 +221,10 @@ export const useAngleRewards = (): {
 		error,
 		total,
 		refetch: async () => fetchRewards(true),
-		getTotalValueInUSD,
-		hasRewards: preDepositRewards.length > 0 || currentRewards.length > 0,
+		hasRewards: getClaimableAmount(preDepositRewards) > 0 || getClaimableAmount(currentRewards) > 0,
 		markClaimed,
-		canClaim
+		canClaim,
+		getClaimableAmount,
+		getRewardClaimable
 	};
 };
