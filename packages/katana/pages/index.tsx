@@ -1,7 +1,7 @@
 import {type ReactElement, useEffect, useMemo} from 'react';
-import {Footer} from '@lib/components/common/KatanaFooter';
-import {KatanaHeader} from '@lib/components/common/KatanaHeader';
-import {VaultList} from '@lib/components/common/KatanaVaultList';
+import {Footer} from 'packages/katana/components/KatanaFooter';
+import {KatanaHeader} from 'packages/katana/components/KatanaHeader';
+import {VaultList} from 'packages/katana/components/KatanaVaultList';
 import useWallet from '@lib/contexts/useWallet';
 import {useWeb3} from '@lib/contexts/useWeb3';
 import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';

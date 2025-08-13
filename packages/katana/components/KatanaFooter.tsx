@@ -1,8 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import {IconColloboration} from '../icons/IconCollaboration';
-import {LogoYearn} from '../icons/LogoYearn';
+import {IconColloboration} from '../../lib/components/icons/IconCollaboration';
+import {LogoYearn} from '../../lib/components/icons/LogoYearn';
 
 import type {ReactElement} from 'react';
 

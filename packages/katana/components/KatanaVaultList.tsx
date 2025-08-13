@@ -2,6 +2,7 @@
 
 import {Fragment, type ReactElement, useEffect, useMemo, useState} from 'react';
 import {useQueryState} from 'nuqs';
+import {useKatanaAprs} from 'packages/katana/hooks/useKatanaAprs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
 import {usePrices} from '@lib/contexts/usePrices';
 import useWallet from '@lib/contexts/useWallet';
@@ -10,10 +11,10 @@ import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
 import {zeroNormalizedBN} from '@lib/utils';
 import {acknowledge} from '@lib/utils/tools';
 
+import {Pagination} from '../../lib/components/common/Pagination';
+import {Skeleton} from '../../lib/components/common/Skeleton';
 import {VaultItem} from './KatanaVaultItem';
 import {VaultsListHead} from './KatanaVaultsListHead';
-import {Pagination} from './Pagination';
-import {Skeleton} from './Skeleton';
 
 import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
 import type {TDict, TNDict, TNormalizedBN, TToken} from '@lib/types';
@@ -40,6 +41,9 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 	const [searchValue] = useQueryState('search', {defaultValue: '', shallow: true});
 	const {getPrices, pricingHash} = usePrices();
 	const [allPrices, set_allPrices] = useState<TNDict<TDict<TNormalizedBN>>>({});
+	const {data: katanaVaultData} = useKatanaAprs();
+
+	console.log('vault object in KatanaVaultList', katanaVaultData);
 
 	const {balanceHash, getBalance} = useWallet();
 
@@ -92,11 +96,11 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		return values.sort((a, b) => {
 			// Katana chain (747474) vaults come first
 			if (a.chainID === 747474 && b.chainID !== 747474) {
-return -1;
-}
+				return -1;
+			}
 			if (a.chainID !== 747474 && b.chainID === 747474) {
-return 1;
-}
+				return 1;
+			}
 
 			// Then sort by balance
 			return (
@@ -123,11 +127,11 @@ return 1;
 		return values.sort((a, b) => {
 			// Katana chain (747474) vaults come first
 			if (a.chainID === 747474 && b.chainID !== 747474) {
-return -1;
-}
+				return -1;
+			}
 			if (a.chainID !== 747474 && b.chainID === 747474) {
-return 1;
-}
+				return 1;
+			}
 
 			// Then sort by featuringScore
 			return b.featuringScore - a.featuringScore;
@@ -141,6 +145,11 @@ return 1;
 		VAULTS_PER_PAGE,
 		[...(sortedVaultsWithBalance || []), ...(sort.sortedVaults || [])]
 	);
+
+	vaults.map(vault => {
+		console.log(`APRs for ${vault.address}:`);
+		console.dir(katanaVaultData?.[vault.address]?.apr?.extra, {depth: null});
+	});
 
 	/**********************************************************************************************
 	 ** Generates the layout based on the current props and state.
@@ -161,6 +170,7 @@ return 1;
 							key={vault.address}
 							vault={vault}
 							price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
+							apr={katanaVaultData?.[vault.address]?.apr?.extra}
 							options={props.options}
 						/>
 					))}
