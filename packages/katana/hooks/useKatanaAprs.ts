@@ -49,9 +49,11 @@ export const useKatanaAprs = (): {data: Partial<TKatanaAprs>; isLoading: boolean
 					}
 				}
 
-				const freshData = await axios
-					.get('https://katana-apr-service-git-chore-update-yearn.vercel.app/api/vaults')
-					.then(res => res.data);
+				const apiUrl = process.env.KATANA_APR_SERVICE_API;
+				if (!apiUrl) {
+					throw new Error('KATANA_APR_SERVICE_API environment variable is not set');
+				}
+				const freshData = await axios.get(apiUrl).then(res => res.data);
 
 				const cacheData: TCacheData = {
 					data: freshData,
