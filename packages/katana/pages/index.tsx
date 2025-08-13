@@ -52,7 +52,6 @@ export default function Index(): ReactElement {
 		if (isLoading) {
 			return;
 		}
-		console.log('refreshing for', address);
 		const underlyingTokens: TDict<TToken> = {};
 		vaultsValues.forEach(vault => {
 			const tokenAddress = toAddress(vault.token.address);

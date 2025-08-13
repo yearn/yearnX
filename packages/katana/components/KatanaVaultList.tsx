@@ -43,8 +43,6 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 	const [allPrices, set_allPrices] = useState<TNDict<TDict<TNormalizedBN>>>({});
 	const {data: katanaVaultData} = useKatanaAprs();
 
-	console.log('vault object in KatanaVaultList', katanaVaultData);
-
 	const {balanceHash, getBalance} = useWallet();
 
 	/**********************************************************************************************
@@ -145,11 +143,6 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		VAULTS_PER_PAGE,
 		[...(sortedVaultsWithBalance || []), ...(sort.sortedVaults || [])]
 	);
-
-	vaults.map(vault => {
-		console.log(`APRs for ${vault.address}:`);
-		console.dir(katanaVaultData?.[vault.address]?.apr?.extra, {depth: null});
-	});
 
 	/**********************************************************************************************
 	 ** Generates the layout based on the current props and state.
