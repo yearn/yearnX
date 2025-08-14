@@ -63,8 +63,6 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
 
-	console.log('apr passed to KatanaVaultItem', apr);
-
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
 	 ** @param {TAPYType} options.apyType - The APY type to display (HISTORICAL OR ESTIMATED)

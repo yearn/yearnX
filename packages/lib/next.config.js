@@ -133,7 +133,9 @@ module.exports = withPlausibleProxy({
 			SHOULD_USE_FORKNET: process.env.SHOULD_USE_FORKNET === 'false',
 			SMOL_ASSETS_URL: 'https://assets.smold.app/api',
 			PLAUSIBLE_DOMAIN: 'yearn.space',
-			YDAEMON_BASE_URI: process.env.YDAEMON_BASE_URI || 'https://ydaemon.yearn.fi'
+			YDAEMON_BASE_URI: process.env.YDAEMON_BASE_URI || 'https://ydaemon.yearn.fi',
+			KATANA_APR_SERVICE_API:
+				process.env.KATANA_APR_SERVICE_API || 'https://katana-apr-service.vercel.app/api/vaults'
 		}
 	})
 );

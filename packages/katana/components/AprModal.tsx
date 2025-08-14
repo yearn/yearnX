@@ -26,8 +26,6 @@ export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement
 	const {katanaRewardsAPR: _katanaRewardsAPR, ...relevantAprs} = apr ?? {};
 	const totalAPR = Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 
-	console.log('apr passed to AprModal', apr);
-
 	return (
 		<ModalWrapper
 			isOpen={isOpen}
