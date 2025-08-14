@@ -20,7 +20,11 @@ export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement
 	const katanaBonusAPR = apr?.katanaBonusAPY || 0;
 	const extrinsicYield = apr?.extrinsicYield || 0;
 	const katanaNativeYield = apr?.katanaNativeYield || 0;
-	const totalAPR = Object.values(apr ?? {}).reduce((sum, value) => sum + value, 0);
+
+	// Exclude legacy katanaRewardsAPR to avoid double counting with katanaAppRewardsAPR
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const {katanaRewardsAPR: _katanaRewardsAPR, ...relevantAprs} = apr ?? {};
+	const totalAPR = Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 
 	return (
 		<ModalWrapper
