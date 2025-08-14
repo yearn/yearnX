@@ -72,8 +72,10 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
 		if (apr) {
-			//sum all values in the apr object
-			return Object.values(apr).reduce((sum, value) => sum + value, 0);
+			// Exclude legacy katanaRewardsAPR to avoid double counting with katanaAppRewardsAPR
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const {katanaRewardsAPR: _katanaRewardsAPR, ...relevantAprs} = apr;
+			return Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 		}
 		if (!options?.apyType) {
 			return vault.apr.netAPR;
