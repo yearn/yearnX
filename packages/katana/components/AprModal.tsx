@@ -154,7 +154,7 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 						<span className={'text-[16px] font-bold text-white'}>{'Expected Net APR'}</span>
 						<span className={'text-[16px] font-bold text-white'}>{toPercent(totalAPR)}</span>
 					</div>
-					{steerRewardPoints != null && (
+					{steerRewardPoints !== undefined && steerRewardPoints > 0 && (
 						<div>
 							<p className={'text-regularText text-left text-sm leading-relaxed'}>
 								{'This vault earns '}
