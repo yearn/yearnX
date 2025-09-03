@@ -2,6 +2,7 @@ import {type ReactElement} from 'react';
 import Image from 'next/image';
 import {ModalWrapper} from '@lib/components/common/ModalWrapper';
 import {IconCross} from '@lib/components/icons/IconCross';
+import {formatAmount} from '@lib/utils';
 import {toPercent} from '@lib/utils/tools';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
@@ -12,9 +13,10 @@ type TAprModal = {
 	onClose: () => void;
 	vault: TYDaemonVault;
 	apr?: TAprData;
+	steerRewardPoints?: number;
 };
 
-export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement {
+export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprModal): ReactElement {
 	const katanaAppRewardsAPR = apr?.katanaAppRewardsAPR || 0;
 	const fixedRateKatanRewardsAPR = apr?.FixedRateKatanaRewards || 0;
 	const katanaBonusAPR = apr?.katanaBonusAPY || 0;
@@ -152,6 +154,26 @@ export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement
 						<span className={'text-[16px] font-bold text-white'}>{'Expected Net APR'}</span>
 						<span className={'text-[16px] font-bold text-white'}>{toPercent(totalAPR)}</span>
 					</div>
+					{steerRewardPoints != null && (
+						<div>
+							<p className={'text-regularText text-left text-sm leading-relaxed'}>
+								{'This vault earns '}
+								{formatAmount(steerRewardPoints, 2, 2)}
+								{' Steer Points / dollar deposited,'}
+							</p>
+							<p className={'text-regularText text-left text-sm leading-relaxed'}>
+								{'...But you must '}
+								<a
+									className={'text-accentText underline'}
+									href={'https://app.steer.finance/points'}
+									target={'_blank'}
+									rel={'noreferrer'}>
+									{'register here to earn them'}
+								</a>
+								{'.'}
+							</p>
+						</div>
+					)}
 				</div>
 
 				<div className={'rounded-[12px] px-4 pb-4 pt-2'}>

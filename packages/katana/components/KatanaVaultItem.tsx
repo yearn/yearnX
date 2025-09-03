@@ -29,6 +29,7 @@ import {SuccessModal} from '../../lib/components/common/SuccessModal';
 import {WithdrawModal} from '../../lib/components/common/WithdrawModal';
 import {IconExternalLink} from '../../lib/components/icons/IconExternalLink';
 import {IconInfo} from '../../lib/components/icons/InfoIcon';
+import {STEER_REWARD_RATES} from '../constants';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
@@ -59,9 +60,44 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const [selectedVault, set_selectedVault] = useQueryState('vault');
 	const [selectedAction, set_selectedAction] = useQueryState('action');
 	const [isAprModalOpen, set_isAprModalOpen] = useState(false);
+	const [isSteerPopoverOpen, set_isSteerPopoverOpen] = useState(false);
 	const isDepositModalOpen = selectedAction === 'DEPOSIT' && selectedVault === vault.address;
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
+
+	/**********************************************************************************************
+	 ** Compute numeric STEER reward points per dollar invested for this vault. Points are allocated based
+	 ** on strategies whose names include a positive-rate key from STEER_REWARD_RATES and have
+	 ** totalDebt > 0. Each strategy contributes: rate * (debtRatio / 10000). The result is the sum.
+	 ** Update STEER_REWARD_RATES in packages/katana/constants.ts to change allocations.
+	 *********************************************************************************************/
+	const steerRewardPoints = useMemo(() => {
+		const eligible = (vault.strategies ?? []).filter(s => {
+			const name = s?.name?.toLowerCase() ?? '';
+			const hasPositiveRewardKeyMatch = Object.entries(STEER_REWARD_RATES).some(([key, rate]) => {
+				return rate > 0 && name.includes(key.toLowerCase());
+			});
+			return hasPositiveRewardKeyMatch && Number(s?.details?.totalDebt) > 0;
+		});
+
+		const total = eligible.reduce((sum, s) => {
+			const name = s?.name?.toLowerCase() ?? '';
+			const match = Object.entries(STEER_REWARD_RATES).find(
+				([key, rate]) => rate > 0 && name.includes(key.toLowerCase())
+			);
+			const rate = match ? Number(match[1]) : 0;
+			const debtRatioRaw = Number(s?.details?.debtRatio) || 0; // 10000 = 100%
+			const debtRatio = Math.min(Math.max(debtRatioRaw / 10000, 0), 1);
+			return sum + rate * debtRatio;
+		}, 0);
+
+		return total;
+	}, [vault.strategies]);
+
+	const isEligibleForSteerRewards = steerRewardPoints > 0;
+	if (isEligibleForSteerRewards) {
+		console.log('steerRewardPoints', steerRewardPoints);
+	}
 
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
@@ -237,6 +273,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				onClose={() => set_isAprModalOpen(false)}
 				vault={vault}
 				apr={apr}
+				steerRewardPoints={steerRewardPoints}
 			/>
 			{isWETHVault ? (
 				<WETHDepositModal
@@ -307,14 +344,49 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 
 				{/* APY */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
-					<div className={'relative flex items-center gap-x-2 text-right font-mono font-semibold'}>
-						<span>{toPercent(APYToUse)}</span>
-						<button
-							onClick={() => set_isAprModalOpen(true)}
-							className={'absolute right-[-12px] text-white/60 transition-colors hover:text-white'}>
-							<IconInfo className={'size-4'} />
-						</button>
-						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+					<div className={'flex flex-col items-end'}>
+						<div className={'relative flex items-center gap-x-2 text-right font-mono font-semibold'}>
+							<span>{toPercent(APYToUse)}</span>
+							<button
+								onClick={() => set_isAprModalOpen(true)}
+								className={'text-white/60 transition-colors hover:text-white'}>
+								<IconInfo className={'size-4'} />
+							</button>
+						</div>
+						{isEligibleForSteerRewards ? (
+							<div
+								className={'text-regularText relative inline-block text-right text-xs'}
+								onMouseEnter={() => set_isSteerPopoverOpen(true)}
+								onMouseLeave={() => set_isSteerPopoverOpen(false)}>
+								<button
+									type={'button'}
+									className={'underline decoration-dotted hover:opacity-80'}>
+									{'Eligible for Steer Points'}
+								</button>
+								{isSteerPopoverOpen ? (
+									<div
+										className={
+											'border-regularText/15 bg-table absolute right-[-50px] z-20 min-w-[210px] rounded-md border p-3 text-left shadow-lg'
+										}>
+										<p className={'text-regularText text-left text-xs leading-relaxed'}>
+											{'This vault earns '}
+											{formatAmount(steerRewardPoints, 2, 2)}
+											{' STEER points / dollar deposited, but you must '}
+											<a
+												className={'text-accentText underline'}
+												href={'https://app.steer.finance/points'}
+												target={'_blank'}
+												rel={'noreferrer'}>
+												{'register here to earn them'}
+											</a>
+											{'.'}
+										</p>
+									</div>
+								) : null}
+							</div>
+						) : (
+							<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+						)}
 					</div>
 				</div>
 
@@ -322,7 +394,13 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
 					<div className={'text-right font-mono'}>
 						{totalDeposits}
-						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+						{vault.category.toLowerCase() === 'volatile' ? (
+							<div className={'text-regularText text-right text-xs'}>
+								{`${formatAmount(Number(vault.tvl.tvl) / vaultPrice.normalized, 2, 2)} ${vault.token.symbol}`}
+							</div>
+						) : (
+							<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+						)}
 					</div>
 				</div>
 
