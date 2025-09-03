@@ -95,8 +95,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	}, [vault.strategies]);
 
 	const isEligibleForSteerRewards = steerRewardPoints > 0;
-		// Debug log removed for production
-	}
+	// Debug log removed for production
 
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
