@@ -95,8 +95,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	}, [vault.strategies]);
 
 	const isEligibleForSteerRewards = steerRewardPoints > 0;
-	if (isEligibleForSteerRewards) {
-		console.log('steerRewardPoints', steerRewardPoints);
+		// Debug log removed for production
 	}
 
 	/**********************************************************************************************
