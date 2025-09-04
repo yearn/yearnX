@@ -75,8 +75,15 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const APYToUse = useMemo(() => {
 		if (apr) {
 			// Exclude legacy katanaRewardsAPR and non-APR "steerPointsPerDollar" from totals
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const {katanaRewardsAPR: _katanaRewardsAPR, steerPointsPerDollar: _points, ...relevantAprs} = apr ?? {};
+			const {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				katanaRewardsAPR: _katanaRewardsAPR,
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				steerPointsPerDollar: _points,
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				katanaBonusAPY: _bonus,
+				...relevantAprs
+			} = apr ?? {};
 			return Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 		}
 		if (!options?.apyType) {

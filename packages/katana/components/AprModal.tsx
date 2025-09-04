@@ -24,8 +24,15 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 	const katanaNativeYield = apr?.katanaNativeYield || 0;
 
 	// Exclude legacy katanaRewardsAPR and non-APR steerPointsPerDollar from totals
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const {katanaRewardsAPR: _katanaRewardsAPR, steerPointsPerDollar: _points, ...relevantAprs} = apr ?? {};
+	const {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		katanaRewardsAPR: _katanaRewardsAPR,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		steerPointsPerDollar: _points,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		katanaBonusAPY: _bonus,
+		...relevantAprs
+	} = apr ?? {};
 	const totalAPR = Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 
 	return (
@@ -140,11 +147,13 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 									width={20}
 									height={20}
 								/>
-								<span className={'text-[14px] font-medium text-white'}>{'Deposit Bonus APR'}</span>
+								<span className={'text-[14px] font-medium text-white/60'}>{'Deposit Bonus APR'}</span>
 							</div>
-							<span className={'text-[14px] text-white'}>{toPercent(katanaBonusAPR)}</span>
+							<span className={'text-[14px] text-white/60'}>{toPercent(katanaBonusAPR)}</span>
 						</div>
-						<p className={'text-left text-[12px] text-white/60'}>{'If you hold for 90 days'}</p>
+						<p className={'text-left text-[12px] text-white/60'}>
+							{'Applied if you deposited before Sept. 1st and hold for 90 days'}
+						</p>
 					</div>
 				</div>
 
