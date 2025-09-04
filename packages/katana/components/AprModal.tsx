@@ -162,7 +162,7 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 								{' Steer Points / dollar deposited,'}
 							</p>
 							<p className={'text-regularText text-left text-sm leading-relaxed'}>
-								{'...But you must '}
+								{'but you must '}
 								<a
 									className={'text-accentText underline'}
 									href={'https://app.steer.finance/points'}
