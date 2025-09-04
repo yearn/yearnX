@@ -19,10 +19,3 @@ export const COLORS = {
 	headerTag: '#FFFFFF' // The color of the header tag [Yearn x Something]
 };
 
-export const STEER_REWARD_RATES = {
-	'weETH-vbETH': 2, // 2 points per dollar deposited
-	'AUSD-vbUSDC': 1,
-	'vbUSDC-vbUSDT': 1,
-	'vbWBTC-LBTC': 0,
-	'vbWBTC-BTCK': 0
-};

@@ -29,7 +29,6 @@ import {SuccessModal} from '../../lib/components/common/SuccessModal';
 import {WithdrawModal} from '../../lib/components/common/WithdrawModal';
 import {IconExternalLink} from '../../lib/components/icons/IconExternalLink';
 import {IconInfo} from '../../lib/components/icons/InfoIcon';
-import {STEER_REWARD_RATES} from '../constants';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
@@ -65,37 +64,8 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
 
-	/**********************************************************************************************
-	 ** Compute numeric STEER reward points per dollar invested for this vault. Points are allocated based
-	 ** on strategies whose names include a positive-rate key from STEER_REWARD_RATES and have
-	 ** totalDebt > 0. Each strategy contributes: rate * (debtRatio / 10000). The result is the sum.
-	 ** Update STEER_REWARD_RATES in packages/katana/constants.ts to change allocations.
-	 *********************************************************************************************/
-	const steerRewardPoints = useMemo(() => {
-		const eligible = (vault.strategies ?? []).filter(s => {
-			const name = s?.name?.toLowerCase() ?? '';
-			const hasPositiveRewardKeyMatch = Object.entries(STEER_REWARD_RATES).some(([key, rate]) => {
-				return rate > 0 && name.includes(key.toLowerCase());
-			});
-			return hasPositiveRewardKeyMatch && Number(s?.details?.totalDebt) > 0;
-		});
-
-		const total = eligible.reduce((sum, s) => {
-			const name = s?.name?.toLowerCase() ?? '';
-			const match = Object.entries(STEER_REWARD_RATES).find(
-				([key, rate]) => rate > 0 && name.includes(key.toLowerCase())
-			);
-			const rate = match ? Number(match[1]) : 0;
-			const debtRatioRaw = Number(s?.details?.debtRatio) || 0; // 10000 = 100%
-			const debtRatio = Math.min(Math.max(debtRatioRaw / 10000, 0), 1);
-			return sum + rate * debtRatio;
-		}, 0);
-
-		return total;
-	}, [vault.strategies]);
-
-	const isEligibleForSteerRewards = steerRewardPoints > 0;
-	// Debug log removed for production
+	// Points per dollar are provided by the APR oracle; not computed locally
+	const points = apr?.steerPointsPerDollar ?? 0;
 
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
@@ -104,9 +74,9 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
 		if (apr) {
-			// Exclude legacy katanaRewardsAPR to avoid double counting with katanaAppRewardsAPR
+			// Exclude legacy katanaRewardsAPR and non-APR "steerPointsPerDollar" from totals
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const {katanaRewardsAPR: _katanaRewardsAPR, ...relevantAprs} = apr;
+			const {katanaRewardsAPR: _katanaRewardsAPR, steerPointsPerDollar: _points, ...relevantAprs} = apr ?? {};
 			return Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 		}
 		if (!options?.apyType) {
@@ -271,7 +241,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				onClose={() => set_isAprModalOpen(false)}
 				vault={vault}
 				apr={apr}
-				steerRewardPoints={steerRewardPoints}
+				steerRewardPoints={points}
 			/>
 			{isWETHVault ? (
 				<WETHDepositModal
@@ -351,7 +321,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 								<IconInfo className={'size-4'} />
 							</button>
 						</div>
-						{isEligibleForSteerRewards ? (
+						{points > 0 ? (
 							<div
 								className={'text-regularText relative inline-block text-right text-xs'}
 								onMouseEnter={() => set_isSteerPopoverOpen(true)}

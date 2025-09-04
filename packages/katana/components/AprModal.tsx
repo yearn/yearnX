@@ -23,9 +23,9 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 	const extrinsicYield = apr?.extrinsicYield || 0;
 	const katanaNativeYield = apr?.katanaNativeYield || 0;
 
-	// Exclude legacy katanaRewardsAPR to avoid double counting with katanaAppRewardsAPR
+	// Exclude legacy katanaRewardsAPR and non-APR steerPointsPerDollar from totals
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const {katanaRewardsAPR: _katanaRewardsAPR, ...relevantAprs} = apr ?? {};
+	const {katanaRewardsAPR: _katanaRewardsAPR, steerPointsPerDollar: _points, ...relevantAprs} = apr ?? {};
 	const totalAPR = Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 
 	return (
