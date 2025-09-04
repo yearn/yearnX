@@ -65,7 +65,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const {dispatchConfiguration} = useManageVaults();
 
 	// Points per dollar are provided by the APR oracle; not computed locally
-	const points = apr?.steerPointsPerDollar ?? 0;
+	const steerRewardPoints = apr?.steerPointsPerDollar ?? 0;
 
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
@@ -241,7 +241,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				onClose={() => set_isAprModalOpen(false)}
 				vault={vault}
 				apr={apr}
-				steerRewardPoints={points}
+				steerRewardPoints={steerRewardPoints}
 			/>
 			{isWETHVault ? (
 				<WETHDepositModal
@@ -321,7 +321,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 								<IconInfo className={'size-4'} />
 							</button>
 						</div>
-						{points > 0 ? (
+						{steerRewardPoints > 0 ? (
 							<div
 								className={'text-regularText relative inline-block text-right text-xs'}
 								onMouseEnter={() => set_isSteerPopoverOpen(true)}
