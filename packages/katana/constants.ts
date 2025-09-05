@@ -18,3 +18,4 @@ export const COLORS = {
 	secondary: '#FFFFFF80', // The secondary color of the page
 	headerTag: '#FFFFFF' // The color of the header tag [Yearn x Something]
 };
+

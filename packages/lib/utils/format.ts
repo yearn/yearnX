@@ -319,7 +319,8 @@ export function formatAmount(
 	if (typeof amount === 'string') {
 		amount = Number(amount);
 	}
-	if (isNaN(amount)) {
+	// Normalize non-finite values (NaN, Infinity, -Infinity) to 0 to avoid "∞" output
+	if (typeof amount !== 'number' || Number.isNaN(amount) || !Number.isFinite(amount)) {
 		amount = 0;
 	}
 	let formattedAmount = new Intl.NumberFormat(locales, {

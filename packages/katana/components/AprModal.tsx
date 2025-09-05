@@ -2,6 +2,7 @@ import {type ReactElement} from 'react';
 import Image from 'next/image';
 import {ModalWrapper} from '@lib/components/common/ModalWrapper';
 import {IconCross} from '@lib/components/icons/IconCross';
+import {formatAmount} from '@lib/utils';
 import {toPercent} from '@lib/utils/tools';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
@@ -12,18 +13,26 @@ type TAprModal = {
 	onClose: () => void;
 	vault: TYDaemonVault;
 	apr?: TAprData;
+	steerRewardPoints?: number;
 };
 
-export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement {
+export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprModal): ReactElement {
 	const katanaAppRewardsAPR = apr?.katanaAppRewardsAPR || 0;
 	const fixedRateKatanRewardsAPR = apr?.FixedRateKatanaRewards || 0;
 	const katanaBonusAPR = apr?.katanaBonusAPY || 0;
 	const extrinsicYield = apr?.extrinsicYield || 0;
 	const katanaNativeYield = apr?.katanaNativeYield || 0;
 
-	// Exclude legacy katanaRewardsAPR to avoid double counting with katanaAppRewardsAPR
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const {katanaRewardsAPR: _katanaRewardsAPR, ...relevantAprs} = apr ?? {};
+	// Exclude legacy katanaRewardsAPR and non-APR steerPointsPerDollar from totals
+	const {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		katanaRewardsAPR: _katanaRewardsAPR,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		steerPointsPerDollar: _points,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		katanaBonusAPY: _bonus,
+		...relevantAprs
+	} = apr ?? {};
 	const totalAPR = Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 
 	return (
@@ -138,11 +147,13 @@ export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement
 									width={20}
 									height={20}
 								/>
-								<span className={'text-[14px] font-medium text-white'}>{'Deposit Bonus APR'}</span>
+								<span className={'text-[14px] font-medium text-white/60'}>{'Deposit Bonus APR'}</span>
 							</div>
-							<span className={'text-[14px] text-white'}>{toPercent(katanaBonusAPR)}</span>
+							<span className={'text-[14px] text-white/60'}>{toPercent(katanaBonusAPR)}</span>
 						</div>
-						<p className={'text-left text-[12px] text-white/60'}>{'If you hold for 90 days'}</p>
+						<p className={'text-left text-[12px] text-white/60'}>
+							{'Applied if you deposited before Sept. 1st and hold for 90 days'}
+						</p>
 					</div>
 				</div>
 
@@ -152,6 +163,26 @@ export function AprModal({isOpen, onClose, vault, apr}: TAprModal): ReactElement
 						<span className={'text-[16px] font-bold text-white'}>{'Expected Net APR'}</span>
 						<span className={'text-[16px] font-bold text-white'}>{toPercent(totalAPR)}</span>
 					</div>
+					{steerRewardPoints !== undefined && steerRewardPoints > 0 && (
+						<div>
+							<p className={'text-regularText text-left text-sm leading-relaxed'}>
+								{'This vault earns '}
+								{formatAmount(steerRewardPoints, 2, 2)}
+								{' Steer Points / dollar deposited,'}
+							</p>
+							<p className={'text-regularText text-left text-sm leading-relaxed'}>
+								{'but you must '}
+								<a
+									className={'text-accentText underline'}
+									href={'https://app.steer.finance/points'}
+									target={'_blank'}
+									rel={'noreferrer'}>
+									{'register here to earn them'}
+								</a>
+								{'.'}
+							</p>
+						</div>
+					)}
 				</div>
 
 				<div className={'rounded-[12px] px-4 pb-4 pt-2'}>

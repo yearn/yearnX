@@ -59,9 +59,13 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const [selectedVault, set_selectedVault] = useQueryState('vault');
 	const [selectedAction, set_selectedAction] = useQueryState('action');
 	const [isAprModalOpen, set_isAprModalOpen] = useState(false);
+	const [isSteerPopoverOpen, set_isSteerPopoverOpen] = useState(false);
 	const isDepositModalOpen = selectedAction === 'DEPOSIT' && selectedVault === vault.address;
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
+
+	// Points per dollar are provided by the APR oracle; not computed locally
+	const steerRewardPoints = apr?.steerPointsPerDollar ?? 0;
 
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
@@ -70,9 +74,16 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
 		if (apr) {
-			// Exclude legacy katanaRewardsAPR to avoid double counting with katanaAppRewardsAPR
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const {katanaRewardsAPR: _katanaRewardsAPR, ...relevantAprs} = apr;
+			// Exclude legacy katanaRewardsAPR and non-APR "steerPointsPerDollar" from totals
+			const {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				katanaRewardsAPR: _katanaRewardsAPR,
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				steerPointsPerDollar: _points,
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				katanaBonusAPY: _bonus,
+				...relevantAprs
+			} = apr ?? {};
 			return Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 		}
 		if (!options?.apyType) {
@@ -161,6 +172,10 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 		})}`;
 	}, [vault.tvl.tvl]);
 
+	const totalDepositsInTokens = useMemo(() => {
+		return `${formatAmount(Number(vault.tvl.tvl) / Number(vault.tvl.price), 2, 2)} ${vault.token.symbol}`;
+	}, [vault.tvl.tvl, vault.tvl.price, vault.token.symbol]);
+
 	/**********************************************************************************************
 	 ** totalProfit is the value the user could potentially get after 1 year of stacking money.
 	 ** We are basically multiply amount the users typed with apy and price of the token.
@@ -237,6 +252,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				onClose={() => set_isAprModalOpen(false)}
 				vault={vault}
 				apr={apr}
+				steerRewardPoints={steerRewardPoints}
 			/>
 			{isWETHVault ? (
 				<WETHDepositModal
@@ -307,14 +323,49 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 
 				{/* APY */}
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
-					<div className={'relative flex items-center gap-x-2 text-right font-mono font-semibold'}>
-						<span>{toPercent(APYToUse)}</span>
-						<button
-							onClick={() => set_isAprModalOpen(true)}
-							className={'absolute right-[-12px] text-white/60 transition-colors hover:text-white'}>
-							<IconInfo className={'size-4'} />
-						</button>
-						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+					<div className={'flex flex-col items-end'}>
+						<div className={'relative flex items-center gap-x-2 text-right font-mono font-semibold'}>
+							<span>{toPercent(APYToUse)}</span>
+							<button
+								onClick={() => set_isAprModalOpen(true)}
+								className={'text-white/60 transition-colors hover:text-white'}>
+								<IconInfo className={'size-4'} />
+							</button>
+						</div>
+						{steerRewardPoints > 0 ? (
+							<div
+								className={'text-regularText relative inline-block text-right text-xs'}
+								onMouseEnter={() => set_isSteerPopoverOpen(true)}
+								onMouseLeave={() => set_isSteerPopoverOpen(false)}>
+								<button
+									type={'button'}
+									className={'underline decoration-dotted hover:opacity-80'}>
+									{'Eligible for Steer Points'}
+								</button>
+								{isSteerPopoverOpen ? (
+									<div
+										className={
+											'border-regularText/15 bg-table absolute right-[-50px] z-20 min-w-[210px] rounded-md border p-3 text-left shadow-lg'
+										}>
+										<p className={'text-regularText text-left text-xs leading-relaxed'}>
+											{'This vault earns '}
+											{formatAmount(steerRewardPoints, 2, 2)}
+											{' STEER points / dollar deposited, but you must '}
+											<a
+												className={'text-accentText underline'}
+												href={'https://app.steer.finance/points'}
+												target={'_blank'}
+												rel={'noreferrer'}>
+												{'register here to earn them'}
+											</a>
+											{'.'}
+										</p>
+									</div>
+								) : null}
+							</div>
+						) : (
+							<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+						)}
 					</div>
 				</div>
 
@@ -322,7 +373,11 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				<div className={'font-number col-span-2 flex items-center justify-end'}>
 					<div className={'text-right font-mono'}>
 						{totalDeposits}
-						<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+						{vault.category.toLowerCase() === 'volatile' ? (
+							<div className={'text-regularText text-right text-xs'}>{totalDepositsInTokens}</div>
+						) : (
+							<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
+						)}
 					</div>
 				</div>
 
