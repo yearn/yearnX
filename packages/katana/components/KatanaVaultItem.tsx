@@ -172,6 +172,10 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 		})}`;
 	}, [vault.tvl.tvl]);
 
+	const totalDepositsInTokens = useMemo(() => {
+		return `${formatAmount(Number(vault.tvl.tvl) / Number(vault.tvl.price), 2, 2)} ${vault.token.symbol}`;
+	}, [vault.tvl.tvl, vault.tvl.price, vault.token.symbol]);
+
 	/**********************************************************************************************
 	 ** totalProfit is the value the user could potentially get after 1 year of stacking money.
 	 ** We are basically multiply amount the users typed with apy and price of the token.
@@ -370,9 +374,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 					<div className={'text-right font-mono'}>
 						{totalDeposits}
 						{vault.category.toLowerCase() === 'volatile' ? (
-							<div className={'text-regularText text-right text-xs'}>
-								{`${formatAmount(Number(vault.tvl.tvl) / vaultPrice.normalized, 2, 2)} ${vault.token.symbol}`}
-							</div>
+							<div className={'text-regularText text-right text-xs'}>{totalDepositsInTokens}</div>
 						) : (
 							<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
 						)}
