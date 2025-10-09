@@ -5,6 +5,8 @@ import {IconCross} from '@lib/components/icons/IconCross';
 import {formatAmount} from '@lib/utils';
 import {toPercent} from '@lib/utils/tools';
 
+import {AUSD_VAULT_ADDRESS} from '../constants';
+
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TAprData} from '../hooks/useKatanaAprs';
 
@@ -34,6 +36,12 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 		...relevantAprs
 	} = apr ?? {};
 	const totalAPR = Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
+
+	const isTBillVault = vault.address.toLowerCase() === AUSD_VAULT_ADDRESS.toLowerCase();
+	const extrinsicYieldLabel = isTBillVault ? 'T-Bill Yield' : 'Extrinsic Yield';
+	const extrinsicYieldDescription = isTBillVault
+		? 'Interest from U.S. treasury bills'
+		: 'Yield Earned from underlying bridged assets';
 
 	return (
 		<ModalWrapper
@@ -66,13 +74,11 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 									width={20}
 									height={20}
 								/>
-								<span className={'text-[14px] font-medium text-white'}>{'Extrinsic Yield'}</span>
+								<span className={'text-[14px] font-medium text-white'}>{extrinsicYieldLabel}</span>
 							</div>
 							<span className={'text-[14px] text-white'}>{toPercent(extrinsicYield)}</span>
 						</div>
-						<p className={'text-left text-[12px] text-white/60'}>
-							{'Yield Earned from underlying bridged assets'}
-						</p>
+						<p className={'text-left text-[12px] text-white/60'}>{extrinsicYieldDescription}</p>
 					</div>
 
 					<div className={'flex flex-col gap-1'}>
