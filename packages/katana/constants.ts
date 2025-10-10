@@ -19,3 +19,4 @@ export const COLORS = {
 	headerTag: '#FFFFFF' // The color of the header tag [Yearn x Something]
 };
 
+export const AUSD_VAULT_ADDRESS = '0x93fec6639717b6215a48e5a72a162c50dcc40d68';
