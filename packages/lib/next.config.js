@@ -25,6 +25,10 @@ module.exports = withPlausibleProxy({
 				},
 				{
 					protocol: 'https',
+					hostname: 'cdn.jsdelivr.net'
+				},
+				{
+					protocol: 'https',
 					hostname: 'assets.smold.app'
 				},
 				{

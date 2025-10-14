@@ -305,8 +305,8 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 						'border-regularText/15 bg-regularText/5 col-span-3 flex cursor-alias items-center justify-start overflow-hidden rounded-xl border p-3'
 					}>
 					<ImageWithFallback
-						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
-						altSrc={`/tokens/${vault.token.address.toLowerCase()}/logo-32.png`}
+						src={`https://cdn.jsdelivr.net/gh/yearn/tokenassets@main/tokens/${vault.chainID}/${vault.token.address.toLowerCase()}/logo-32.png`}
+						altSrc={`/tokens/${vault.token.symbol}/logo-32.png`}
 						alt={vault.token.symbol}
 						width={28}
 						height={28}
@@ -427,8 +427,8 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 						'border-regularText/15 bg-regularText/5 flex w-full items-center rounded-xl border px-2.5 py-2'
 					}>
 					<ImageWithFallback
-						src={`https://assets.smold.app/tokens/${vault.chainID}/${vault.token.address}/logo-32.png`}
-						altSrc={`/tokens/${vault.token.address.toLowerCase()}/logo-32.png`}
+						src={`https://cdn.jsdelivr.net/gh/yearn/tokenassets@main/tokens/${vault.chainID}/${vault.token.address.toLowerCase()}/logo-32.png`}
+						altSrc={`/tokens/${vault.token.symbol}/logo-32.png`}
 						alt={vault.token.symbol}
 						width={28}
 						height={28}

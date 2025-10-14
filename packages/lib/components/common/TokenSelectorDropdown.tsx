@@ -68,7 +68,7 @@ function TokenItem(props: {item: TToken; onSelected: (token: TToken) => void}): 
 			<div className={'flex gap-x-4'}>
 				<div className={'flex items-center'}>
 					<ImageWithFallback
-						src={`https://assets.smold.app/tokens/${props.item.chainID}/${props.item.address}/logo-128.png`}
+						src={`https://cdn.jsdelivr.net/gh/yearn/tokenassets@main/tokens/${props.item.chainID}/${props.item.address.toLowerCase()}/logo-32.png`}
 						alt={props.item.name}
 						width={32}
 						height={32}

@@ -14,7 +14,7 @@
 			"address": "0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a",
 			"name": "Agora USD",
 			"symbol": "AUSD",
-			"logoURI": "https://assets.smold.app/api/token/1/0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a/logo-128.png",
+			"logoURI": "https://cdn.jsdelivr.net/gh/yearn/tokenassets@main/tokens/1/0x00000000efe302beaa2b3e6e1b18d08d69a9012a/logo-128.png",
 			"chainId": 747474,
 			"decimals": 6
 		}
