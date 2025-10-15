@@ -1,4 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+const fs = require('fs');
+const path = require('path');
+const {config: loadEnvFile} = require('dotenv');
+
+const rootDir = path.resolve(__dirname, '../..');
+const loadRootEnv = (filename, options = {}) => {
+	const filePath = path.join(rootDir, filename);
+	if (fs.existsSync(filePath)) {
+		loadEnvFile({path: filePath, ...options});
+	}
+};
+
+// loads .env file from the root of the project
+loadRootEnv('.env');
+if (process.env.NODE_ENV) {
+	loadRootEnv(`.env.${process.env.NODE_ENV}`, {override: true});
+}
+loadRootEnv('.env.local', {override: true});
+
 const withPWA = require('next-pwa')({
 	dest: 'public',
 	disable: process.env.NODE_ENV !== 'production'
@@ -125,7 +144,7 @@ module.exports = withPlausibleProxy({
 			/**********************************************************************************
 			 ** Wallet Connect configuration
 			 *********************************************************************************/
-			WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID,
+			WALLETCONNECT_PROJECT_ID: process.env.WALLETCONNECT_PROJECT_ID || 'demo-project-id',
 			WALLETCONNECT_PROJECT_NAME: 'Yearn',
 			WALLETCONNECT_PROJECT_DESCRIPTION: '',
 			WALLETCONNECT_PROJECT_URL: 'https://yearn.space',
