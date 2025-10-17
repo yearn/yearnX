@@ -48,7 +48,7 @@ export function TokenAmountInput(props: TTokenAmountInputProps): ReactElement {
 						'border-regularText/15 bg-regularText/5 relative flex !h-16 items-center gap-x-2 rounded-lg border px-4 py-3 disabled:cursor-not-allowed'
 					}>
 					<ImageWithFallback
-						src={`https://assets.smold.app/tokens/${chainID}/${configuration?.tokenToSpend.token?.address}/logo-128.png`}
+						src={`https://cdn.jsdelivr.net/gh/yearn/tokenassets@main/tokens/${chainID}/${configuration?.tokenToSpend.token?.address.toLowerCase()}/logo-32.png`}
 						alt={configuration?.tokenToSpend.token?.address || 'address'}
 						width={32}
 						height={32}

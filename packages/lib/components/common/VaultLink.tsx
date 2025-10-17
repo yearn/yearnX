@@ -21,7 +21,7 @@ export const VaultLink = (props: TVaultLinkProps): ReactElement => (
 		}>
 		<div className={'flex w-full cursor-alias items-center'}>
 			<ImageWithFallback
-				src={`https://assets.smold.app/tokens/${props.vault.chainID}/${props.vault.token.address}/logo-32.png`}
+				src={`https://cdn.jsdelivr.net/gh/yearn/tokenassets@main/tokens/${props.vault.chainID}/${props.vault.token.address.toLowerCase()}/logo-32.png`}
 				alt={props.vault.token.symbol}
 				width={28}
 				height={28}
