@@ -35,6 +35,14 @@ import type {TNormalizedBN} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
 import type {TAprData} from '../hooks/useKatanaAprs';
 
+// Vault addresses eligible for Spectra boost
+const SPECTRA_BOOST_VAULT_ADDRESSES = [
+	'0x80c34BD3A3569E126e7055831036aa7b212cB159',
+	'0xE007CA01894c863d7898045ed5A3B4Abf0b18f37',
+	'0x9A6bd7B6Fd5C4F87eb66356441502fc7dCdd185B',
+	'0x93Fec6639717b6215A48E5a72a162C50DCC40d68'
+].map(addr => addr.toLowerCase());
+
 type TVaultItem = {
 	vault: TYDaemonVault;
 	price: TNormalizedBN;
@@ -60,12 +68,14 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const [selectedAction, set_selectedAction] = useQueryState('action');
 	const [isAprModalOpen, set_isAprModalOpen] = useState(false);
 	const [isSteerPopoverOpen, set_isSteerPopoverOpen] = useState(false);
+	const [isSpectraPopoverOpen, set_isSpectraPopoverOpen] = useState(false);
 	const isDepositModalOpen = selectedAction === 'DEPOSIT' && selectedVault === vault.address;
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
 
 	// Points per dollar are provided by the APR oracle; not computed locally
 	const steerRewardPoints = apr?.steerPointsPerDollar ?? 0;
+	const isEligibleForSpectraBoost = SPECTRA_BOOST_VAULT_ADDRESSES.includes(vault.address.toLowerCase());
 
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
@@ -332,40 +342,73 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 								<IconInfo className={'size-4'} />
 							</button>
 						</div>
-						{steerRewardPoints > 0 ? (
-							<div
-								className={'text-regularText relative inline-block text-right text-xs'}
-								onMouseEnter={() => set_isSteerPopoverOpen(true)}
-								onMouseLeave={() => set_isSteerPopoverOpen(false)}>
-								<button
-									type={'button'}
-									className={'underline decoration-dotted hover:opacity-80'}>
-									{'Eligible for Steer Points'}
-								</button>
-								{isSteerPopoverOpen ? (
-									<div
-										className={
-											'border-regularText/15 bg-table absolute right-[-50px] z-20 min-w-[210px] rounded-md border p-3 text-left shadow-lg'
-										}>
-										<p className={'text-regularText text-left text-xs leading-relaxed'}>
-											{'This vault earns '}
-											{formatAmount(steerRewardPoints, 2, 2)}
-											{' STEER points / dollar deposited, but you must '}
-											<a
-												className={'text-accentText underline'}
-												href={'https://app.steer.finance/points'}
-												target={'_blank'}
-												rel={'noreferrer'}>
-												{'register here to earn them'}
-											</a>
-											{'.'}
-										</p>
-									</div>
-								) : null}
-							</div>
-						) : (
-							<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
-						)}
+						<div className={'text-regularText text-right text-xs space-y-1'}>
+							{isEligibleForSpectraBoost && (
+								<div
+									className={'relative inline-block'}
+									onMouseEnter={() => set_isSpectraPopoverOpen(true)}
+									onMouseLeave={() => set_isSpectraPopoverOpen(false)}>
+									<button
+										type={'button'}
+										className={'underline decoration-dotted hover:opacity-80'}>
+										{'Boosted yield on Spectra'}
+									</button>
+									{isSpectraPopoverOpen ? (
+										<div
+											className={
+												'border-regularText/15 bg-table absolute right-[-50px] z-20 min-w-[210px] rounded-md border p-3 text-left shadow-lg'
+											}>
+											<p className={'text-regularText text-left text-xs leading-relaxed'}>
+												{'Earn boosted yield on Spectra if you '}
+												<a
+													className={'text-accentText underline'}
+													href={'https://app.spectra.finance/pools'}
+													target={'_blank'}
+													rel={'noreferrer'}>
+													{'deposit to their protocol'}
+												</a>
+												{'.'}
+											</p>
+										</div>
+									) : null}
+								</div>
+							)}
+							{steerRewardPoints > 0 && (
+								<div
+									className={'relative inline-block'}
+									onMouseEnter={() => set_isSteerPopoverOpen(true)}
+									onMouseLeave={() => set_isSteerPopoverOpen(false)}>
+									<button
+										type={'button'}
+										className={'underline decoration-dotted hover:opacity-80'}>
+										{'Eligible for Steer Points'}
+									</button>
+									{isSteerPopoverOpen ? (
+										<div
+											className={
+												'border-regularText/15 bg-table absolute right-[-50px] z-20 min-w-[210px] rounded-md border p-3 text-left shadow-lg'
+											}>
+											<p className={'text-regularText text-left text-xs leading-relaxed'}>
+												{'This vault earns '}
+												{formatAmount(steerRewardPoints, 2, 2)}
+												{' STEER points / dollar deposited, but you must '}
+												<a
+													className={'text-accentText underline'}
+													href={'https://app.steer.finance/points'}
+													target={'_blank'}
+													rel={'noreferrer'}>
+													{'register here to earn them'}
+												</a>
+												{'.'}
+											</p>
+										</div>
+									) : null}
+								</div>
+							)}
+							{steerRewardPoints <= 0 && !isEligibleForSpectraBoost && (
+								<div className={'invisible'}>&nbsp;</div>
+							)}
+						</div>
 					</div>
 				</div>
 
