@@ -28,7 +28,14 @@ module.exports = {
 		},
 		'import/resolver': {typescript: {}}
 	},
-	ignorePatterns: ['public/sw*', 'public/workbox*', 'ipfs/*'],
+	ignorePatterns: [
+		'public/sw*',
+		'public/workbox*',
+		'packages/*/public/sw*',
+		'packages/*/public/workbox*',
+		'**/next-env.d.ts',
+		'ipfs/*'
+	],
 	rules: {
 		'import/default': 0,
 		'react/prop-types': 0,
