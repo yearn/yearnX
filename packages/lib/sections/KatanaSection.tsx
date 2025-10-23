@@ -6,7 +6,7 @@ import type {TSectionProps} from '@lib/utils/types';
 
 export const KatanaSection = ({bgImage}: TSectionProps): ReactElement => (
 	<div
-		className={'lg-text:grid lg-text:grid-cols-12 lg-text:gap-6 flex min-h-32 w-full flex-col'}
+		className={'flex min-h-32 w-full flex-col lg-text:grid lg-text:grid-cols-12 lg-text:gap-6'}
 		style={{alignItems: 'stretch'}}>
 		<div
 			className={cl(

@@ -11,7 +11,7 @@ export const Section4 = ({bgImage, title, description, cards}: TSectionProps): R
 	}
 
 	return (
-		<div className={'md:h-section min-h-section flex flex-col-reverse gap-2 md:grid md:grid-cols-3 md:gap-6'}>
+		<div className={'min-h-section md:h-section flex flex-col-reverse gap-2 md:grid md:grid-cols-3 md:gap-6'}>
 			<div className={'bg-table flex items-end justify-start rounded-2xl p-6 md:hidden'}>
 				<div>
 					<b className={'block'}>{title}</b>
