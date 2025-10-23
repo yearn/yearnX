@@ -139,7 +139,7 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 							<span className={'text-[14px] text-white'}>{toPercent(katanaAppRewardsAPR)}</span>
 						</div>
 						<p className={'text-left text-[12px] text-white/60'}>
-							{'Kat Rewards passed through from Apps'}
+							{'KAT Rewards passed through from Apps'}
 						</p>
 					</div>
 

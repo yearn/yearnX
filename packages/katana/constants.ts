@@ -20,3 +20,11 @@ export const COLORS = {
 };
 
 export const AUSD_VAULT_ADDRESS = '0x93fec6639717b6215a48e5a72a162c50dcc40d68';
+
+// Vault addresses eligible for Spectra boost
+export const SPECTRA_BOOST_VAULT_ADDRESSES = [
+	'0x80c34BD3A3569E126e7055831036aa7b212cB159',
+	'0xE007CA01894c863d7898045ed5A3B4Abf0b18f37',
+	'0x9A6bd7B6Fd5C4F87eb66356441502fc7dCdd185B',
+	'0x93Fec6639717b6215A48E5a72a162C50DCC40d68'
+].map(addr => addr.toLowerCase());

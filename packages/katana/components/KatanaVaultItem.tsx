@@ -6,6 +6,12 @@ import {useQueryState} from 'nuqs';
 import {AprModal} from 'packages/katana/components/AprModal';
 import {WETHDepositModal} from 'packages/katana/components/WETHDepositModal';
 import {useAccount} from 'wagmi';
+import {DepositModal} from '@lib/components/common/DepositModal';
+import {ImageWithFallback} from '@lib/components/common/ImageWithFallback';
+import {SuccessModal} from '@lib/components/common/SuccessModal';
+import {WithdrawModal} from '@lib/components/common/WithdrawModal';
+import {IconExternalLink} from '@lib/components/icons/IconExternalLink';
+import {IconInfo} from '@lib/components/icons/InfoIcon';
 import {useManageVaults} from '@lib/contexts/useManageVaults';
 import {usePrices} from '@lib/contexts/usePrices';
 import useWallet from '@lib/contexts/useWallet';
@@ -23,12 +29,7 @@ import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
 
-import {DepositModal} from '../../lib/components/common/DepositModal';
-import {ImageWithFallback} from '../../lib/components/common/ImageWithFallback';
-import {SuccessModal} from '../../lib/components/common/SuccessModal';
-import {WithdrawModal} from '../../lib/components/common/WithdrawModal';
-import {IconExternalLink} from '../../lib/components/icons/IconExternalLink';
-import {IconInfo} from '../../lib/components/icons/InfoIcon';
+import {SPECTRA_BOOST_VAULT_ADDRESSES} from '../constants';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
@@ -60,12 +61,14 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const [selectedAction, set_selectedAction] = useQueryState('action');
 	const [isAprModalOpen, set_isAprModalOpen] = useState(false);
 	const [isSteerPopoverOpen, set_isSteerPopoverOpen] = useState(false);
+	const [isSpectraPopoverOpen, set_isSpectraPopoverOpen] = useState(false);
 	const isDepositModalOpen = selectedAction === 'DEPOSIT' && selectedVault === vault.address;
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
 
 	// Points per dollar are provided by the APR oracle; not computed locally
 	const steerRewardPoints = apr?.steerPointsPerDollar ?? 0;
+	const isEligibleForSpectraBoost = SPECTRA_BOOST_VAULT_ADDRESSES.includes(vault.address.toLowerCase());
 
 	/**********************************************************************************************
 	 ** APYToUse returns the current APY to display based on the app options.
@@ -332,40 +335,73 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 								<IconInfo className={'size-4'} />
 							</button>
 						</div>
-						{steerRewardPoints > 0 ? (
-							<div
-								className={'text-regularText relative inline-block text-right text-xs'}
-								onMouseEnter={() => set_isSteerPopoverOpen(true)}
-								onMouseLeave={() => set_isSteerPopoverOpen(false)}>
-								<button
-									type={'button'}
-									className={'underline decoration-dotted hover:opacity-80'}>
-									{'Eligible for Steer Points'}
-								</button>
-								{isSteerPopoverOpen ? (
-									<div
-										className={
-											'border-regularText/15 bg-table absolute right-[-50px] z-20 min-w-[210px] rounded-md border p-3 text-left shadow-lg'
-										}>
-										<p className={'text-regularText text-left text-xs leading-relaxed'}>
-											{'This vault earns '}
-											{formatAmount(steerRewardPoints, 2, 2)}
-											{' STEER points / dollar deposited, but you must '}
-											<a
-												className={'text-accentText underline'}
-												href={'https://app.steer.finance/points'}
-												target={'_blank'}
-												rel={'noreferrer'}>
-												{'register here to earn them'}
-											</a>
-											{'.'}
-										</p>
-									</div>
-								) : null}
-							</div>
-						) : (
-							<div className={'text-regularText invisible text-right text-xs'}>&nbsp;</div>
-						)}
+						<div className={'text-regularText space-y-1 text-right text-xs'}>
+							{isEligibleForSpectraBoost && (
+								<div
+									className={'relative inline-block'}
+									onMouseEnter={() => set_isSpectraPopoverOpen(true)}
+									onMouseLeave={() => set_isSpectraPopoverOpen(false)}>
+									<button
+										type={'button'}
+										className={'underline decoration-dotted hover:opacity-80'}>
+										{'Boosted yield on Spectra'}
+									</button>
+									{isSpectraPopoverOpen ? (
+										<div
+											className={
+												'border-regularText/15 bg-table absolute right-[-50px] z-20 min-w-[210px] rounded-md border p-3 text-left shadow-lg'
+											}>
+											<p className={'text-regularText text-left text-xs leading-relaxed'}>
+												{'Earn boosted yield on Spectra if you '}
+												<a
+													className={'text-accentText underline'}
+													href={'https://app.spectra.finance/pools'}
+													target={'_blank'}
+													rel={'noreferrer'}>
+													{'deposit to their protocol'}
+												</a>
+												{'.'}
+											</p>
+										</div>
+									) : null}
+								</div>
+							)}
+							{steerRewardPoints > 0 && (
+								<div
+									className={'relative inline-block'}
+									onMouseEnter={() => set_isSteerPopoverOpen(true)}
+									onMouseLeave={() => set_isSteerPopoverOpen(false)}>
+									<button
+										type={'button'}
+										className={'underline decoration-dotted hover:opacity-80'}>
+										{'Eligible for Steer Points'}
+									</button>
+									{isSteerPopoverOpen ? (
+										<div
+											className={
+												'border-regularText/15 bg-table absolute right-[-50px] z-20 min-w-[210px] rounded-md border p-3 text-left shadow-lg'
+											}>
+											<p className={'text-regularText text-left text-xs leading-relaxed'}>
+												{'This vault earns '}
+												{formatAmount(steerRewardPoints, 2, 2)}
+												{' STEER points / dollar deposited, but you must '}
+												<a
+													className={'text-accentText underline'}
+													href={'https://app.steer.finance/points'}
+													target={'_blank'}
+													rel={'noreferrer'}>
+													{'register here to earn them'}
+												</a>
+												{'.'}
+											</p>
+										</div>
+									) : null}
+								</div>
+							)}
+							{steerRewardPoints <= 0 && !isEligibleForSpectraBoost && (
+								<div className={'invisible'}>&nbsp;</div>
+							)}
+						</div>
 					</div>
 				</div>
 

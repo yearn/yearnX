@@ -7,7 +7,7 @@ import type {TSectionProps} from '@lib/utils/types';
 
 export const Section3 = ({title, description, bgImage, cards}: TSectionProps): ReactElement => (
 	<div className={'grid gap-6'}>
-		<div className={'md:h-section min-h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
+		<div className={'min-h-section md:h-section flex w-full grid-cols-12 flex-col-reverse md:grid md:gap-6'}>
 			<div
 				className={cl(
 					'col-span-12 md:col-span-5',
