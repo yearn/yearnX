@@ -19,6 +19,13 @@ export const PARTNERS: TPartners = [
 		url: 'https://aerodrome.yearn.space'
 	},
 	{
+		name: 'Yearn X Katana',
+		description: 'Enter the Dojo, deposit on Katana for yields with KAT incentives',
+		icon: 'https://katana.yearn.space/favicons/card-favicon-512x512.png',
+		vaultType: 'v3',
+		url: 'https://katana.yearn.space'
+	},
+	{
 		name: 'Yearn X Curve',
 		description: "If it's on Curve, you'll get the best max boosted yields with Yearn.",
 		icon: 'https://curve.yearn.space/favicons/favicon-512x512.png',
@@ -53,13 +60,6 @@ export const PARTNERS: TPartners = [
 		vaultType: 'v3',
 		url: 'https://morpho.yearn.space'
 	}
-	// {
-	// 	name: 'Katana Pre-Deposit Vaults',
-	// 	description: 'Enter the Dojo',
-	// 	icon: 'https://katana.yearn.space/favicons/web-app-manifest-512x512.png',
-	// 	vaultType: 'v3',
-	// 	url: 'https://katana.yearn.space'
-	// }
 ];
 
 export const TABS: TTab[] = [
