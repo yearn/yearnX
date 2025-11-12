@@ -19,13 +19,6 @@ export const PARTNERS: TPartners = [
 		url: 'https://aerodrome.yearn.space'
 	},
 	{
-		name: 'Yearn X Ajna',
-		description: 'No oracles, no governance, just great yields.',
-		icon: 'https://ajna.yearn.space/favicons/favicon-512x512.png',
-		vaultType: 'v2',
-		url: 'https://ajna.yearn.space'
-	},
-	{
 		name: 'Yearn X Curve',
 		description: "If it's on Curve, you'll get the best max boosted yields with Yearn.",
 		icon: 'https://curve.yearn.space/favicons/favicon-512x512.png',
