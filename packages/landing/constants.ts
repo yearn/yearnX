@@ -21,7 +21,7 @@ export const PARTNERS: TPartners = [
 	{
 		name: 'Yearn X Katana',
 		description: 'Enter the Dojo, deposit on Katana for yields with KAT incentives',
-		icon: 'https://katana.yearn.space/favicons/card-favicon-512x512.png',
+		icon: 'https://katana.yearn.space/favicons/favicon-512x512.png',
 		vaultType: 'v3',
 		url: 'https://katana.yearn.space'
 	},
