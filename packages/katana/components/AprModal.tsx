@@ -5,8 +5,6 @@ import {IconCross} from '@lib/components/icons/IconCross';
 import {formatAmount} from '@lib/utils';
 import {toPercent} from '@lib/utils/tools';
 
-import {AUSD_VAULT_ADDRESS} from '../constants';
-
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TAprData} from '../hooks/useKatanaAprs';
 
@@ -22,7 +20,6 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 	const katanaAppRewardsAPR = apr?.katanaAppRewardsAPR || 0;
 	const fixedRateKatanRewardsAPR = apr?.FixedRateKatanaRewards || 0;
 	const katanaBonusAPR = apr?.katanaBonusAPY || 0;
-	const extrinsicYield = apr?.extrinsicYield || 0;
 	const katanaNativeYield = apr?.katanaNativeYield || 0;
 
 	// Exclude legacy katanaRewardsAPR and non-APR steerPointsPerDollar from totals
@@ -36,12 +33,6 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 		...relevantAprs
 	} = apr ?? {};
 	const totalAPR = Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
-
-	const isTBillVault = vault.address.toLowerCase() === AUSD_VAULT_ADDRESS.toLowerCase();
-	const extrinsicYieldLabel = isTBillVault ? 'T-Bill Yield' : 'Extrinsic Yield';
-	const extrinsicYieldDescription = isTBillVault
-		? 'Interest from U.S. treasury bills'
-		: 'Yield Earned from underlying bridged assets';
 
 	return (
 		<ModalWrapper
@@ -62,8 +53,6 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 
 				{/* Native APY - Group 1 */}
 				<div className={'flex flex-col gap-2 rounded-[12px] bg-[#494949] p-4'}>
-					<h3 className={'text-left text-[16px] font-semibold text-white'}>{'Native APY'}</h3>
-
 					<div className={'flex flex-col gap-1'}>
 						<div className={'flex items-center justify-between'}>
 							<div className={'flex items-center gap-[10px]'}>
@@ -74,39 +63,12 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 									width={20}
 									height={20}
 								/>
-								<span className={'text-[14px] font-medium text-white'}>{extrinsicYieldLabel}</span>
-							</div>
-							<span className={'text-[14px] text-white'}>{toPercent(extrinsicYield)}</span>
-						</div>
-						<p className={'text-left text-[12px] text-white/60'}>{extrinsicYieldDescription}</p>
-					</div>
-
-					<div className={'flex flex-col gap-1'}>
-						<div className={'flex items-center justify-between'}>
-							<div className={'flex items-center gap-[10px]'}>
-								<Image
-									src={`/tokens/${vault.token.symbol}/logo.svg`}
-									alt={vault.token.symbol}
-									className={'size-5 rounded-full'}
-									width={20}
-									height={20}
-								/>
-								<span className={'text-[14px] font-medium text-white'}>{'Katana Yield'}</span>
+								<span className={'text-[14px] font-medium text-white'}>{'Katana Native Yield'}</span>
 							</div>
 							<span className={'text-[14px] text-white'}>{toPercent(katanaNativeYield)}</span>
 						</div>
 						<p className={'text-left text-[12px] text-white/60'}>{'Yield Earned on Katana'}</p>
 					</div>
-
-					<p className={'text-left text-[11px] italic text-white/50'}>
-						{'*Some of this yield may be paid in KAT tokens if actual earned rates are lower than shown.'}
-					</p>
-				</div>
-
-				{/* Rewards APR - Group 2 */}
-				<div className={'flex flex-col gap-2 rounded-[12px] bg-[#494949] p-4'}>
-					<h3 className={'text-left text-[16px] font-semibold text-white'}>{'Rewards APR'}</h3>
-
 					<div className={'flex flex-col gap-1'}>
 						<div className={'flex items-center justify-between'}>
 							<div className={'flex items-center gap-[10px]'}>
