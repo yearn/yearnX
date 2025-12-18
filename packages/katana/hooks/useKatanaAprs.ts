@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import axios from 'axios';
 
 const CACHE_KEY = 'katana-aprs-cache';
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const CACHE_TTL = 15 * 60 * 1000; // 15 min
 
 export type TKatanaAprs = {
 	[key: string]: {
@@ -18,7 +18,6 @@ export type TAprData = {
 	katanaAppRewardsAPR: number; // rewards from Morpho, Sushi, Yearn, etc.
 	FixedRateKatanaRewards: number; // fixed rate rewards from Katana
 	katanaBonusAPY: number; // bonus APR from Katana for not leaving the vault
-	extrinsicYield: number; // yield from underlying assets in bridge
 	katanaNativeYield: number; // yield from katana markets (the netAPR). This is subsidized if low.
 	steerPointsPerDollar?: number; // points per dollar from APR oracle (metadata, not part of APR sum)
 };
