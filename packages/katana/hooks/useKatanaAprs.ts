@@ -14,17 +14,77 @@ export type TKatanaAprs = {
 };
 
 export type TAprData = {
+	stakingRewardsAPR: number;
+	gammaRewardAPR: number;
 	katanaRewardsAPR: number; // legacy field for App rewards from Morpho, Sushi, Yearn, etc.
 	katanaAppRewardsAPR: number; // rewards from Morpho, Sushi, Yearn, etc.
-	FixedRateKatanaRewards: number; // fixed rate rewards from Katana
+	fixedRateKatanaRewards: number; // fixed rate rewards from Katana
 	katanaBonusAPY: number; // bonus APR from Katana for not leaving the vault
 	katanaNativeYield: number; // yield from katana markets (the netAPR). This is subsidized if low.
 	steerPointsPerDollar?: number; // points per dollar from APR oracle (metadata, not part of APR sum)
 };
 
 type TCacheData = {
-	data: TKatanaAprs;
+	data: Partial<TKatanaAprs>;
 	timestamp: number;
+};
+
+type TRawAprData = {
+	stakingRewardsAPR?: number | null;
+	gammaRewardAPR?: number | null;
+	katanaRewardsAPR?: number | null;
+	katanaAppRewardsAPR?: number | null;
+	fixedRateKatanaRewards?: number | null;
+	FixedRateKatanaRewards?: number | null;
+	katanaBonusAPY?: number | null;
+	katanaNativeYield?: number | null;
+	steerPointsPerDollar?: number | null;
+};
+
+type TRawKatanaAprs = {
+	[key: string]: {
+		apr: {
+			netAPR: number;
+			extra: TRawAprData;
+		};
+	};
+};
+
+const getNumberOrZero = (value: number | null | undefined): number => {
+	return typeof value === 'number' ? value : 0;
+};
+
+export const normalizeAprData = (aprData?: TRawAprData): TAprData => {
+	return {
+		stakingRewardsAPR: getNumberOrZero(aprData?.stakingRewardsAPR),
+		gammaRewardAPR: getNumberOrZero(aprData?.gammaRewardAPR),
+		katanaRewardsAPR: getNumberOrZero(aprData?.katanaRewardsAPR),
+		katanaAppRewardsAPR: getNumberOrZero(aprData?.katanaAppRewardsAPR),
+		fixedRateKatanaRewards: getNumberOrZero(
+			aprData?.fixedRateKatanaRewards ?? aprData?.FixedRateKatanaRewards
+		),
+		katanaBonusAPY: getNumberOrZero(aprData?.katanaBonusAPY),
+		katanaNativeYield: getNumberOrZero(aprData?.katanaNativeYield),
+		steerPointsPerDollar: getNumberOrZero(aprData?.steerPointsPerDollar)
+	};
+};
+
+export const normalizeKatanaAprs = (aprData: Partial<TRawKatanaAprs>): Partial<TKatanaAprs> => {
+	return Object.entries(aprData).reduce<Partial<TKatanaAprs>>((accumulator, [vaultAddress, vaultData]) => {
+		if (!vaultData) {
+			return accumulator;
+		}
+
+		accumulator[vaultAddress] = {
+			...vaultData,
+			apr: {
+				...vaultData.apr,
+				extra: normalizeAprData(vaultData.apr.extra)
+			}
+		};
+
+		return accumulator;
+	}, {});
 };
 
 export const useKatanaAprs = (): {data: Partial<TKatanaAprs>; isLoading: boolean; error: Error | null} => {
@@ -40,10 +100,11 @@ export const useKatanaAprs = (): {data: Partial<TKatanaAprs>; isLoading: boolean
 				if (cachedString) {
 					const cached: TCacheData = JSON.parse(cachedString);
 					const now = Date.now();
+					const normalizedCachedData = normalizeKatanaAprs(cached.data);
 
 					// Return cached data if within TTL
 					if (now - cached.timestamp < CACHE_TTL) {
-						set_data(cached.data);
+						set_data(normalizedCachedData);
 						set_isLoading(false);
 						return;
 					}
@@ -53,7 +114,7 @@ export const useKatanaAprs = (): {data: Partial<TKatanaAprs>; isLoading: boolean
 				if (!apiUrl) {
 					throw new Error('KATANA_APR_SERVICE_API environment variable is not set');
 				}
-				const freshData = await axios.get(apiUrl).then(res => res.data);
+				const freshData = await axios.get(apiUrl).then(res => normalizeKatanaAprs(res.data));
 
 				const cacheData: TCacheData = {
 					data: freshData,
@@ -68,7 +129,7 @@ export const useKatanaAprs = (): {data: Partial<TKatanaAprs>; isLoading: boolean
 				const cachedString = localStorage.getItem(CACHE_KEY);
 				if (cachedString) {
 					const cached: TCacheData = JSON.parse(cachedString);
-					set_data(cached.data);
+					set_data(normalizeKatanaAprs(cached.data));
 				}
 			} finally {
 				set_isLoading(false);

@@ -34,3 +34,6 @@ tsconfig.tsbuildinfo
 **/workbox-*.js
 **/workbox-*.js.map
 **/worker-*.js.map
+
+# AI folders
+.codex

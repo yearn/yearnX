@@ -18,8 +18,7 @@ type TAprModal = {
 
 export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprModal): ReactElement {
 	const katanaAppRewardsAPR = apr?.katanaAppRewardsAPR || 0;
-	const fixedRateKatanRewardsAPR = apr?.FixedRateKatanaRewards || 0;
-	const katanaBonusAPR = apr?.katanaBonusAPY || 0;
+	const fixedRateKatanaRewardsAPR = apr?.fixedRateKatanaRewards || 0;
 	const katanaNativeYield = apr?.katanaNativeYield || 0;
 
 	// Exclude legacy katanaRewardsAPR and non-APR steerPointsPerDollar from totals
@@ -81,9 +80,19 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 								/>
 								<span className={'text-[14px] font-medium text-white'}>{'Base Rewards APR'}</span>
 							</div>
-							<span className={'text-[14px] text-white'}>{toPercent(fixedRateKatanRewardsAPR)}</span>
+							<span className={'text-[14px] text-white'}>{toPercent(fixedRateKatanaRewardsAPR)}</span>
 						</div>
 						<p className={'text-left text-[12px] text-white/60'}>{'Limited time fixed KAT rewards'}</p>
+						<p className={'text-left text-[12px] text-white/60'}>
+							{'* claimable after 28 days, subject to '}
+							<a
+								href={'https://x.com/katana/status/1961475531188126178'}
+								target={'_blank'}
+								rel={'noopener noreferrer'}
+								className={'text-accentText underline'}>
+								{'haircut schedule.'}
+							</a>
+						</p>
 					</div>
 
 					<div className={'flex flex-col gap-1'}>
@@ -102,25 +111,6 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 						</div>
 						<p className={'text-left text-[12px] text-white/60'}>
 							{'KAT Rewards passed through from Apps'}
-						</p>
-					</div>
-
-					<div className={'flex flex-col gap-1'}>
-						<div className={'flex items-center justify-between'}>
-							<div className={'flex items-center gap-[10px]'}>
-								<Image
-									src={'/tokens/KAT/logo.jpg'}
-									alt={'KAT'}
-									className={'size-5 rounded-full'}
-									width={20}
-									height={20}
-								/>
-								<span className={'text-[14px] font-medium text-white/60'}>{'Deposit Bonus APR'}</span>
-							</div>
-							<span className={'text-[14px] text-white/60'}>{toPercent(katanaBonusAPR)}</span>
-						</div>
-						<p className={'text-left text-[12px] text-white/60'}>
-							{'Applied if you deposited before Sept. 1st and hold for 90 days'}
 						</p>
 					</div>
 				</div>
@@ -158,7 +148,11 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 						className={
 							'list-inside list-disc space-y-1 text-left text-[12px] font-medium leading-[1.21] text-white/50'
 						}>
-						<li>{'KAT tokens are locked until no later than Feb. 20 2026.'}</li>
+						<li>
+							{
+								'KAT tokens are locked until TGE, which is now targeted to occur on or before the end of March 2026.'
+							}
+						</li>
 						<li>{'KAT APR is calculated using an assumed $1B Fully Diluted Valuation.'}</li>
 					</ul>
 					<p className={'mt-2 text-left text-[12px] font-medium leading-[1.21] text-white/50'}>
