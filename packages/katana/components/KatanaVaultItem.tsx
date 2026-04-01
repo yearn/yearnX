@@ -25,7 +25,7 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@lib/utils';
-import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
+import {calculateKatanaTotalApr, hasKatanaExtras} from '@lib/utils/katanaApr';
 import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
@@ -49,7 +49,7 @@ export type TSuccessModal = {
 	description: ReactElement | null;
 };
 
-export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => {
+export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	const {address} = useAccount();
 	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
@@ -75,16 +75,11 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
-		const baseApr = vault.apr.forwardAPR.netAPR;
-		const total = calculateKatanaTotalApr(extra, baseApr);
-		if (total !== undefined) {
-			return total;
+		if (hasKatanaExtras(extra)) {
+			return calculateKatanaTotalApr(extra, vault.apr.forwardAPR.netAPR) ?? vault.apr.forwardAPR.netAPR;
 		}
-		if (!options?.apyType) {
-			return vault.apr.netAPR;
-		}
-		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : baseApr;
-	}, [vault.apr, options?.apyType, extra]);
+		return vault.apr.netAPR;
+	}, [vault.apr, extra]);
 
 	/**********************************************************************************************
 	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the

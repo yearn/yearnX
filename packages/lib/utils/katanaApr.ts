@@ -4,6 +4,14 @@ export type TKatanaExtras = {
 	steerPointsPerDollar?: number;
 };
 
+export function hasKatanaExtras(extra: Partial<TKatanaExtras>): boolean {
+	return (
+		(extra.fixedRateKatanaRewards ?? 0) > 0 ||
+		(extra.katanaAppRewardsAPR ?? 0) > 0 ||
+		(extra.steerPointsPerDollar ?? 0) > 0
+	);
+}
+
 export function calculateKatanaTotalApr(
 	katanaExtras?: Partial<TKatanaExtras>,
 	baseAprOverride?: number

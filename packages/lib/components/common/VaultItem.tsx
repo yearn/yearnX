@@ -18,6 +18,7 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@lib/utils';
+import {calculateKatanaTotalApr, hasKatanaExtras} from '@lib/utils/katanaApr';
 import {acknowledge, toPercent} from '@lib/utils/tools';
 import {getNetwork} from '@lib/utils/wagmi';
 
@@ -63,14 +64,17 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
-		if (!options?.apyType) {
+		const isKatana = vault.chainID === 747474;
+		if (isKatana && hasKatanaExtras(vault.apr.extra)) {
+			return calculateKatanaTotalApr(vault.apr.extra, vault.apr.forwardAPR.netAPR) ?? vault.apr.forwardAPR.netAPR;
+		}
+		if (isKatana) {
 			return vault.apr.netAPR;
 		}
-		if (options.apyType === 'HISTORICAL') {
-			return vault.apr.netAPR;
+		if (!options?.apyType || options.apyType === 'ESTIMATED') {
+			return vault.apr.forwardAPR.netAPR || vault.apr.netAPR;
 		}
-		// Estimated: use forwardAPR, fall back to netAPR
-		return vault.apr.forwardAPR.netAPR || vault.apr.netAPR;
+		return vault.apr.netAPR;
 	}, [vault.apr, options?.apyType]);
 
 	/**********************************************************************************************
@@ -84,14 +88,17 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		if (!options?.shouldDisplaySubAPY) {
 			return ' ';
 		}
-		if (!options?.apyType) {
-			return `historical ${toPercent(vault.apr.netAPR)}`;
-		}
-		if (options.apyType === 'HISTORICAL') {
+		if (options?.apyType === 'HISTORICAL') {
 			return `estimated ${toPercent(vault.apr.forwardAPR.netAPR)}`;
 		}
-		return `historical ${toPercent(vault.apr.netAPR)}`;
-	}, [options?.shouldDisplaySubAPY, options?.apyType, vault.apr.netAPR, vault.apr.forwardAPR.netAPR]);
+		const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
+		const isKatana = vault.chainID === 747474;
+		if (isKatana && hasKatanaExtras(vault.apr.extra) && base30d) {
+			const thirtyDay = calculateKatanaTotalApr(vault.apr.extra, base30d);
+			return `historical ${toPercent(thirtyDay ?? base30d)}`;
+		}
+		return `historical ${toPercent(base30d || vault.apr.netAPR)}`;
+	}, [options?.shouldDisplaySubAPY, options?.apyType, vault.apr, vault.chainID]);
 
 	useEffect(() => {
 		acknowledge(pricingHash);

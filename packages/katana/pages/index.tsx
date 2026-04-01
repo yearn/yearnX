@@ -7,7 +7,7 @@ import {useWeb3} from '@lib/contexts/useWeb3';
 import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
 import {toAddress, zeroNormalizedBN} from '@lib/utils';
-import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
+import {calculateKatanaTotalApr, hasKatanaExtras} from '@lib/utils/katanaApr';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {APY_TYPE, PROJECT_DESCRIPTION, PROJECT_TITLE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
@@ -33,8 +33,11 @@ export default function Index(): ReactElement {
 			return 0;
 		}
 		const apys = vaultsValues.map(vault => {
-			const total = calculateKatanaTotalApr(vault.apr.extra, vault.apr.forwardAPR.netAPR);
-			return (total ?? vault.apr.forwardAPR.netAPR) * 100;
+			if (hasKatanaExtras(vault.apr.extra)) {
+				const total = calculateKatanaTotalApr(vault.apr.extra, vault.apr.forwardAPR.netAPR);
+				return (total ?? vault.apr.forwardAPR.netAPR) * 100;
+			}
+			return vault.apr.netAPR * 100;
 		});
 		return Math.max(...apys);
 	}, [vaultsValues]);
