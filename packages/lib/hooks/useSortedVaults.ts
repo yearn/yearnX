@@ -9,7 +9,7 @@ import {acknowledge} from '@lib/utils/tools';
 
 import type {TDict, TNDict, TNormalizedBN, TSortDirection} from '@lib/types';
 import type {TAPYType, TVaultsSortBy} from '@lib/utils/types';
-import type {TYDaemonVault, TYDaemonVaults} from './useYearnVaults.types';
+import type {TYDaemonVaults} from './useYearnVaults.types';
 
 type TSortedVaults = {
 	sortBy: TVaultsSortBy;
@@ -23,7 +23,6 @@ export const useSortedVaults = (
 	allPrices: TNDict<TDict<TNormalizedBN>>,
 	options?: {
 		apyType?: TAPYType;
-		getEffectiveApr?: (vault: TYDaemonVault) => number;
 	}
 ): TSortedVaults => {
 	const {balanceHash, getBalance} = useWallet();
@@ -49,19 +48,16 @@ export const useSortedVaults = (
 		if (sortBy !== 'apy') {
 			return vaults;
 		}
-		const getApr = options?.getEffectiveApr ?? ((vault: TYDaemonVault) =>
-			options?.apyType === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR || 0 : vault.apr.netAPR || 0
-		);
 		return vaults?.length
 			? vaults.toSorted((a, b): number =>
 					numberSort({
-						a: getApr(a),
-						b: getApr(b),
+						a: options?.apyType === 'ESTIMATED' ? a.apr.forwardAPR.netAPR || 0 : a.apr.netAPR || 0,
+						b: options?.apyType === 'ESTIMATED' ? b.apr.forwardAPR.netAPR || 0 : b.apr.netAPR || 0,
 						sortDirection: sortDirection as TSortDirection
 					})
 				)
 			: [];
-	}, [sortBy, vaults, options?.apyType, options?.getEffectiveApr, sortDirection]);
+	}, [sortBy, vaults, options?.apyType, sortDirection]);
 
 	/**********************************************************************************************
 	 ** The sortedByBalance memoized value will return the vaults sorted by TVL.

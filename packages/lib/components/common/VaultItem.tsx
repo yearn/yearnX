@@ -18,7 +18,6 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@lib/utils';
-import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
 import {acknowledge, toPercent} from '@lib/utils/tools';
 import {getNetwork} from '@lib/utils/wagmi';
 
@@ -28,7 +27,6 @@ import {ImageWithFallback} from './ImageWithFallback';
 import {SuccessModal} from './SuccessModal';
 import {WithdrawModal} from './WithdrawModal';
 
-import type {TAprData} from '@lib/hooks/useKatanaAprs';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
@@ -40,14 +38,13 @@ type TVaultItem = {
 		apyType: TAPYType;
 		shouldDisplaySubAPY?: boolean;
 	};
-	katanaExtras?: TAprData;
 };
 export type TSuccessModal = {
 	isOpen: boolean;
 	description: ReactElement | null;
 };
 
-export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): ReactElement => {
+export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => {
 	const {address} = useAccount();
 	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
@@ -66,21 +63,15 @@ export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): Re
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
-		if (katanaExtras) {
-			const baseApr = !options?.apyType || options.apyType === 'ESTIMATED'
-				? (vault.apr.forwardAPR.netAPR || katanaExtras.katanaNativeYield || 0)
-				: vault.apr.netAPR;
-			return calculateKatanaTotalApr(katanaExtras, baseApr) ?? baseApr;
-		}
 		if (!options?.apyType) {
 			return vault.apr.netAPR;
 		}
 		if (options.apyType === 'HISTORICAL') {
 			return vault.apr.netAPR;
 		}
-		// Estimated: use forwardAPR, fall back to netAPR (matches yearn.fi behavior)
+		// Estimated: use forwardAPR, fall back to netAPR
 		return vault.apr.forwardAPR.netAPR || vault.apr.netAPR;
-	}, [vault.apr, options?.apyType, katanaExtras]);
+	}, [vault.apr, options?.apyType]);
 
 	/**********************************************************************************************
 	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
@@ -91,7 +82,7 @@ export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): Re
 	 *********************************************************************************************/
 	const subAPY = useMemo(() => {
 		if (!options?.shouldDisplaySubAPY) {
-			return ' ';
+			return ' ';
 		}
 		if (!options?.apyType) {
 			return `historical ${toPercent(vault.apr.netAPR)}`;
@@ -102,9 +93,6 @@ export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): Re
 		return `historical ${toPercent(vault.apr.netAPR)}`;
 	}, [options?.shouldDisplaySubAPY, options?.apyType, vault.apr.netAPR, vault.apr.forwardAPR.netAPR]);
 
-	/**********************************************************************************************
-	 ** useEffect hook to retrieve and memoize prices for the vault token.
-	 *********************************************************************************************/
 	useEffect(() => {
 		acknowledge(pricingHash);
 		set_vaultPrice(
@@ -115,11 +103,6 @@ export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): Re
 		);
 	}, [pricingHash, configuration?.tokenToSpend.token, getPrice]);
 
-	/**********************************************************************************************
-	 ** In some situations, the token is not in the list and we need to fetch/get it. This
-	 ** hooks will trigger the onRefresh function to fetch the token once we are sure that we are
-	 ** missing it.
-	 *********************************************************************************************/
 	useAsyncTrigger(async () => {
 		if (address === undefined) {
 			return;
@@ -132,21 +115,12 @@ export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): Re
 		}
 	}, [address, getToken, isLoadingOnChain, onRefresh, vault.address, vault.chainID]);
 
-	/**********************************************************************************************
-	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
-	 ** from the useWallet hook to retrieve the balance. We are using balanceHash as a dependency
-	 ** to trigger the useEffect hook when the balances object changes.
-	 *********************************************************************************************/
 	const balance = useMemo(() => {
 		acknowledge(balanceHash);
 		const value = getBalance({address: vault.address, chainID: vault.chainID}).normalized || 0;
 		return value;
 	}, [getBalance, vault.address, vault.chainID, balanceHash]);
 
-	/**********************************************************************************************
-	 ** The totalDeposits is the total value locked in the vault. We will use the tvl property
-	 ** from the vault object and format it using the formatAmount function.
-	 *********************************************************************************************/
 	const totalDeposits = useMemo(() => {
 		if (vault.tvl.tvl === 0) {
 			return '$0.00';
@@ -162,10 +136,6 @@ export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): Re
 		})}`;
 	}, [vault.tvl.tvl]);
 
-	/**********************************************************************************************
-	 ** totalProfit is the value the user could potentially get after 1 year of stacking money.
-	 ** We are basically multiply amount the users typed with apy and price of the token.
-	 *********************************************************************************************/
 	const totalProfit = useMemo(() => {
 		const price = vaultPrice.normalized ?? 0;
 		return `$${formatLocalAmount(
@@ -182,37 +152,21 @@ export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): Re
 		)}`;
 	}, [configuration?.tokenToSpend.amount?.normalized, APYToUse, vaultPrice.normalized]);
 
-	/**********************************************************************************************
-	 ** onDepositClick is a callback that sets "DEPOSIT" (and it opens deposit modal) to reducer
-	 ** as action and sets vault token as default to be deposited.
-	 *********************************************************************************************/
 	const onDepositClick = useCallback(async (): Promise<void> => {
 		set_selectedVault(vault.address);
 		set_selectedAction('DEPOSIT');
 	}, [set_selectedAction, set_selectedVault, vault]);
 
-	/**********************************************************************************************
-	 ** onWithdrawClick is a callback that sets "WITHDRAW" (and it opens withdraw modal) to reducer
-	 ** as action and sets vault token as default to be withdrawn.
-	 *********************************************************************************************/
 	const onWithdrawClick = useCallback(async (): Promise<void> => {
 		set_selectedVault(vault.address);
 		set_selectedAction('WITHDRAW');
 	}, [set_selectedAction, set_selectedVault, vault]);
 
-	/**********************************************************************************************
-	 ** Create the link to the Yearn.fi website. The link will be different depending on the
-	 ** vault version.
-	 *********************************************************************************************/
 	const yearnfiLink = useMemo(() => {
 		const vaultOrV3 = vault.version.startsWith('3') || vault.version.startsWith('~3') ? 'v3' : 'vaults';
 		return `https://yearn.fi/${vaultOrV3}/${vault.chainID}/${vault.address}`;
 	}, [vault.address, vault.chainID, vault.version]);
 
-	/**********************************************************************************************
-	 ** onClose contains the actions to perform when the modal is closed. It resets the
-	 ** configuration reducer, closes the modal and clear the URL query state.
-	 *********************************************************************************************/
 	const onClose = useCallback(() => {
 		dispatchConfiguration({type: 'RESET'});
 		set_selectedVault(null);

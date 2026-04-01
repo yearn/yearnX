@@ -32,7 +32,6 @@ import {getNetwork} from '@lib/utils/wagmi';
 
 import {SPECTRA_BOOST_VAULT_ADDRESSES} from '../constants';
 
-import type {TAprData} from '@lib/hooks/useKatanaAprs';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
@@ -40,7 +39,6 @@ import type {TAPYType} from '@lib/utils/types';
 type TVaultItem = {
 	vault: TYDaemonVault;
 	price: TNormalizedBN;
-	apr?: TAprData;
 	options?: {
 		apyType: TAPYType;
 		shouldDisplaySubAPY?: boolean;
@@ -51,7 +49,7 @@ export type TSuccessModal = {
 	description: ReactElement | null;
 };
 
-export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElement => {
+export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => {
 	const {address} = useAccount();
 	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
@@ -67,8 +65,8 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
 
-	// Points per dollar are provided by the APR oracle; not computed locally
-	const steerRewardPoints = apr?.steerPointsPerDollar ?? 0;
+	const {extra} = vault.apr;
+	const steerRewardPoints = extra.steerPointsPerDollar ?? 0;
 	const isEligibleForSpectraBoost = SPECTRA_BOOST_VAULT_ADDRESSES.includes(vault.address.toLowerCase());
 
 	/**********************************************************************************************
@@ -77,15 +75,16 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
-		const baseApr = vault.apr.forwardAPR.netAPR || apr?.katanaNativeYield || 0;
-		if (apr) {
-			return calculateKatanaTotalApr(apr, baseApr) ?? baseApr;
+		const baseApr = vault.apr.forwardAPR.netAPR;
+		const total = calculateKatanaTotalApr(extra, baseApr);
+		if (total !== undefined) {
+			return total;
 		}
 		if (!options?.apyType) {
 			return vault.apr.netAPR;
 		}
 		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : baseApr;
-	}, [vault.apr, options?.apyType, apr]);
+	}, [vault.apr, options?.apyType, extra]);
 
 	/**********************************************************************************************
 	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
@@ -246,7 +245,6 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				isOpen={isAprModalOpen}
 				onClose={() => set_isAprModalOpen(false)}
 				vault={vault}
-				apr={apr}
 				steerRewardPoints={steerRewardPoints}
 				isEligibleForSpectraBoost={isEligibleForSpectraBoost}
 			/>

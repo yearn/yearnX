@@ -5,22 +5,21 @@ import {IconCross} from '@lib/components/icons/IconCross';
 import {formatAmount} from '@lib/utils';
 import {toPercent} from '@lib/utils/tools';
 
-import type {TAprData} from '@lib/hooks/useKatanaAprs';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 
 type TAprModal = {
 	isOpen: boolean;
 	onClose: () => void;
 	vault: TYDaemonVault;
-	apr?: TAprData;
 	steerRewardPoints?: number;
 	isEligibleForSpectraBoost?: boolean;
 };
 
-export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints, isEligibleForSpectraBoost}: TAprModal): ReactElement {
-	const katanaAppRewardsAPR = apr?.katanaAppRewardsAPR || 0;
-	const fixedRateKatanaRewardsAPR = apr?.fixedRateKatanaRewards || 0;
-	const katanaNativeYield = vault.apr.forwardAPR.netAPR || apr?.katanaNativeYield || 0;
+export function AprModal({isOpen, onClose, vault, steerRewardPoints, isEligibleForSpectraBoost}: TAprModal): ReactElement {
+	const {extra} = vault.apr;
+	const katanaAppRewardsAPR = extra.katanaAppRewardsAPR || 0;
+	const fixedRateKatanaRewardsAPR = extra.fixedRateKatanaRewards || 0;
+	const katanaNativeYield = vault.apr.forwardAPR.netAPR;
 	const hasFixedRateRewards = fixedRateKatanaRewardsAPR > 0;
 	const hasAppRewards = katanaAppRewardsAPR > 0;
 	const hasSteerPoints = (steerRewardPoints ?? 0) > 0;
