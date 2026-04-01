@@ -114,7 +114,12 @@ export const yDaemonVaultSchema = z.object({
 		extra: z
 			.object({
 				stakingRewardsAPR: z.number().default(0).catch(0),
-				gammaRewardAPR: z.number().default(0).catch(0)
+				gammaRewardAPR: z.number().default(0).catch(0),
+				katanaAppRewardsAPR: z.number().default(0).catch(0),
+				fixedRateKatanaRewards: z.number().default(0).catch(0),
+				katanaNativeYield: z.number().default(0).catch(0),
+				katanaBonusAPY: z.number().default(0).catch(0),
+				steerPointsPerDollar: z.number().default(0).catch(0)
 			})
 			.default({}),
 		points: z

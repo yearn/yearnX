@@ -23,12 +23,12 @@ export default function Index(): ReactElement {
 		if (vaultsValues.length === 0) {
 			return 0;
 		}
-		const apys = vaultsValues.map(
-			vault => (APY_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
-		);
-		if (apys.length > 0) {
-			return Math.max(...apys);
-		}
+		const apys = vaultsValues.map(vault => {
+			const baseApr = APY_TYPE === 'ESTIMATED'
+				? (vault.apr.forwardAPR.netAPR || vault.apr.netAPR)
+				: vault.apr.netAPR;
+			return baseApr * 100;
+		});
 		return Math.max(...apys);
 	}, [vaultsValues]);
 

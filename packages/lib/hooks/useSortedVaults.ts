@@ -22,7 +22,7 @@ export const useSortedVaults = (
 	vaults: TYDaemonVaults,
 	allPrices: TNDict<TDict<TNormalizedBN>>,
 	options?: {
-		apyType: TAPYType;
+		apyType?: TAPYType;
 	}
 ): TSortedVaults => {
 	const {balanceHash, getBalance} = useWallet();

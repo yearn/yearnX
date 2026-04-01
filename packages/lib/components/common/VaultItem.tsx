@@ -18,6 +18,7 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@lib/utils';
+import {calculateKatanaTotalApr, hasKatanaExtras} from '@lib/utils/katanaApr';
 import {acknowledge, toPercent} from '@lib/utils/tools';
 import {getNetwork} from '@lib/utils/wagmi';
 
@@ -57,41 +58,21 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
 
-	/**********************************************************************************************
-	 ** APYToUse returns the current APY to display based on the app options.
-	 ** @param {TAPYType} options.apyType - The APY type to display (HISTORICAL OR ESTIMATED)
-	 ** @returns {number} - The APY to display.
-	 *********************************************************************************************/
-	const APYToUse = useMemo(() => {
-		if (!options?.apyType) {
-			return vault.apr.netAPR;
-		}
-		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
-	}, [vault.apr, options?.apyType]);
+	const APYToUse = vault.apr.netAPR;
 
-	/**********************************************************************************************
-	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
-	 ** APRType is set to ESTIMATED
-	 ** @param {Boolean} options.shouldDisplaySubAPY - If we should display that
-	 ** @param {TAPYType} options.apyType - The APR type to display (HISTORICAL OR ESTIMATED)
-	 ** @returns {string} - The subAPY to display with a label
-	 *********************************************************************************************/
 	const subAPY = useMemo(() => {
 		if (!options?.shouldDisplaySubAPY) {
-			return ' ';
+			return ' ';
 		}
-		if (!options?.apyType) {
-			return `historical ${toPercent(vault.apr.netAPR)}`;
+		const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
+		const isKatana = vault.chainID === 747474;
+		if (isKatana && hasKatanaExtras(vault.apr.extra) && base30d) {
+			const thirtyDay = calculateKatanaTotalApr(vault.apr.extra, base30d);
+			return `historical ${toPercent(thirtyDay ?? base30d)}`;
 		}
-		if (options.apyType === 'HISTORICAL') {
-			return `estimated ${toPercent(vault.apr.forwardAPR.netAPR)}`;
-		}
-		return `historical ${toPercent(vault.apr.netAPR)}`;
-	}, [options?.shouldDisplaySubAPY, options?.apyType, vault.apr.netAPR, vault.apr.forwardAPR.netAPR]);
+		return `historical ${toPercent(base30d || vault.apr.netAPR)}`;
+	}, [options?.shouldDisplaySubAPY, vault.apr, vault.chainID]);
 
-	/**********************************************************************************************
-	 ** useEffect hook to retrieve and memoize prices for the vault token.
-	 *********************************************************************************************/
 	useEffect(() => {
 		acknowledge(pricingHash);
 		set_vaultPrice(
@@ -102,11 +83,6 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		);
 	}, [pricingHash, configuration?.tokenToSpend.token, getPrice]);
 
-	/**********************************************************************************************
-	 ** In some situations, the token is not in the list and we need to fetch/get it. This
-	 ** hooks will trigger the onRefresh function to fetch the token once we are sure that we are
-	 ** missing it.
-	 *********************************************************************************************/
 	useAsyncTrigger(async () => {
 		if (address === undefined) {
 			return;
@@ -119,21 +95,12 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		}
 	}, [address, getToken, isLoadingOnChain, onRefresh, vault.address, vault.chainID]);
 
-	/**********************************************************************************************
-	 ** Retrieve the user's balance for the current vault. We will use the getBalance function
-	 ** from the useWallet hook to retrieve the balance. We are using balanceHash as a dependency
-	 ** to trigger the useEffect hook when the balances object changes.
-	 *********************************************************************************************/
 	const balance = useMemo(() => {
 		acknowledge(balanceHash);
 		const value = getBalance({address: vault.address, chainID: vault.chainID}).normalized || 0;
 		return value;
 	}, [getBalance, vault.address, vault.chainID, balanceHash]);
 
-	/**********************************************************************************************
-	 ** The totalDeposits is the total value locked in the vault. We will use the tvl property
-	 ** from the vault object and format it using the formatAmount function.
-	 *********************************************************************************************/
 	const totalDeposits = useMemo(() => {
 		if (vault.tvl.tvl === 0) {
 			return '$0.00';
@@ -149,10 +116,6 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		})}`;
 	}, [vault.tvl.tvl]);
 
-	/**********************************************************************************************
-	 ** totalProfit is the value the user could potentially get after 1 year of stacking money.
-	 ** We are basically multiply amount the users typed with apy and price of the token.
-	 *********************************************************************************************/
 	const totalProfit = useMemo(() => {
 		const price = vaultPrice.normalized ?? 0;
 		return `$${formatLocalAmount(
@@ -169,37 +132,21 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		)}`;
 	}, [configuration?.tokenToSpend.amount?.normalized, APYToUse, vaultPrice.normalized]);
 
-	/**********************************************************************************************
-	 ** onDepositClick is a callback that sets "DEPOSIT" (and it opens deposit modal) to reducer
-	 ** as action and sets vault token as default to be deposited.
-	 *********************************************************************************************/
 	const onDepositClick = useCallback(async (): Promise<void> => {
 		set_selectedVault(vault.address);
 		set_selectedAction('DEPOSIT');
 	}, [set_selectedAction, set_selectedVault, vault]);
 
-	/**********************************************************************************************
-	 ** onWithdrawClick is a callback that sets "WITHDRAW" (and it opens withdraw modal) to reducer
-	 ** as action and sets vault token as default to be withdrawn.
-	 *********************************************************************************************/
 	const onWithdrawClick = useCallback(async (): Promise<void> => {
 		set_selectedVault(vault.address);
 		set_selectedAction('WITHDRAW');
 	}, [set_selectedAction, set_selectedVault, vault]);
 
-	/**********************************************************************************************
-	 ** Create the link to the Yearn.fi website. The link will be different depending on the
-	 ** vault version.
-	 *********************************************************************************************/
 	const yearnfiLink = useMemo(() => {
 		const vaultOrV3 = vault.version.startsWith('3') || vault.version.startsWith('~3') ? 'v3' : 'vaults';
 		return `https://yearn.fi/${vaultOrV3}/${vault.chainID}/${vault.address}`;
 	}, [vault.address, vault.chainID, vault.version]);
 
-	/**********************************************************************************************
-	 ** onClose contains the actions to perform when the modal is closed. It resets the
-	 ** configuration reducer, closes the modal and clear the URL query state.
-	 *********************************************************************************************/
 	const onClose = useCallback(() => {
 		dispatchConfiguration({type: 'RESET'});
 		set_selectedVault(null);
