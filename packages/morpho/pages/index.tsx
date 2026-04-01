@@ -27,11 +27,16 @@ export default function Index(): ReactElement {
 			return 0;
 		}
 		const apys = vaultsValues.map(vault => {
-			const baseApr = APY_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR;
 			if (vault.chainID === 747474) {
-				const extras = katanaVaultData?.[vault.address]?.apr?.extra;
+				const extras = katanaVaultData?.[vault.address.toLowerCase()]?.apr?.extra;
+				const baseApr = APY_TYPE === 'ESTIMATED'
+					? (vault.apr.forwardAPR.netAPR || extras?.katanaNativeYield || 0)
+					: vault.apr.netAPR;
 				return (calculateKatanaTotalApr(extras, baseApr) ?? baseApr) * 100;
 			}
+			const baseApr = APY_TYPE === 'ESTIMATED'
+				? (vault.apr.forwardAPR.netAPR || vault.apr.netAPR)
+				: vault.apr.netAPR;
 			return baseApr * 100;
 		});
 		return Math.max(...apys);

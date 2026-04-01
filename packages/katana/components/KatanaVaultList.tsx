@@ -2,14 +2,14 @@
 
 import {Fragment, type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import {useQueryState} from 'nuqs';
-import {useKatanaAprs} from '@lib/hooks/useKatanaAprs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
 import {usePrices} from '@lib/contexts/usePrices';
 import useWallet from '@lib/contexts/useWallet';
+import {useKatanaAprs} from '@lib/hooks/useKatanaAprs';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
-import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
 import {zeroNormalizedBN} from '@lib/utils';
+import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
 import {acknowledge} from '@lib/utils/tools';
 
 import {Pagination} from '../../lib/components/common/Pagination';
@@ -139,10 +139,10 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 
 	const getEffectiveApr = useCallback(
 		(vault: TYDaemonVault) => {
+			const extras = katanaVaultData?.[vault.address.toLowerCase()]?.apr?.extra;
 			const baseApr = props.options?.apyType === 'ESTIMATED'
-				? vault.apr.forwardAPR.netAPR || 0
+				? (vault.apr.forwardAPR.netAPR || extras?.katanaNativeYield || 0)
 				: vault.apr.netAPR || 0;
-			const extras = katanaVaultData?.[vault.address]?.apr?.extra;
 			return calculateKatanaTotalApr(extras, baseApr) ?? baseApr;
 		},
 		[katanaVaultData, props.options?.apyType]
@@ -180,7 +180,7 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 							key={vault.address}
 							vault={vault}
 							price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
-							apr={katanaVaultData?.[vault.address]?.apr?.extra}
+							apr={katanaVaultData?.[vault.address.toLowerCase()]?.apr?.extra}
 							options={props.options}
 						/>
 					))}

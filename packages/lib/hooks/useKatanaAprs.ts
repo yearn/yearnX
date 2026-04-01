@@ -75,7 +75,7 @@ export const normalizeKatanaAprs = (aprData: Partial<TRawKatanaAprs>): Partial<T
 			return accumulator;
 		}
 
-		accumulator[vaultAddress] = {
+		accumulator[vaultAddress.toLowerCase()] = {
 			...vaultData,
 			apr: {
 				...vaultData.apr,

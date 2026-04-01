@@ -68,14 +68,18 @@ export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): Re
 	const APYToUse = useMemo(() => {
 		if (katanaExtras) {
 			const baseApr = !options?.apyType || options.apyType === 'ESTIMATED'
-				? vault.apr.forwardAPR.netAPR
+				? (vault.apr.forwardAPR.netAPR || katanaExtras.katanaNativeYield || 0)
 				: vault.apr.netAPR;
 			return calculateKatanaTotalApr(katanaExtras, baseApr) ?? baseApr;
 		}
 		if (!options?.apyType) {
 			return vault.apr.netAPR;
 		}
-		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
+		if (options.apyType === 'HISTORICAL') {
+			return vault.apr.netAPR;
+		}
+		// Estimated: use forwardAPR, fall back to netAPR (matches yearn.fi behavior)
+		return vault.apr.forwardAPR.netAPR || vault.apr.netAPR;
 	}, [vault.apr, options?.apyType, katanaExtras]);
 
 	/**********************************************************************************************

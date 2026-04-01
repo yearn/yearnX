@@ -119,14 +119,16 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 
 	const getEffectiveApr = useCallback(
 		(vault: TYDaemonVault) => {
-			const baseApr = props.options?.apyType === 'ESTIMATED'
-				? vault.apr.forwardAPR.netAPR || 0
-				: vault.apr.netAPR || 0;
 			if (vault.chainID === 747474 && props.katanaExtrasMap) {
-				const extras = props.katanaExtrasMap[vault.address]?.apr?.extra;
+				const extras = props.katanaExtrasMap[vault.address.toLowerCase()]?.apr?.extra;
+				const baseApr = props.options?.apyType === 'ESTIMATED'
+					? (vault.apr.forwardAPR.netAPR || extras?.katanaNativeYield || 0)
+					: vault.apr.netAPR || 0;
 				return calculateKatanaTotalApr(extras, baseApr) ?? baseApr;
 			}
-			return baseApr;
+			return props.options?.apyType === 'ESTIMATED'
+				? (vault.apr.forwardAPR.netAPR || vault.apr.netAPR || 0)
+				: vault.apr.netAPR || 0;
 		},
 		[props.katanaExtrasMap, props.options?.apyType]
 	);
@@ -166,7 +168,7 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 							options={props.options}
 							katanaExtras={
 								vault.chainID === 747474
-									? props.katanaExtrasMap?.[vault.address]?.apr?.extra
+									? props.katanaExtrasMap?.[vault.address.toLowerCase()]?.apr?.extra
 									: undefined
 							}
 						/>
