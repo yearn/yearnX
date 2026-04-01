@@ -103,10 +103,11 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 
 	const getEffectiveApr = useCallback(
 		(vault: TYDaemonVault) => {
-			if (hasKatanaExtras(vault.apr.extra)) {
-				return calculateKatanaTotalApr(vault.apr.extra, vault.apr.forwardAPR.netAPR) ?? vault.apr.forwardAPR.netAPR;
+			const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
+			if (hasKatanaExtras(vault.apr.extra) && base30d) {
+				return calculateKatanaTotalApr(vault.apr.extra, base30d) ?? base30d;
 			}
-			return vault.apr.netAPR;
+			return base30d || vault.apr.netAPR;
 		},
 		[]
 	);

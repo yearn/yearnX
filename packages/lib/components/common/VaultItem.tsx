@@ -64,18 +64,13 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
+		const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
 		const isKatana = vault.chainID === 747474;
-		if (isKatana && hasKatanaExtras(vault.apr.extra)) {
-			return calculateKatanaTotalApr(vault.apr.extra, vault.apr.forwardAPR.netAPR) ?? vault.apr.forwardAPR.netAPR;
+		if (isKatana && hasKatanaExtras(vault.apr.extra) && base30d) {
+			return calculateKatanaTotalApr(vault.apr.extra, base30d) ?? base30d;
 		}
-		if (isKatana) {
-			return vault.apr.netAPR;
-		}
-		if (!options?.apyType || options.apyType === 'ESTIMATED') {
-			return vault.apr.forwardAPR.netAPR || vault.apr.netAPR;
-		}
-		return vault.apr.netAPR;
-	}, [vault.apr, options?.apyType]);
+		return base30d || vault.apr.netAPR;
+	}, [vault.apr]);
 
 	/**********************************************************************************************
 	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
@@ -88,17 +83,14 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 		if (!options?.shouldDisplaySubAPY) {
 			return ' ';
 		}
-		if (options?.apyType === 'HISTORICAL') {
+		if (!options?.apyType) {
+			return `historical ${toPercent(vault.apr.netAPR)}`;
+		}
+		if (options.apyType === 'HISTORICAL') {
 			return `estimated ${toPercent(vault.apr.forwardAPR.netAPR)}`;
 		}
-		const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
-		const isKatana = vault.chainID === 747474;
-		if (isKatana && hasKatanaExtras(vault.apr.extra) && base30d) {
-			const thirtyDay = calculateKatanaTotalApr(vault.apr.extra, base30d);
-			return `historical ${toPercent(thirtyDay ?? base30d)}`;
-		}
-		return `historical ${toPercent(base30d || vault.apr.netAPR)}`;
-	}, [options?.shouldDisplaySubAPY, options?.apyType, vault.apr, vault.chainID]);
+		return `historical ${toPercent(vault.apr.netAPR)}`;
+	}, [options?.shouldDisplaySubAPY, options?.apyType, vault.apr.netAPR, vault.apr.forwardAPR.netAPR]);
 
 	useEffect(() => {
 		acknowledge(pricingHash);

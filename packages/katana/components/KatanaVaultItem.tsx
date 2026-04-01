@@ -75,10 +75,11 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
-		if (hasKatanaExtras(extra)) {
-			return calculateKatanaTotalApr(extra, vault.apr.forwardAPR.netAPR) ?? vault.apr.forwardAPR.netAPR;
+		const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
+		if (hasKatanaExtras(extra) && base30d) {
+			return calculateKatanaTotalApr(extra, base30d) ?? base30d;
 		}
-		return vault.apr.netAPR;
+		return base30d || vault.apr.netAPR;
 	}, [vault.apr, extra]);
 
 	/**********************************************************************************************

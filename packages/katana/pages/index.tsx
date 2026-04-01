@@ -33,11 +33,12 @@ export default function Index(): ReactElement {
 			return 0;
 		}
 		const apys = vaultsValues.map(vault => {
-			if (hasKatanaExtras(vault.apr.extra)) {
-				const total = calculateKatanaTotalApr(vault.apr.extra, vault.apr.forwardAPR.netAPR);
-				return (total ?? vault.apr.forwardAPR.netAPR) * 100;
+			const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
+			if (hasKatanaExtras(vault.apr.extra) && base30d) {
+				const total = calculateKatanaTotalApr(vault.apr.extra, base30d);
+				return (total ?? base30d) * 100;
 			}
-			return vault.apr.netAPR * 100;
+			return (base30d || vault.apr.netAPR) * 100;
 		});
 		return Math.max(...apys);
 	}, [vaultsValues]);
