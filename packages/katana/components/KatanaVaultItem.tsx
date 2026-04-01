@@ -25,7 +25,6 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@lib/utils';
-import {calculateKatanaTotalApr, hasKatanaExtras} from '@lib/utils/katanaApr';
 import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
@@ -75,12 +74,8 @@ export const VaultItem = ({vault, price}: TVaultItem): ReactElement => {
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
-		const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
-		if (hasKatanaExtras(extra) && base30d) {
-			return calculateKatanaTotalApr(extra, base30d) ?? base30d;
-		}
-		return base30d || vault.apr.netAPR;
-	}, [vault.apr, extra]);
+		return vault.apr.netAPR;
+	}, [vault.apr]);
 
 	/**********************************************************************************************
 	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the

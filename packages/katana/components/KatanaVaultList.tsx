@@ -8,7 +8,6 @@ import useWallet from '@lib/contexts/useWallet';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
 import {zeroNormalizedBN} from '@lib/utils';
-import {calculateKatanaTotalApr, hasKatanaExtras} from '@lib/utils/katanaApr';
 import {acknowledge} from '@lib/utils/tools';
 
 import {Pagination} from '../../lib/components/common/Pagination';
@@ -103,11 +102,7 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 
 	const getEffectiveApr = useCallback(
 		(vault: TYDaemonVault) => {
-			const base30d = vault.apr.points.monthAgo || vault.apr.points.weekAgo;
-			if (hasKatanaExtras(vault.apr.extra) && base30d) {
-				return calculateKatanaTotalApr(vault.apr.extra, base30d) ?? base30d;
-			}
-			return base30d || vault.apr.netAPR;
+			return vault.apr.netAPR;
 		},
 		[]
 	);
