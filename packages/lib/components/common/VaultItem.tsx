@@ -58,22 +58,8 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	const isWithdrawModalOpen = selectedAction === 'WITHDRAW' && selectedVault === vault.address;
 	const {dispatchConfiguration} = useManageVaults();
 
-	/**********************************************************************************************
-	 ** APYToUse returns the current APY to display based on the app options.
-	 ** @param {TAPYType} options.apyType - The APY type to display (HISTORICAL OR ESTIMATED)
-	 ** @returns {number} - The APY to display.
-	 *********************************************************************************************/
-	const APYToUse = useMemo(() => {
-		return vault.apr.netAPR;
-	}, [vault.apr]);
+	const APYToUse = vault.apr.netAPR;
 
-	/**********************************************************************************************
-	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the
-	 ** APRType is set to ESTIMATED
-	 ** @param {Boolean} options.shouldDisplaySubAPY - If we should display that
-	 ** @param {TAPYType} options.apyType - The APR type to display (HISTORICAL OR ESTIMATED)
-	 ** @returns {string} - The subAPY to display with a label
-	 *********************************************************************************************/
 	const subAPY = useMemo(() => {
 		if (!options?.shouldDisplaySubAPY) {
 			return ' ';

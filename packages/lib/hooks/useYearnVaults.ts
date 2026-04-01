@@ -274,9 +274,10 @@ function matchesFilter(vault: TKongVault, filter: TPossibleVaultFilter): boolean
 	}
 }
 
+const ALL_CHAIN_IDS = supportedNetworks.map(chain => chain.id);
+
 function useFetchYearnVaults(vaultFilter: TPossibleVaultFilter, chainIDs?: number[] | undefined): TUseFetchYearnVaults {
-	const allChainIds = supportedNetworks.map(chain => chain.id);
-	const allowedChainIDs = chainIDs || allChainIds;
+	const allowedChainIDs = chainIDs || ALL_CHAIN_IDS;
 
 	const {
 		data: rawVaults,
