@@ -6,23 +6,32 @@ import {formatAmount} from '@lib/utils';
 import {toPercent} from '@lib/utils/tools';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
+import type {TAprData} from '../hooks/useKatanaAprs';
 
 type TAprModal = {
 	isOpen: boolean;
 	onClose: () => void;
 	vault: TYDaemonVault;
+	apr?: TAprData;
 	steerRewardPoints?: number;
-	isEligibleForSpectraBoost?: boolean;
 };
 
-export function AprModal({isOpen, onClose, vault, steerRewardPoints, isEligibleForSpectraBoost}: TAprModal): ReactElement {
-	const {extra} = vault.apr;
-	const katanaAppRewardsAPR = extra.katanaAppRewardsAPR || 0;
-	const fixedRateKatanaRewardsAPR = extra.fixedRateKatanaRewards || 0;
-	const katanaNativeYield = vault.apr.forwardAPR.netAPR;
-	const hasFixedRateRewards = fixedRateKatanaRewardsAPR > 0;
-	const hasAppRewards = katanaAppRewardsAPR > 0;
-	const hasSteerPoints = (steerRewardPoints ?? 0) > 0;
+export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprModal): ReactElement {
+	const katanaAppRewardsAPR = apr?.katanaAppRewardsAPR || 0;
+	const fixedRateKatanaRewardsAPR = apr?.fixedRateKatanaRewards || 0;
+	const katanaNativeYield = apr?.katanaNativeYield || 0;
+
+	// Exclude legacy katanaRewardsAPR and non-APR steerPointsPerDollar from totals
+	const {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		katanaRewardsAPR: _katanaRewardsAPR,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		steerPointsPerDollar: _points,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		katanaBonusAPY: _bonus,
+		...relevantAprs
+	} = apr ?? {};
+	const totalAPR = Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
 
 	return (
 		<ModalWrapper
@@ -41,7 +50,7 @@ export function AprModal({isOpen, onClose, vault, steerRewardPoints, isEligibleF
 					</button>
 				</div>
 
-				{/* APR Breakdown */}
+				{/* Native APY - Group 1 */}
 				<div className={'flex flex-col gap-2 rounded-[12px] bg-[#494949] p-4'}>
 					<div className={'flex flex-col gap-1'}>
 						<div className={'flex items-center justify-between'}>
@@ -53,116 +62,109 @@ export function AprModal({isOpen, onClose, vault, steerRewardPoints, isEligibleF
 									width={20}
 									height={20}
 								/>
-								<span className={'text-[14px] font-medium text-white'}>{'Est. Native APY'}</span>
+								<span className={'text-[14px] font-medium text-white'}>{'Katana Native Yield'}</span>
 							</div>
 							<span className={'text-[14px] text-white'}>{toPercent(katanaNativeYield)}</span>
 						</div>
 						<p className={'text-left text-[12px] text-white/60'}>{'Yield Earned on Katana'}</p>
 					</div>
-
-					{hasFixedRateRewards ? (
-						<div className={'flex flex-col gap-1'}>
-							<div className={'flex items-center justify-between'}>
-								<div className={'flex items-center gap-[10px]'}>
-									<Image
-										src={'/tokens/KAT/logo.jpg'}
-										alt={'KAT'}
-										className={'size-5 rounded-full'}
-										width={20}
-										height={20}
-									/>
-									<span className={'text-[14px] font-medium text-white'}>{'Base Rewards APR'}</span>
-								</div>
-								<span className={'text-[14px] text-white'}>{toPercent(fixedRateKatanaRewardsAPR)}</span>
+					<div className={'flex flex-col gap-1'}>
+						<div className={'flex items-center justify-between'}>
+							<div className={'flex items-center gap-[10px]'}>
+								<Image
+									src={'/tokens/KAT/logo.jpg'}
+									alt={'KAT'}
+									className={'size-5 rounded-full'}
+									width={20}
+									height={20}
+								/>
+								<span className={'text-[14px] font-medium text-white'}>{'Base Rewards APR'}</span>
 							</div>
-							<p className={'text-left text-[12px] text-white/60'}>{'Limited time KAT rewards'}</p>
-							<p className={'text-left text-[12px] text-white/60'}>
-								{'* claimable after 28 days, subject to '}
-								<a
-									href={'https://x.com/katana/status/1961475531188126178'}
-									target={'_blank'}
-									rel={'noopener noreferrer'}
-									className={'text-accentText underline'}>
-									{'haircut schedule.'}
-								</a>
-							</p>
+							<span className={'text-[14px] text-white'}>{toPercent(fixedRateKatanaRewardsAPR)}</span>
 						</div>
-					) : null}
+						<p className={'text-left text-[12px] text-white/60'}>{'Limited time fixed KAT rewards'}</p>
+						<p className={'text-left text-[12px] text-white/60'}>
+							{'* claimable after 28 days, subject to '}
+							<a
+								href={'https://x.com/katana/status/1961475531188126178'}
+								target={'_blank'}
+								rel={'noopener noreferrer'}
+								className={'text-accentText underline'}>
+								{'haircut schedule.'}
+							</a>
+						</p>
+					</div>
 
-					{hasAppRewards ? (
-						<div className={'flex flex-col gap-1'}>
-							<div className={'flex items-center justify-between'}>
-								<div className={'flex items-center gap-[10px]'}>
-									<Image
-										src={'/tokens/KAT/logo.jpg'}
-										alt={'KAT'}
-										className={'size-5 rounded-full'}
-										width={20}
-										height={20}
-									/>
-									<span className={'text-[14px] font-medium text-white'}>{'App Rewards APR'}</span>
-								</div>
-								<span className={'text-[14px] text-white'}>{toPercent(katanaAppRewardsAPR)}</span>
+					<div className={'flex flex-col gap-1'}>
+						<div className={'flex items-center justify-between'}>
+							<div className={'flex items-center gap-[10px]'}>
+								<Image
+									src={'/tokens/KAT/logo.jpg'}
+									alt={'KAT'}
+									className={'size-5 rounded-full'}
+									width={20}
+									height={20}
+								/>
+								<span className={'text-[14px] font-medium text-white'}>{'App Rewards APR'}</span>
 							</div>
-							<p className={'text-left text-[12px] text-white/60'}>
-								{'KAT rewards passed through from apps'}
-							</p>
+							<span className={'text-[14px] text-white'}>{toPercent(katanaAppRewardsAPR)}</span>
 						</div>
-					) : null}
+						<p className={'text-left text-[12px] text-white/60'}>
+							{'KAT Rewards passed through from Apps'}
+						</p>
+					</div>
 				</div>
 
-				<div className={'rounded-[12px] px-4 pb-4 pt-2'}>
-					<p className={'text-left text-[12px] font-medium leading-[1.21] text-white/50'}>
-						{'Read more about KAT tokenomics '}
-						<a
-							href={'https://katana.network/blog/the-network-is-katana-the-token-is-kat'}
-							target={'_blank'}
-							rel={'noopener noreferrer'}
-							className={'text-accentText underline'}>
-							{'here.'}
-						</a>
-					</p>
-
-					{isEligibleForSpectraBoost && (
-						<>
-							<div className={'my-2 h-px w-full bg-white/20'} />
-							<p className={'mb-1 text-left text-[10px] font-semibold uppercase tracking-wide text-white/50'}>
-								{'Earn Boosted Yield with Spectra'}
-							</p>
-							<p className={'text-left text-[12px] text-white/50'}>
-								{'Earn boosted yield on Spectra if you '}
-								<a
-									href={'https://app.spectra.finance/pools?networks=katana'}
-									target={'_blank'}
-									rel={'noopener noreferrer'}
-									className={'text-accentText underline'}>
-									{'deposit to their protocol'}
-								</a>
-								{'.'}
-							</p>
-						</>
-					)}
-
-					{hasSteerPoints ? (
-						<>
-							<div className={'my-2 h-px w-full bg-white/20'} />
-							<p className={'mb-1 text-left text-[10px] font-semibold uppercase tracking-wide text-white/50'}>
-								{'Steer Points'}
-							</p>
-							<p className={'text-left text-[12px] text-white/50'}>
+				{/* Combined APR - Group 3 */}
+				<div className={'flex flex-col gap-2 rounded-[12px] bg-white/10 p-4'}>
+					<div className={'flex items-center justify-between'}>
+						<span className={'text-[16px] font-bold text-white'}>{'Expected Net APR'}</span>
+						<span className={'text-[16px] font-bold text-white'}>{toPercent(totalAPR)}</span>
+					</div>
+					{steerRewardPoints !== undefined && steerRewardPoints > 0 && (
+						<div>
+							<p className={'text-regularText text-left text-sm leading-relaxed'}>
 								{'This vault earns '}
-								{formatAmount(steerRewardPoints ?? 0, 2, 2)}
-								{' Steer Points / dollar deposited, but you must '}
+								{formatAmount(steerRewardPoints, 2, 2)}
+								{' Steer Points / dollar deposited,'}
+							</p>
+							<p className={'text-regularText text-left text-sm leading-relaxed'}>
+								{'but you must '}
 								<a
 									className={'text-accentText underline'}
 									href={'https://app.steer.finance/points'}
 									target={'_blank'}
 									rel={'noreferrer'}>
-									{'register here to earn them.'}
+									{'register here to earn them'}
 								</a>
+								{'.'}
 							</p>
-						</>
-					) : null}
+						</div>
+					)}
+				</div>
+
+				<div className={'rounded-[12px] px-4 pb-4 pt-2'}>
+					<ul
+						className={
+							'list-inside list-disc space-y-1 text-left text-[12px] font-medium leading-[1.21] text-white/50'
+						}>
+						<li>
+							{
+								'KAT tokens are locked until TGE, which is now targeted to occur on or before the end of March 2026.'
+							}
+						</li>
+						<li>{'KAT APR is calculated using an assumed $1B Fully Diluted Valuation.'}</li>
+					</ul>
+					<p className={'mt-2 text-left text-[12px] font-medium leading-[1.21] text-white/50'}>
+						{'Read more about KAT tokenomics '}
+						<a
+							href={'https://katana.network/blog/the-network-is-katana-the-token-is-kat'}
+							target={'_blank'}
+							rel={'noopener noreferrer'}
+							className={'text-blue-400 underline hover:text-blue-300'}>
+							{'here'}
+						</a>
+					</p>
 				</div>
 			</div>
 		</ModalWrapper>
