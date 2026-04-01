@@ -25,6 +25,7 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@lib/utils';
+import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
 import {acknowledge, toPercent} from '@lib/utils/tools';
 import {CHAINS} from '@lib/utils/tools.chains';
 import {getNetwork} from '@lib/utils/wagmi';
@@ -34,7 +35,7 @@ import {SPECTRA_BOOST_VAULT_ADDRESSES} from '../constants';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
-import type {TAprData} from '../hooks/useKatanaAprs';
+import type {TAprData} from '@lib/hooks/useKatanaAprs';
 
 type TVaultItem = {
 	vault: TYDaemonVault;
@@ -76,23 +77,14 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
+		const baseApr = vault.apr.forwardAPR.netAPR || 0;
 		if (apr) {
-			// Exclude legacy katanaRewardsAPR and non-APR "steerPointsPerDollar" from totals
-			const {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				katanaRewardsAPR: _katanaRewardsAPR,
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				steerPointsPerDollar: _points,
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				katanaBonusAPY: _bonus,
-				...relevantAprs
-			} = apr ?? {};
-			return Object.values(relevantAprs).reduce((sum, value) => sum + value, 0);
+			return calculateKatanaTotalApr(apr, baseApr) ?? baseApr;
 		}
 		if (!options?.apyType) {
 			return vault.apr.netAPR;
 		}
-		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
+		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : baseApr;
 	}, [vault.apr, options?.apyType, apr]);
 
 	/**********************************************************************************************
@@ -256,6 +248,7 @@ export const VaultItem = ({vault, price, options, apr}: TVaultItem): ReactElemen
 				vault={vault}
 				apr={apr}
 				steerRewardPoints={steerRewardPoints}
+				isEligibleForSpectraBoost={isEligibleForSpectraBoost}
 			/>
 			{isWETHVault ? (
 				<WETHDepositModal

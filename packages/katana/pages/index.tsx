@@ -4,9 +4,11 @@ import {KatanaHeader} from 'packages/katana/components/KatanaHeader';
 import {VaultList} from 'packages/katana/components/KatanaVaultList';
 import useWallet from '@lib/contexts/useWallet';
 import {useWeb3} from '@lib/contexts/useWeb3';
+import {useKatanaAprs} from '@lib/hooks/useKatanaAprs';
 import {useFetchYearnVaults} from '@lib/hooks/useYearnVaults';
 import {Section} from '@lib/sections';
 import {toAddress, zeroNormalizedBN} from '@lib/utils';
+import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
 import {useDeepCompareMemo} from '@react-hookz/web';
 
 import {APY_TYPE, PROJECT_DESCRIPTION, PROJECT_TITLE, VARIANT_TO_USE, VAULT_FILTER} from '../constants';
@@ -15,6 +17,7 @@ import type {TDict, TToken} from '@lib/types';
 
 export default function Index(): ReactElement {
 	const {vaults, isLoading} = useFetchYearnVaults(VAULT_FILTER, [747474]);
+	const {data: katanaVaultData} = useKatanaAprs();
 	const {onRefreshWithList} = useWallet();
 	const {address} = useWeb3();
 
@@ -31,14 +34,13 @@ export default function Index(): ReactElement {
 		if (vaultsValues.length === 0) {
 			return 0;
 		}
-		const apys = vaultsValues.map(
-			vault => (APY_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR) * 100
-		);
-		if (apys.length > 0) {
-			return Math.max(...apys);
-		}
+		const apys = vaultsValues.map(vault => {
+			const baseApr = APY_TYPE === 'ESTIMATED' ? vault.apr.forwardAPR.netAPR : vault.apr.netAPR;
+			const extras = katanaVaultData?.[vault.address]?.apr?.extra;
+			return (calculateKatanaTotalApr(extras, baseApr) ?? baseApr) * 100;
+		});
 		return Math.max(...apys);
-	}, [vaultsValues]);
+	}, [vaultsValues, katanaVaultData]);
 
 	const upToBoost = useMemo(() => {
 		if (vaultsValues.length === 0) {

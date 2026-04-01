@@ -1,13 +1,14 @@
 'use client';
 
-import {Fragment, type ReactElement, useEffect, useMemo, useState} from 'react';
+import {Fragment, type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import {useQueryState} from 'nuqs';
-import {useKatanaAprs} from 'packages/katana/hooks/useKatanaAprs';
+import {useKatanaAprs} from '@lib/hooks/useKatanaAprs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
 import {usePrices} from '@lib/contexts/usePrices';
 import useWallet from '@lib/contexts/useWallet';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
+import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
 import {zeroNormalizedBN} from '@lib/utils';
 import {acknowledge} from '@lib/utils/tools';
 
@@ -16,7 +17,7 @@ import {Skeleton} from '../../lib/components/common/Skeleton';
 import {VaultItem} from './KatanaVaultItem';
 import {VaultsListHead} from './KatanaVaultsListHead';
 
-import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
+import type {TYDaemonVault, TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
 import type {TDict, TNDict, TNormalizedBN, TToken} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
 
@@ -136,8 +137,24 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		});
 	}, [balanceHash, allVaults, getBalance]);
 
-	const {sortedVaults: sortedVaultsWithBalance} = useSortedVaults(vaultsWithBalance, allPrices, props.options);
-	const sort = useSortedVaults(vaultsWithNoBalance, allPrices, props.options);
+	const getEffectiveApr = useCallback(
+		(vault: TYDaemonVault) => {
+			const baseApr = props.options?.apyType === 'ESTIMATED'
+				? vault.apr.forwardAPR.netAPR || 0
+				: vault.apr.netAPR || 0;
+			const extras = katanaVaultData?.[vault.address]?.apr?.extra;
+			return calculateKatanaTotalApr(extras, baseApr) ?? baseApr;
+		},
+		[katanaVaultData, props.options?.apyType]
+	);
+
+	const sortOptions = useMemo(
+		() => ({...props.options, getEffectiveApr}),
+		[props.options, getEffectiveApr]
+	);
+
+	const {sortedVaults: sortedVaultsWithBalance} = useSortedVaults(vaultsWithBalance, allPrices, sortOptions);
+	const sort = useSortedVaults(vaultsWithNoBalance, allPrices, sortOptions);
 
 	const {vaults, goToNextPage, goToPrevPage, goToPage, currentPage, amountOfPages} = useVaultsPagination(
 		VAULTS_PER_PAGE,

@@ -18,6 +18,7 @@ import {
 	toNormalizedBN,
 	zeroNormalizedBN
 } from '@lib/utils';
+import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
 import {acknowledge, toPercent} from '@lib/utils/tools';
 import {getNetwork} from '@lib/utils/wagmi';
 
@@ -27,6 +28,7 @@ import {ImageWithFallback} from './ImageWithFallback';
 import {SuccessModal} from './SuccessModal';
 import {WithdrawModal} from './WithdrawModal';
 
+import type {TAprData} from '@lib/hooks/useKatanaAprs';
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
 import type {TNormalizedBN} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
@@ -38,13 +40,14 @@ type TVaultItem = {
 		apyType: TAPYType;
 		shouldDisplaySubAPY?: boolean;
 	};
+	katanaExtras?: TAprData;
 };
 export type TSuccessModal = {
 	isOpen: boolean;
 	description: ReactElement | null;
 };
 
-export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => {
+export const VaultItem = ({vault, price, options, katanaExtras}: TVaultItem): ReactElement => {
 	const {address} = useAccount();
 	const {balanceHash, getBalance, getToken, isLoadingOnChain, onRefresh} = useWallet();
 	const {configuration} = useManageVaults();
@@ -63,11 +66,17 @@ export const VaultItem = ({vault, price, options}: TVaultItem): ReactElement => 
 	 ** @returns {number} - The APY to display.
 	 *********************************************************************************************/
 	const APYToUse = useMemo(() => {
+		if (katanaExtras) {
+			const baseApr = !options?.apyType || options.apyType === 'ESTIMATED'
+				? vault.apr.forwardAPR.netAPR
+				: vault.apr.netAPR;
+			return calculateKatanaTotalApr(katanaExtras, baseApr) ?? baseApr;
+		}
 		if (!options?.apyType) {
 			return vault.apr.netAPR;
 		}
 		return options.apyType === 'HISTORICAL' ? vault.apr.netAPR : vault.apr.forwardAPR.netAPR;
-	}, [vault.apr, options?.apyType]);
+	}, [vault.apr, options?.apyType, katanaExtras]);
 
 	/**********************************************************************************************
 	 ** subAPY returns the the opposite APR to display: ESTIMATED by default, or HISTORICAL if the

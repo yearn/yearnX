@@ -1,6 +1,6 @@
 'use client';
 
-import {Fragment, type ReactElement, useEffect, useMemo, useState} from 'react';
+import {Fragment, type ReactElement, useCallback, useEffect, useMemo, useState} from 'react';
 import {useQueryState} from 'nuqs';
 import {VAULTS_PER_PAGE} from 'packages/pendle/constants';
 import {usePrices} from '@lib/contexts/usePrices';
@@ -8,6 +8,7 @@ import useWallet from '@lib/contexts/useWallet';
 import {useSortedVaults} from '@lib/hooks/useSortedVaults';
 import {useVaultsPagination} from '@lib/hooks/useVaultsPagination';
 import {zeroNormalizedBN} from '@lib/utils';
+import {calculateKatanaTotalApr} from '@lib/utils/katanaApr';
 import {acknowledge} from '@lib/utils/tools';
 
 import {Pagination} from './Pagination';
@@ -16,7 +17,8 @@ import {VaultItem} from './VaultItem';
 import {VaultSearch} from './VaultSearch';
 import {VaultsListHead} from './VaultsListHead';
 
-import type {TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
+import type {TKatanaAprs} from '@lib/hooks/useKatanaAprs';
+import type {TYDaemonVault, TYDaemonVaults} from '@lib/hooks/useYearnVaults.types';
 import type {TDict, TNDict, TNormalizedBN, TToken} from '@lib/types';
 import type {TAPYType} from '@lib/utils/types';
 
@@ -27,6 +29,7 @@ type TVaultListProps = {
 		apyType: TAPYType;
 		shouldDisplaySubAPY?: boolean;
 	};
+	katanaExtrasMap?: Partial<TKatanaAprs>;
 };
 
 const HEADER_TABS = [
@@ -114,8 +117,27 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 		return values.sort((a, b) => b.featuringScore - a.featuringScore);
 	}, [balanceHash, allVaults, getBalance]);
 
-	const {sortedVaults: sortedVaultsWithBalance} = useSortedVaults(vaultsWithBalance, allPrices, props.options);
-	const sort = useSortedVaults(vaultsWithNoBalance, allPrices, props.options);
+	const getEffectiveApr = useCallback(
+		(vault: TYDaemonVault) => {
+			const baseApr = props.options?.apyType === 'ESTIMATED'
+				? vault.apr.forwardAPR.netAPR || 0
+				: vault.apr.netAPR || 0;
+			if (vault.chainID === 747474 && props.katanaExtrasMap) {
+				const extras = props.katanaExtrasMap[vault.address]?.apr?.extra;
+				return calculateKatanaTotalApr(extras, baseApr) ?? baseApr;
+			}
+			return baseApr;
+		},
+		[props.katanaExtrasMap, props.options?.apyType]
+	);
+
+	const sortOptions = useMemo(
+		() => props.katanaExtrasMap ? {...props.options, getEffectiveApr} : props.options,
+		[props.options, props.katanaExtrasMap, getEffectiveApr]
+	);
+
+	const {sortedVaults: sortedVaultsWithBalance} = useSortedVaults(vaultsWithBalance, allPrices, sortOptions);
+	const sort = useSortedVaults(vaultsWithNoBalance, allPrices, sortOptions);
 
 	const {vaults, goToNextPage, goToPrevPage, goToPage, currentPage, amountOfPages} = useVaultsPagination(
 		VAULTS_PER_PAGE,
@@ -142,6 +164,11 @@ function VaultListContent(props: TVaultListProps): ReactElement {
 							vault={vault}
 							price={allPrices?.[vault.chainID]?.[vault.address] || zeroNormalizedBN}
 							options={props.options}
+							katanaExtras={
+								vault.chainID === 747474
+									? props.katanaExtrasMap?.[vault.address]?.apr?.extra
+									: undefined
+							}
 						/>
 					))}
 				</div>
