@@ -83,16 +83,6 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 							<span className={'text-[14px] text-white'}>{toPercent(fixedRateKatanaRewardsAPR)}</span>
 						</div>
 						<p className={'text-left text-[12px] text-white/60'}>{'Limited time fixed KAT rewards'}</p>
-						<p className={'text-left text-[12px] text-white/60'}>
-							{'* claimable after 28 days, subject to '}
-							<a
-								href={'https://x.com/katana/status/1961475531188126178'}
-								target={'_blank'}
-								rel={'noopener noreferrer'}
-								className={'text-accentText underline'}>
-								{'haircut schedule.'}
-							</a>
-						</p>
 					</div>
 
 					<div className={'flex flex-col gap-1'}>
