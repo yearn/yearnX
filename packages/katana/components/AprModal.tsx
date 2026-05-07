@@ -2,7 +2,6 @@ import {type ReactElement} from 'react';
 import Image from 'next/image';
 import {ModalWrapper} from '@lib/components/common/ModalWrapper';
 import {IconCross} from '@lib/components/icons/IconCross';
-import {formatAmount} from '@lib/utils';
 import {toPercent} from '@lib/utils/tools';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
