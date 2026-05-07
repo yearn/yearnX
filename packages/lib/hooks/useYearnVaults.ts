@@ -29,7 +29,7 @@ const kongVaultSchema = z
 			.nullable()
 			.default(null),
 		tvl: z.number().nullable().default(0),
-		pricePerShare: z.union([z.string(), z.number()]).default('0'),
+		pricePerShare: z.preprocess(value => value ?? '0', z.union([z.string(), z.number()]).default('0')),
 		performance: z
 			.object({
 				oracle: z
@@ -252,19 +252,19 @@ function matchesFilter(vault: TKongVault, filter: TPossibleVaultFilter): boolean
 	const inc = vault.inclusion;
 	switch (filter) {
 		case 'katana':
-			return inc?.isKatana === true;
+			return Boolean(inc?.isKatana);
 		case 'morpho':
-			return inc?.isMorpho === true;
+			return Boolean(inc?.isMorpho);
 		case 'juiced':
-			return inc?.isYearnJuiced === true;
+			return Boolean(inc?.isYearnJuiced);
 		case 'gimme':
-			return inc?.isGimme === true;
+			return Boolean(inc?.isGimme);
 		case 'pooltogether':
-			return inc?.isPoolTogether === true;
+			return Boolean(inc?.isPoolTogether);
 		case 'v3':
-			return vault.v3 === true;
+			return vault.v3;
 		case 'v2':
-			return vault.v3 !== true;
+			return !vault.v3;
 		case 'retired':
 			return vault.isRetired;
 		case 'all':
