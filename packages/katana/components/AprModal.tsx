@@ -2,7 +2,6 @@ import {type ReactElement} from 'react';
 import Image from 'next/image';
 import {ModalWrapper} from '@lib/components/common/ModalWrapper';
 import {IconCross} from '@lib/components/icons/IconCross';
-import {formatAmount} from '@lib/utils';
 import {toPercent} from '@lib/utils/tools';
 
 import type {TYDaemonVault} from '@lib/hooks/useYearnVaults.types';
@@ -83,16 +82,6 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 							<span className={'text-[14px] text-white'}>{toPercent(fixedRateKatanaRewardsAPR)}</span>
 						</div>
 						<p className={'text-left text-[12px] text-white/60'}>{'Limited time fixed KAT rewards'}</p>
-						<p className={'text-left text-[12px] text-white/60'}>
-							{'* claimable after 28 days, subject to '}
-							<a
-								href={'https://x.com/katana/status/1961475531188126178'}
-								target={'_blank'}
-								rel={'noopener noreferrer'}
-								className={'text-accentText underline'}>
-								{'haircut schedule.'}
-							</a>
-						</p>
 					</div>
 
 					<div className={'flex flex-col gap-1'}>
@@ -121,50 +110,33 @@ export function AprModal({isOpen, onClose, vault, apr, steerRewardPoints}: TAprM
 						<span className={'text-[16px] font-bold text-white'}>{'Expected Net APR'}</span>
 						<span className={'text-[16px] font-bold text-white'}>{toPercent(totalAPR)}</span>
 					</div>
-					{steerRewardPoints !== undefined && steerRewardPoints > 0 && (
-						<div>
-							<p className={'text-regularText text-left text-sm leading-relaxed'}>
-								{'This vault earns '}
-								{formatAmount(steerRewardPoints, 2, 2)}
-								{' Steer Points / dollar deposited,'}
-							</p>
-							<p className={'text-regularText text-left text-sm leading-relaxed'}>
-								{'but you must '}
-								<a
-									className={'text-accentText underline'}
-									href={'https://app.steer.finance/points'}
-									target={'_blank'}
-									rel={'noreferrer'}>
-									{'register here to earn them'}
-								</a>
-								{'.'}
-							</p>
-						</div>
-					)}
 				</div>
 
 				<div className={'rounded-[12px] px-4 pb-4 pt-2'}>
-					<ul
-						className={
-							'list-inside list-disc space-y-1 text-left text-[12px] font-medium leading-[1.21] text-white/50'
-						}>
-						<li>
-							{
-								'KAT tokens are locked until TGE, which is now targeted to occur on or before the end of March 2026.'
-							}
-						</li>
-						<li>{'KAT APR is calculated using an assumed $1B Fully Diluted Valuation.'}</li>
-					</ul>
 					<p className={'mt-2 text-left text-[12px] font-medium leading-[1.21] text-white/50'}>
 						{'Read more about KAT tokenomics '}
 						<a
 							href={'https://katana.network/blog/the-network-is-katana-the-token-is-kat'}
 							target={'_blank'}
 							rel={'noopener noreferrer'}
-							className={'text-blue-400 underline hover:text-blue-300'}>
+							className={'text-accentText underline'}>
 							{'here'}
 						</a>
 					</p>
+					{steerRewardPoints !== undefined && steerRewardPoints > 0 && (
+						<div>
+							<p className={'mt-2 text-left text-[12px] font-medium leading-[1.21] text-white/50'}>
+								{'The Steer Points program has concluded. '}
+								<a
+									className={'text-accentText underline'}
+									href={'https://app.steer.finance/points'}
+									target={'_blank'}
+									rel={'noreferrer'}>
+									{'You can view your Steer Points here.'}
+								</a>
+							</p>
+						</div>
+					)}
 				</div>
 			</div>
 		</ModalWrapper>
