@@ -9,6 +9,6 @@
 	},
 	"dependencies": {
 		"lib": "workspace:lib",
-		"nuqs": "^1.17.8"
+		"nuqs": "1.20.0"
 	}
 }
