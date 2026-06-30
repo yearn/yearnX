@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {useWeb3} from '@lib/contexts/useWeb3';
 
 const CACHE_KEY = 'angleRewards_cache';
+const MERKL_REWARDS_API_ROUTE = '/api/merkl/rewards';
 
 const EIGHT_HOURS = 8 * 60 * 60 * 1000;
 
@@ -51,6 +52,21 @@ export type TChainReward = {
 };
 
 export type TAngleRewardsResponse = TChainReward[];
+
+const fetchMerklRewards = async (address: string, chainId: number): Promise<TAngleRewardsResponse> => {
+	const params = new URLSearchParams({
+		address,
+		chainId: String(chainId)
+	});
+	const response = await fetch(`${MERKL_REWARDS_API_ROUTE}?${params.toString()}`);
+
+	if (!response.ok) {
+		const responseBody = (await response.json().catch(() => null)) as {error?: string} | null;
+		throw new Error(responseBody?.error ?? 'Failed to fetch Merkl rewards');
+	}
+
+	return (await response.json()) as TAngleRewardsResponse;
+};
 
 type TCachedRewardsData = {
 	preDepositRewards: TAngleReward[];
@@ -140,15 +156,13 @@ export const useAngleRewards = (): {
 
 			try {
 				const [polygonResponse, katanaResponse] = await Promise.all([
-					fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=${CHAIN_IDS.POLYGON}`),
-					fetch(`https://api.merkl.xyz/v4/users/${address}/rewards?chainId=${CHAIN_IDS.KATANA}`)
+					fetchMerklRewards(address, CHAIN_IDS.POLYGON),
+					fetchMerklRewards(address, CHAIN_IDS.KATANA)
 				]);
 
-				const polygonData: TAngleRewardsResponse = polygonResponse.ok ? await polygonResponse.json() : [];
-				const katanaData: TAngleRewardsResponse = katanaResponse.ok ? await katanaResponse.json() : [];
-
-				const preDepositRewards = polygonData.find(({chain}) => chain.id === CHAIN_IDS.POLYGON)?.rewards ?? [];
-				const currentRewards = katanaData.find(({chain}) => chain.id === CHAIN_IDS.KATANA)?.rewards ?? [];
+				const preDepositRewards =
+					polygonResponse.find(({chain}) => chain.id === CHAIN_IDS.POLYGON)?.rewards ?? [];
+				const currentRewards = katanaResponse.find(({chain}) => chain.id === CHAIN_IDS.KATANA)?.rewards ?? [];
 
 				updateCache({
 					preDepositRewards,
