@@ -57,3 +57,5 @@ bun x vitest
 - Scaffold the portal under `packages/<portal>` following existing examples.
 - Configure `package.json` scripts for the new portal (`dev:<portal>`, `build:<portal>`, etc.) in the repo root.
 - Ensure portal-specific env overrides are minimal and reference shared values by default.
+
+poc for bb
