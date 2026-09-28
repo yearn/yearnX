@@ -1,0 +1,70 @@
+name: Deploy to Vercel
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: vercel-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: write
+  id-token: write
+  pull-requests: write
+
+cache-mode: none
+
+jobs:
+  yearn-x-katana:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-katana
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-x-morpho:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-morpho
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-x-aerodrome:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-aerodrome
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-x-optimism:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-optimism
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-x-curve:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-curve
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-x-ajna:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-ajna
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-x-pendle:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-pendle
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-x-velodrome:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-velodrome
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-x-pooltogether:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-x-pooltogether
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
+  yearn-space:
+    uses: yearn/yearn-gha/.github/workflows/vercel-deploy.yml@17446bfb9e9c7911367379222fa5b7e3fff52fa3
+    with:
+      project: yearn-space
+      identity-id: ${{ github.event_name == 'pull_request' && vars.DOPPLER_PREVIEW_IDENTITY_ID || vars.DOPPLER_PRODUCTION_IDENTITY_ID }}
