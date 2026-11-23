@@ -5,9 +5,14 @@
 		"dev:ts": "tsc --watch",
 		"start": "tsc && next build && next start",
 		"build": "tsc && next build",
+		"build:cloudflare": "opennextjs-cloudflare build",
 		"export": "tsc && next build && next export -o ipfs"
 	},
 	"dependencies": {
 		"lib": "workspace:lib"
+	},
+	"devDependencies": {
+		"@opennextjs/cloudflare": "1.20.17",
+		"wrangler": "4.163.0"
 	}
 }
